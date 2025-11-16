@@ -1,10 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>축제 캘린더</title>
+    <!-- 공통 CSS 나중에 연결 예정 -->
+    <!-- <link rel="stylesheet" href="/css/common.css"> -->
 </head>
 <body>
+<header class="header">
+    <div class="logo">
+        <a href="/" th:href="@{/}">축제 추천은 ㅊㅊ</a>
+    </div>
+<!--    header here  -->
+<!--    <nav class="nav">-->
+<!--        <ul>-->
+<!--            <li><a th:href="@{/main}">홈</a></li>-->
+<!--            <li><a th:href="@{/map}">지도</a></li>-->
+<!--            <li><a th:href="@{/calendar}">캘린더</a></li>-->
+<!--            <li><a th:href="@{/mypage}">마이페이지</a></li>-->
+<!--        </ul>-->
+<!--    </nav>-->
+</header>
 
+<main class="calendar-page">
+    <!-- 좌측: 필터 영역 -->
+    <section class="calendar-filter">
+        <h2>필터</h2>
+        <form th:action="@{/calendar}" method="get">
+            <div class="filter-row">
+                <label for="region">지역</label>
+                <select id="region" name="region">
+                    <option value="" th:selected="${region == null or region == ''}">전체</option>
+                    <option value="서울" th:selected="${region == '서울'}">서울</option>
+                    <option value="경기" th:selected="${region == '경기'}">경기</option>
+                    <option value="부산" th:selected="${region == '부산'}">부산</option>
+                    <!-- TODO: 지역 리스트 동적 처리 -->
+                </select>
+            </div>
+
+            <div class="filter-row">
+                <label for="keyword">검색어</label>
+                <input type="text" id="keyword" name="keyword" placeholder="(옵션) 구현 시 사용" disabled>
+                <!-- 지금은 백엔드에 keyword 안 쓰니까 disabled -->
+            </div>
+
+            <div class="filter-row">
+                <button type="submit">필터 적용</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- 중앙: 캘린더 영역 -->
+    <section class="calendar-wrapper">
+        <!-- 월 이동 헤더 -->
+        <div class="calendar-header">
+            <a class="prev-month"
+               th:href="@{/calendar(year=${year}, month=${month - 1}, region=${region})}">&lt;</a>
+
+            <h2 class="current-month"
+                th:text="${year} + '년 ' + ${month} + '월'">2025년 11월</h2>
+
+            <a class="next-month"
+               th:href="@{/calendar(year=${year}, month=${month + 1}, region=${region})}">&gt;</a>
+        </div>
+
+        <!-- 요일 헤더 -->
+        <div class="calendar-weekdays">
+            <div>일</div>
+            <div>월</div>
+            <div>화</div>
+            <div>수</div>
+            <div>목</div>
+            <div>금</div>
+            <div>토</div>
+        </div>
+
+        <!-- 날짜 + 축제 리스트 -->
+        <!-- CSS에서 .calendar-days 에 display:grid; grid-template-columns:repeat(7,1fr) 주면 됨 -->
+        <div class="calendar-days">
+            <!-- calendarMap: Map<LocalDate, List<CalendarFestivalDto>> -->
+            <div class="day-cell"
+                 th:each="entry : ${calendarMap}">
+                <span class="date-number"
+                      th:text="${entry.key.dayOfMonth}">1</span>
+
+                <!-- 축제 리스트 -->
+                <ul class="festival-list">
+                    <li th:each="fest : ${entry.value}">
+                        <a th:href="@{'/festival/' + ${fest.festivalNo}}"
+                           th:text="${fest.title}">축제 제목</a>
+                        <!-- 필요하면 지역, 상태도 같이 표시 가능 -->
+                        <!-- <span th:text="'(' + ${fest.state} + ')'"></span> -->
+                    </li>
+
+                    <!-- 해당 날짜에 축제가 하나도 없으면 안내 문구 (선택사항) -->
+                    <li th:if="${#lists.isEmpty(entry.value)}" class="no-festival">
+                        등록된 축제가 없습니다.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 우측: 선택된 날짜/축제 상세 (지금은 더미, 나중에 JS나 링크로 구현) -->
+    <aside class="calendar-detail">
+        <h2>축제 상세</h2>
+        <div class="empty-state">
+            <p>날짜 또는 축제를 클릭하면 상세정보가 여기에 표시됩니다.<br>
+                (나중에 JS로 클릭 이벤트 붙여서 구현)</p>
+        </div>
+    </aside>
+</main>
+
+<footer class="footer">
+<!--    footer here     -->
+    <p>&copy; 2025 FestiPick. All rights reserved.</p>
+</footer>
 </body>
 </html>
