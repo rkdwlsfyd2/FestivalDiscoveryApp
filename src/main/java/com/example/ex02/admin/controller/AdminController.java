@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AdminController {
 
     private final AdminService adminService;
-
+    
     @GetMapping
     public String adminHome(Model model) {
         model.addAttribute("stats", adminService.getDashboard());
