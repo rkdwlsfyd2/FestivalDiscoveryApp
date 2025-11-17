@@ -2,6 +2,7 @@ package com.example.ex02.festival.service;
 
 import com.example.ex02.festival.dto.CalendarFestivalDto;
 import com.example.ex02.festival.entity.FestivalEntity;
+import com.example.ex02.festival.repository.FavoriteRepository;
 import com.example.ex02.festival.repository.FestivalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,10 @@ import java.util.*;
 public class CalendarService {
 
     private final FestivalRepository festivalRepository;
+    private final FavoriteRepository favoriteRepository;
 
     // year, month, region 기준으로 달력 데이터 조회
-    public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year, int month, String region) {
+    public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year, int month, String region,Long memberNo) {
 
         YearMonth ym = YearMonth.of(year, month);
         LocalDate startOfMonth = ym.atDay(1);
@@ -26,6 +28,13 @@ public class CalendarService {
 
         LocalDateTime startDateTime = startOfMonth.atStartOfDay();
         LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+
+        // 현재 로그인 사용자의 즐겨찾기 축제 id 목록
+        Set<Long> favoriteIdSet = Collections.emptySet();
+        if (memberNo != null) {
+            List<Long> favIds = favoriteRepository.findFestivalNosByMember(memberNo);
+            favoriteIdSet = new HashSet<>(favIds);
+        }
 
         // 1) 해당 월에 겹치는 축제 전체 조회
         List<FestivalEntity> festivals = festivalRepository.findFestivalsForMonth(
@@ -44,6 +53,11 @@ public class CalendarService {
         for (FestivalEntity festival : festivals) {
             CalendarFestivalDto dto = CalendarFestivalDto.from(festival);
 
+            // 즐겨찾기 표시
+            if (favoriteIdSet.contains(dto.getFestivalNo())) {
+                dto.setFavorite(true);
+            }
+
             LocalDate festivalStart = festival.getEventStartDate().toLocalDate();
             LocalDate festivalEnd = festival.getEventEndDate().toLocalDate();
 
@@ -60,12 +74,19 @@ public class CalendarService {
             }
         }
 
+        // 각 날짜별로 "즐겨찾기 먼저" 정렬
+        for (List<CalendarFestivalDto> list : calendarMap.values()) {
+            list.sort(Comparator
+                    .comparing(CalendarFestivalDto::isFavorite).reversed()
+                    .thenComparing(CalendarFestivalDto::getStartDate));
+        }
+
         return calendarMap;
     }
 
-    public List<List<CalendarFestivalDto>> buildCalendar(int year, int month, String region) {
+    public List<List<CalendarFestivalDto>> buildCalendar(int year, int month, String region,Long memberNo) {
 
-        Map<LocalDate, List<CalendarFestivalDto>> calendarMap = getCalendar(year, month, region);
+        Map<LocalDate, List<CalendarFestivalDto>> calendarMap = getCalendar(year, month, region,memberNo);
 
         // 2) 이번 달 1일과 요일 정보
         LocalDate firstDay = LocalDate.of(year, month, 1);
@@ -83,7 +104,7 @@ public class CalendarService {
         List<List<CalendarFestivalDto>> weeks = new ArrayList<>();
         LocalDate current = startDate;
 
-        for (int w = 0; w < 6; w++) {              // 보통 달력은 최대 6줄
+        for (int w = 0; w < 6; w++) {
             List<CalendarFestivalDto> week = new ArrayList<>();
             for (int d = 0; d < 7; d++) {
 
@@ -98,6 +119,7 @@ public class CalendarService {
                         .date(current)
                         .inMonth(inMonth)
                         .festivals(festivals)
+
                         .build();
 
                 week.add(dayDto);
@@ -108,6 +130,28 @@ public class CalendarService {
         }
 
         return weeks;
+    }
+
+    // 이 달 전체 기준 즐겨찾기된 축제 목록(중복 제거) – 켈린더 위에 표시용
+    public List<CalendarFestivalDto> getMonthlyFavorites(int year, int month,
+                                                         String region,
+                                                         Long memberNo) {
+        Map<LocalDate, List<CalendarFestivalDto>> map =
+                getCalendar(year, month, region, memberNo);
+
+        // flatten + 중복 제거
+        Map<Long, CalendarFestivalDto> unique = new LinkedHashMap<>();
+        for (List<CalendarFestivalDto> list : map.values()) {
+            for (CalendarFestivalDto dto : list) {
+                if (dto.isFavorite()) {
+                    unique.putIfAbsent(dto.getFestivalNo(), dto);
+                }
+            }
+        }
+
+        List<CalendarFestivalDto> result = new ArrayList<>(unique.values());
+        result.sort(Comparator.comparing(CalendarFestivalDto::getStartDate));
+        return result;
     }
 
 }

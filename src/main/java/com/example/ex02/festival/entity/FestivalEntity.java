@@ -45,7 +45,7 @@ public class FestivalEntity {
     @Column(name = "EVENT_ENDDATE")
     private LocalDateTime eventEndDate;
 
-    @Column(name = "PLAYTIME", length = 50)
+    @Column(name = "PLAYTIME", length = 200)
     private String playtime;
 
     @Column(name = "IS_ACTIVE",
