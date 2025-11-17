@@ -1,0 +1,70 @@
+/* Tailwind CSS 기본 지시문 (CDN 사용 시 불필요하지만, 빌드 시 필요) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 커스텀 유틸리티 클래스 */
+@layer utilities {
+    .text-h1 {
+        font-size: 40px;
+    }
+    .text-h3 {
+        font-size: 22px;
+    }
+    .text-body {
+        font-size: 16px;
+    }
+    .text-subtext {
+        font-size: 13px;
+    }
+    .bg-main {
+        background-color: #4A80FA;
+    }
+    .text-main {
+        color: #4A80FA;
+    }
+    .bg-sub-blue {
+        background-color: #E6E8F2;
+    }
+    .bg-gradient {
+        background: linear-gradient(to right, #6B96FC, #4A80FA);
+    }
+    .bg-sub-red {
+        background-color: #FF6A6B;
+    }
+    .text-foreground {
+        color: #FFFFFF;
+    }
+    .text-foregroundSub {
+        color: #6B96FC;
+    }
+}
+
+/* 기존 커스텀 스타일 */
+html {
+    position: relative;
+    min-height: 100%;
+    margin: 0;
+}
+body {
+    min-height: 100%;
+}
+.footer, .asdf{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 15px 0;
+    text-align: center;
+}
+.content, .qwert{
+    margin-bottom:100px;
+    margin-top: 50px;
+    margin-left: 100px;
+    margin-right: 100px;
+}
+#top{
+    width : 100%;
+    backgroundColor:cyan;
+}

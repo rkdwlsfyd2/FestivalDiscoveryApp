@@ -62,4 +62,52 @@ public class CalendarService {
 
         return calendarMap;
     }
+
+    public List<List<CalendarFestivalDto>> buildCalendar(int year, int month, String region) {
+
+        Map<LocalDate, List<CalendarFestivalDto>> calendarMap = getCalendar(year, month, region);
+
+        // 2) 이번 달 1일과 요일 정보
+        LocalDate firstDay = LocalDate.of(year, month, 1);
+
+        // 1(월)~7(일)
+        int dayOfWeekValue = firstDay.getDayOfWeek().getValue();
+
+        // 달력 시작을 "일요일" 기준으로 맞추기 위해 며칠을 빼야 하는지
+        int offset = dayOfWeekValue % 7;   // 월(1)→1, 화(2)→2, ..., 일(7)→0
+
+        // 3) 실제 달력에서 맨 첫 칸에 들어갈 날짜 (이전 달 포함)
+        LocalDate startDate = firstDay.minusDays(offset);
+
+        // 4) 6주 × 7일 그리드 생성
+        List<List<CalendarFestivalDto>> weeks = new ArrayList<>();
+        LocalDate current = startDate;
+
+        for (int w = 0; w < 6; w++) {              // 보통 달력은 최대 6줄
+            List<CalendarFestivalDto> week = new ArrayList<>();
+            for (int d = 0; d < 7; d++) {
+
+                boolean inMonth = (current.getMonthValue() == month);
+
+                // 이번 달 날짜면 calendarMap에서 축제 가져오고, 아니면 빈 리스트
+                List<CalendarFestivalDto> festivals =
+                        inMonth ? calendarMap.getOrDefault(current, Collections.emptyList())
+                                : Collections.emptyList();
+
+                CalendarFestivalDto dayDto = CalendarFestivalDto.builder()
+                        .date(current)
+                        .inMonth(inMonth)
+                        .festivals(festivals)
+                        .build();
+
+                week.add(dayDto);
+//                System.out.println("day added" + dayDto);
+                current = current.plusDays(1);
+            }
+            weeks.add(week);
+        }
+
+        return weeks;
+    }
+
 }

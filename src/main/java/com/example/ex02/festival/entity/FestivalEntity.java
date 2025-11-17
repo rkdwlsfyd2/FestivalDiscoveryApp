@@ -48,7 +48,9 @@ public class FestivalEntity {
     @Column(name = "PLAYTIME", length = 50)
     private String playtime;
 
-    @Column(name = "IS_ACTIVE", length = 1)
+    @Column(name = "IS_ACTIVE",
+            columnDefinition = "char(1)",
+            nullable = false)
     private String isActive; // 'Y', 'N'
 
     @Column(name = "STATE", length = 50, nullable = false)
