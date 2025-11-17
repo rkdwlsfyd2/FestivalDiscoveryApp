@@ -41,28 +41,17 @@
 }
 
 /* 기존 커스텀 스타일 */
-html {
-    position: relative;
-    min-height: 100%;
-    margin: 0;
+html, body {
+    height: 100%;
 }
+
 body {
-    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
-.footer, .asdf{
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    padding: 15px 0;
-    text-align: center;
-}
-.content, .qwert{
-    margin-bottom:100px;
-    margin-top: 50px;
-    margin-left: 100px;
-    margin-right: 100px;
+
+footer {
+    margin-top: auto;
 }
 #top{
     width : 100%;

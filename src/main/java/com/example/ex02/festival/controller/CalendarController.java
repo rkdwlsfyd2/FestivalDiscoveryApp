@@ -32,10 +32,10 @@ public class CalendarController {
         int targetMonth = (month != null) ? month : today.getMonthValue();
 
         // 세션에서 로그인한 회원 번호 가져오기 (로그인 안 했으면 null)
-        Long memberNo = (Long) session.getAttribute("loginUserNo");
+        Long userNo = (Long) session.getAttribute("loginUserNo");
 
         Map<LocalDate, List<CalendarFestivalDto>> calendarMap =
-                calendarService.getCalendar(targetYear, targetMonth, region, memberNo);
+                calendarService.getCalendar(targetYear, targetMonth, region, userNo);
 
         model.addAttribute("calendarMap", calendarMap);
         model.addAttribute("year", targetYear);
@@ -57,12 +57,13 @@ public class CalendarController {
         model.addAttribute("regions", regions);
 
         // 주(week) 단위 달력 데이터
-        List<List<CalendarFestivalDto>> weeks = calendarService.buildCalendar(targetYear, targetMonth, region, memberNo);
+        List<List<CalendarFestivalDto>> weeks = calendarService.buildCalendar(targetYear, targetMonth, region, userNo);
         model.addAttribute("weeks", weeks);
 
         List<CalendarFestivalDto> favoriteFestivals =
-                calendarService.getMonthlyFavorites(targetYear, targetMonth, region, memberNo);
+                calendarService.getMonthlyFavorites(targetYear, targetMonth, region, userNo);
         if(favoriteFestivals == null){
+            System.out.println("null favorites");
             favoriteFestivals = Collections.emptyList();
         }
         model.addAttribute("favoriteFestivals", favoriteFestivals);

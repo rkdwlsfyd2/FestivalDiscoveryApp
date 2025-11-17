@@ -38,7 +38,7 @@ public class CalendarFestivalDto {
                 endDate.getMonthValue() + "." + endDate.getDayOfMonth();
     }
     
-    public static CalendarFestivalDto from(FestivalEntity entity) {
+    public static CalendarFestivalDto from(FestivalEntity entity, boolean favorite) {
         return CalendarFestivalDto.builder()
                 .festivalNo(entity.getFestivalNo())
                 .title(entity.getTitle())
@@ -47,6 +47,7 @@ public class CalendarFestivalDto {
                 .endDate(entity.getEventEndDate().toLocalDate())
                 .playtime(entity.getPlaytime())
                 .state(entity.getState())
+                .favorite(favorite)
                 .build();
     }
 }
