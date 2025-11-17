@@ -67,28 +67,6 @@
     <div th:if="${#lists.size(favoriteFestivals) > 0}"
          class="mt-6 bg-white rounded-2xl shadow-md p-4">
 
-        <div class="flex items-center justify-between mb-2">
-            <span class="font-semibold text-main">이 달의 내 즐겨찾기</span>
-            <a href="javascript:void(0)" id="favMoreToggle"
-               class="text-xs text-gray-500 underline">
-                <span id="favMoreLabel">전체 보기</span>
-            </a>
-        </div>
-
-        <!-- 상단 강조 (3개만 표기) -->
-        <div class="flex flex-wrap gap-2 text-sm text-gray-700">
-            <span th:each="f,stat : ${favoriteFestivals}"
-                  th:if="${stat.index} &lt; 3"
-                  class="px-2 py-1 bg-sub-blue bg-opacity-20 rounded-full">
-                <span th:text="${f.title}">축제명</span>
-            </span>
-
-            <span th:if="${#lists.size(favoriteFestivals) > 3}"
-                  class="text-xs text-gray-500">
-                +<span th:text="${#lists.size(favoriteFestivals) - 3}"></span>개 더보기
-            </span>
-        </div>
-
         <!-- 전체 즐겨찾기 리스트 (숨김 → 토글로 표시) -->
         <div id="favFullList" class="mt-3 hidden divide-y divide-gray-100">
             <div th:each="f : ${favoriteFestivals}"
@@ -142,6 +120,21 @@
                               th:text="${day.date.dayOfMonth}">1</span>
                     </div>
 
+                    <!-- 날짜별 즐겨찾기 목록: day.festivals 중 favorite == true인 항목만 -->
+                    <div class="mt-1 flex flex-wrap gap-1"
+                         th:if="${#lists.size(day.festivals.?[favorite]) > 0}">
+
+                        <a th:each="f : ${day.festivals.?[favorite]}"
+                           th:href="@{/festival/detail(festivalNo=${f.festivalNo})}"
+                           th:text="${f.title}"
+                           class="text-[10px] px-2 py-[1px] rounded-full max-w-[120px] truncate
+              bg-yellow-100 border border-yellow-300 text-yellow-700
+              hover:bg-yellow-200">
+                        </a>
+
+                    </div>
+
+
                     <!-- 축제 개수 / 클릭 텍스트 -->
                     <div class="mt-2">
                         <span th:if="${#lists.size(day.festivals) > 0}"
@@ -153,7 +146,6 @@
 
                         <span th:if="${#lists.size(day.festivals) == 0}"
                               class="text-[11px] text-gray-400">
-                            축제 없음
                         </span>
                     </div>
 
@@ -209,11 +201,11 @@
 
                             <!-- 태그 이미지 삽입-->
                             <!--                            <div class="flex gap-1 ml-2">-->
-<!--                                <img th:each="tagImg : ${festival.tagImageUrls}"-->
-<!--                                     th:src="${tagImg}"-->
-<!--                                     alt="태그"-->
-<!--                                     class="w-5 h-5 rounded-full object-cover border border-gray-200">-->
-<!--                            </div>-->
+                            <!--                                <img th:each="tagImg : ${festival.tagImageUrls}"-->
+                            <!--                                     th:src="${tagImg}"-->
+                            <!--                                     alt="태그"-->
+                            <!--                                     class="w-5 h-5 rounded-full object-cover border border-gray-200">-->
+                            <!--                            </div>-->
                         </div>
                     </div>
 
