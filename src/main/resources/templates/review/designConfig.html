@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<div layout:fragment="content">
+    <div class="container mx-auto px-4 py-8 mb-8">
+        <!-- 페이지 제목 -->
+        <div class="mb-8">
+            <h1 class="text-h1 font-bold text-main mb-2">Tailwind CSS 설정 확인 페이지</h1>
+            <p class="text-body text-gray-600">Tailwind CSS와 mylayout.html 설정이 올바르게 작동하는지 확인합니다.</p>
+        </div>
+
+        <!-- 커스텀 색상 테스트 -->
+        <div class="mb-8">
+            <h2 class="text-h3 font-semibold mb-4 text-main">커스텀 색상 테스트</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-main text-foreground p-6 rounded-lg shadow-md">
+                    <p class="font-semibold mb-2">Main Color</p>
+                    <p class="text-sm">bg-main (#4A80FA)</p>
+                </div>
+                <div class="bg-sub-blue text-foreground p-6 rounded-lg shadow-md">
+                    <p class="font-semibold mb-2">Sub Blue</p>
+                    <p class="text-sm">bg-sub-blue (#6B96FC)</p>
+                </div>
+                <div class="bg-sub-red text-foreground p-6 rounded-lg shadow-md">
+                    <p class="font-semibold mb-2">Sub Red</p>
+                    <p class="text-sm">bg-sub-red (#FF6A6B)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 커스텀 폰트 크기 테스트 -->
+        <div class="mb-8">
+            <h2 class="text-h3 font-semibold mb-4 text-main">커스텀 폰트 크기 테스트</h2>
+            <div class="bg-gray-50 p-6 rounded-lg space-y-4">
+                <p class="text-h1 font-bold">H1 크기 (40px)</p>
+                <p class="text-h3 font-semibold">H3 크기 (22px)</p>
+                <p class="text-body">Body 크기 (16px)</p>
+                <p class="text-subtext text-gray-500">Subtext 크기 (13px)</p>
+            </div>
+        </div>
+
+        <!-- 커스텀 폰트 패밀리 테스트 -->
+        <div class="mb-8">
+            <h2 class="text-h3 font-semibold mb-4 text-main">커스텀 폰트 패밀리 테스트</h2>
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <p class="font-suit text-body mb-2">Suit 폰트 패밀리 적용됨</p>
+                <p class="text-body">기본 폰트 (Suit 미적용)</p>
+            </div>
+        </div>
+
+        <!-- 기본 Tailwind 클래스 테스트 -->
+        <div class="mb-8">
+            <h2 class="text-h3 font-semibold mb-4 text-main">기본 Tailwind 클래스 테스트</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white border-2 border-[#4A80FA] p-4 rounded-lg shadow-lg transition-shadow">
+                    <p class="font-semibold mb-2">Flexbox</p>
+                    <div class="flex gap-2">
+                        <span class="bg-main text-white px-3 py-1 rounded">1</span>
+                        <span class="bg-sub-blue text-white px-3 py-1 rounded">2</span>
+                        <span class="bg-sub-red text-white px-3 py-1 rounded">3</span>
+                    </div>
+                </div>
+                <div class="bg-white border-2 border-[#4A80FA] p-4 rounded-lg shadow-lg transition-shadow">
+                    <p class="font-semibold mb-2">Spacing</p>
+                    <div class="space-y-2">
+                        <div class="bg-main h-2 rounded"></div>
+                        <div class="bg-sub-blue h-2 rounded"></div>
+                        <div class="bg-sub-red h-2 rounded"></div>
+                    </div>
+                </div>
+                <div class="bg-white border-2 border-[#4A80FA] p-4 rounded-lg shadow-lg transition-shadow">
+                    <p class="font-semibold mb-2">Border Radius</p>
+                    <div class="flex gap-2">
+                        <div class="w-12 h-12 bg-main rounded"></div>
+                        <div class="w-12 h-12 bg-sub-blue rounded-lg"></div>
+                        <div class="w-12 h-12 bg-sub-red rounded-full"></div>
+                    </div>
+                </div>
+                <div class="bg-white border-2 border-[#4A80FA] p-4 rounded-lg shadow-lg transition-shadow">
+                    <p class="font-semibold mb-2">Shadow</p>
+                    <div class="bg-main text-white p-3 rounded shadow-md">
+                        Shadow 적용
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 레이아웃 확인 -->
+        <div class="mb-8">
+            <h2 class="text-h3 font-semibold mb-4 text-main">레이아웃 확인</h2>
+            <div class="bg-[#E6E8F2] text-[#4A80FA] p-6 rounded-lg shadow-xl">
+                <p class="text-body font-semibold mb-2">✓ 레이아웃이 올바르게 적용되었습니다!</p>
+                <ul class="list-disc list-inside text-subtext space-y-1 opacity-90">
+                    <li>Header가 상단에 표시됩니다</li>
+                    <li>Footer가 하단에 표시됩니다</li>
+                    <li>Tailwind CSS가 정상적으로 로드되었습니다</li>
+                    <li>커스텀 색상과 폰트가 적용되었습니다</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 버튼 테스트 -->
+        <div class="mb-8">
+            <h2 class="text-h3 font-semibold mb-4 text-main">버튼 스타일 테스트</h2>
+            <div class="flex flex-wrap gap-4">
+                <button class="bg-main text-foreground px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                    Main Button
+                </button>
+                <button class="bg-sub-blue text-foreground px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                    Sub Blue Button
+                </button>
+                <button class="bg-sub-red text-foreground px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                    Sub Red Button
+                </button>
+                <button class="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">
+                    Gray Button
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

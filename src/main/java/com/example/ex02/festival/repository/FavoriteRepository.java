@@ -16,4 +16,5 @@ public interface FavoriteRepository extends JpaRepository<FavoriteEntity, Long> 
     Optional<FavoriteEntity> findByMemberAndFestival(MemberEntity member, FestivalEntity festival);
 
     boolean existsByMemberAndFestival(MemberEntity member, FestivalEntity festival);
+    List<FavoriteEntity> findByMember_UserNo(Long userNo);
 }

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<div layout:fragment="content" class="bg-gray-50 min-h-screen">
+
+    <!-- 전체 영역 -->
+    <div class="flex max-w-6xl mx-auto py-10">
+
+        <!-- 사이드바 -->
+        <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8">
+            <h2 class="text-xl font-bold mb-6">마이페이지</h2>
+
+            <nav class="flex flex-col space-y-3">
+                <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gray-100">프로필 확인</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gray-100">회원수정 및 회원탈퇴</a>
+                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gray-100">축제 즐겨찾기</a>
+                <a href="/mypage/reviews" class="px-3 py-2 rounded-md bg-gray-200 font-semibold">내 리뷰 관리</a>
+            </nav>
+        </aside>
+
+        <!-- 우측 본문 -->
+        <main class="flex-1">
+
+            <!-- 흰색 카드 박스 -->
+            <div class="bg-white shadow-md rounded-2xl p-10">
+
+                <h2 class="text-2xl font-bold mb-10">리뷰 수정</h2>
+
+                <form action="/mypage/reviews/update" method="post" class="space-y-8">
+
+                    <!-- 숨겨진 리뷰 번호 -->
+                    <input type="hidden" name="reviewNo" th:value="${review.reviewNo}">
+
+                    <!-- 축제명 -->
+                    <div>
+                        <label class="block font-semibold mb-2">축제명</label>
+                        <input type="text" th:value="${review.festival.title}" disabled
+                               class="w-full border rounded-md p-3 bg-gray-100">
+                    </div>
+
+                    <!-- 평점 -->
+                    <div>
+                        <label class="block font-semibold mb-2">평점</label>
+                        <select name="rating"
+                                class="w-full border rounded-md p-3 focus:ring-main focus:border-main">
+                            <option th:selected="${review.rating == 1}" value="1">1</option>
+                            <option th:selected="${review.rating == 2}" value="2">2</option>
+                            <option th:selected="${review.rating == 3}" value="3">3</option>
+                            <option th:selected="${review.rating == 4}" value="4">4</option>
+                            <option th:selected="${review.rating == 5}" value="5">5</option>
+                        </select>
+                    </div>
+
+                    <!-- 리뷰 내용 -->
+                    <div>
+                        <label class="block font-semibold mb-2">리뷰 내용</label>
+                        <textarea name="content" th:text="${review.content}"
+                                  class="w-full border rounded-md p-3 h-40 focus:ring-main focus:border-main"></textarea>
+                    </div>
+
+                    <!-- 수정 버튼 -->
+                    <div>
+                        <button type="submit"
+                                class="bg-main text-white px-6 py-3 rounded-md shadow hover:bg-foregroundSub transition">
+                            수정 완료
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </main>
+
+    </div>
+
+</div>
+</html>

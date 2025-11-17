@@ -39,7 +39,7 @@ public class FavoriteEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "FESTIVAL_NO", nullable = false)
     private FestivalEntity festival;
-
+    private String imageUrl;
     @Column(name = "FAVORITE_DATE")
     private LocalDateTime favoriteDate;
 }

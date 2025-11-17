@@ -3,7 +3,7 @@ package com.example.ex02.member.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "MEMBER")
@@ -24,11 +24,9 @@ public class MemberEntity {
     @Column(name = "USER_NO")
     private Long userNo;
 
-    // ✔ 아이디: 영문+숫자 5~20자 (validation은 DTO에서 처리)
-    @Column(name = "USER_ID", length = 20, nullable = false, unique = true)
+    @Column(name = "USER_ID", length = 50, nullable = false, unique = true)
     private String userId;
 
-    // ✔ 비밀번호 해시값이 들어가므로 충분한 길이 확보
     @Column(name = "PASSWORD", length = 255, nullable = false)
     private String password;
 
@@ -42,24 +40,27 @@ public class MemberEntity {
     private String phone;
 
     @Column(name = "GENDER", length = 1)
-    private String gender;   // M / F
+    private String gender;   // 'M' or 'F'
 
     @Column(name = "BIRTH_DATE")
-    private LocalDate birthDate;
+    private LocalDateTime birthDate;
 
     @Column(name = "JOIN_DATE")
-    private LocalDate joinDate;
+    private LocalDateTime joinDate;
 
     @Column(name = "ROLE", length = 20)
-    private String role;     // user / admin
+    private String role;     // 'user', 'admin'
 
-    @Column(name = "IS_ACTIVE", length = 1)
-    private String isActive; // Y / N
+    @Column(name = "is_active")
+    private String isActive;
+    public void setIsActive(boolean active) {
+        this.isActive = active ? "Y" : "N";
+    }
+
 
     @Column(name = "WITHDRAW_DATE")
-    private LocalDate withdrawDate;
+    private LocalDateTime withdrawDate;
 
-    // ✔ ‘자연/야간/체험…’ 등 preset 태그라 길이 100이면 충분
     @Column(name = "FAVORITE_TAG", length = 100)
     private String favoriteTag;
 }

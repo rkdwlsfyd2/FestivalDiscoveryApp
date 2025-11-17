@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<div layout:fragment="content" class="bg-gray-50 min-h-screen">
+
+    <!-- 전체 영역 -->
+    <div class="flex max-w-6xl mx-auto py-10">
+
+        <!-- 사이드바 -->
+        <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8">
+            <h2 class="text-xl font-bold mb-6">마이페이지</h2>
+
+            <nav class="flex flex-col space-y-3">
+                <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gray-100">프로필 확인</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md bg-gray-200 font-semibold">
+                    회원수정 및 회원탈퇴
+                </a>
+                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gray-100">축제 즐겨찾기</a>
+                <a href="/mypage/reviews" class="px-3 py-2 rounded-md hover:bg-gray-100">내 리뷰 관리</a>
+            </nav>
+        </aside>
+
+        <!-- 우측 본문 (프로필 페이지와 동일 스타일 적용) -->
+        <main class="flex-1">
+
+            <!-- 흰색 카드 박스 (프로필 화면과 동일) -->
+            <div class="bg-white shadow-md rounded-2xl p-10">
+
+                <h2 class="text-2xl font-bold mb-10">회원 정보 수정</h2>
+
+                <!-- 입력 폼 -->
+                <form th:action="@{/mypage/account/update}" method="post" class="space-y-8">
+
+                    <!-- 이름 / 이메일 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block font-semibold mb-2">이름</label>
+                            <input type="text" name="name" th:value="${member.name}"
+                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold mb-2">이메일</label>
+                            <input type="text" name="email" th:value="${member.email}"
+                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                        </div>
+                    </div>
+
+                    <!-- 전화번호 / 비밀번호 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block font-semibold mb-2">전화번호</label>
+                            <input type="text" name="phone" th:value="${member.phone}"
+                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold mb-2">비밀번호 변경</label>
+                            <input type="password" name="password" placeholder="변경 시 입력"
+                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                        </div>
+                    </div>
+
+                    <!-- 정보 수정 버튼 -->
+                    <div>
+                        <button type="submit"
+                                class="bg-main text-white px-6 py-3 rounded-md shadow hover:bg-foregroundSub transition">
+                            정보 수정하기
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 회원탈퇴 버튼 -->
+                <div class="mt-10">
+                    <form action="/mypage/withdraw" method="post">
+                        <button type="submit"
+                                class="bg-red-500 text-white px-6 py-3 rounded-md shadow hover:bg-red-600 transition">
+                            회원 탈퇴
+                        </button>
+                    </form>
+                </div>
+
+            </div> <!-- 카드 박스 끝 -->
+        </main>
+    </div>
+
+</div>
+</html>
