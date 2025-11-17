@@ -63,6 +63,58 @@
         </div>
     </div>
 
+    <!-- 2. 이 달의 즐겨찾기 요약 박스 -->
+    <div th:if="${#lists.size(favoriteFestivals) > 0}"
+         class="mt-6 bg-white rounded-2xl shadow-md p-4">
+
+        <div class="flex items-center justify-between mb-2">
+            <span class="font-semibold text-main">이 달의 내 즐겨찾기</span>
+            <a href="javascript:void(0)" id="favMoreToggle"
+               class="text-xs text-gray-500 underline">
+                <span id="favMoreLabel">전체 보기</span>
+            </a>
+        </div>
+
+        <!-- 상단 강조 (3개만 표기) -->
+        <div class="flex flex-wrap gap-2 text-sm text-gray-700">
+            <span th:each="f,stat : ${favoriteFestivals}"
+                  th:if="${stat.index} &lt; 3"
+                  class="px-2 py-1 bg-sub-blue bg-opacity-20 rounded-full">
+                <span th:text="${f.title}">축제명</span>
+            </span>
+
+            <span th:if="${#lists.size(favoriteFestivals) > 3}"
+                  class="text-xs text-gray-500">
+                +<span th:text="${#lists.size(favoriteFestivals) - 3}"></span>개 더보기
+            </span>
+        </div>
+
+        <!-- 전체 즐겨찾기 리스트 (숨김 → 토글로 표시) -->
+        <div id="favFullList" class="mt-3 hidden divide-y divide-gray-100">
+            <div th:each="f : ${favoriteFestivals}"
+                 class="py-2 flex items-center justify-between">
+
+                <div>
+                    <div class="text-sm font-medium" th:text="${f.title}"></div>
+                    <div class="text-[11px] text-gray-500" th:text="${f.periodText}"></div>
+                </div>
+
+                <!-- 즐겨찾기 해제 버튼 -->
+                <form method="post" th:action="@{/favorite/toggle}">
+                    <input type="hidden" name="festivalNo" th:value="${f.festivalNo}">
+                    <input type="hidden" name="redirectUrl"
+                           th:value="@{/calendar(year=${year}, month=${month}, region=${selectedRegion})}">
+                    <button type="submit"
+                            class="text-xs px-2 py-1 border rounded-lg text-red-500 border-red-300">
+                        즐겨찾기 해제
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+
     <!-- 달력 그리드 -->
     <div class="mt-6 bg-white rounded-2xl shadow-md overflow-hidden">
         <!-- 요일 헤더 -->
@@ -105,6 +157,46 @@
                         </span>
                     </div>
 
+                    <!-- 4. 날짜별 축제 상세 (숨겨진 영역) -->
+                    <div th:id="'day-' + ${day.date}" class="hidden">
+                        <div th:each="festival : ${day.festivals}"
+                             class="flex items-center justify-between py-1">
+
+                            <div>
+                                <a th:href="@{/festival/detail(festivalNo=${festival.festivalNo})}"
+                                   class="text-sm font-medium hover:underline"
+                                   th:text="${festival.title}"></a>
+
+                                <!-- 기간 표시 --> <!-- //! NEW -->
+                                <div class="text-[11px] text-gray-500"
+                                     th:text="${festival.periodText}"></div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <!-- 태그 이미지 --> <!-- //! NEW -->
+                                <div class="flex gap-1">
+                                    <img th:each="tagImg : ${festival.tagImageUrls}"
+                                         th:src="${tagImg}"
+                                         class="w-5 h-5 rounded-full border border-gray-300 object-cover">
+                                </div>
+
+                                <!-- 즐겨찾기 토글 버튼 --> <!-- //! NEW -->
+                                <form method="post" th:action="@{/favorite/toggle}">
+                                    <input type="hidden" name="festivalNo"
+                                           th:value="${festival.festivalNo}">
+                                    <input type="hidden" name="redirectUrl"
+                                           th:value="@{/calendar(year=${year}, month=${month}, region=${selectedRegion})}">
+
+                                    <button type="submit"
+                                            class="text-[11px] px-2 py-1 rounded-lg border"
+                                            th:classappend="${festival.favorite} ? ' bg-yellow-300 border-yellow-400' : ' border-gray-300'"
+                                            th:text="${festival.favorite} ? '즐겨찾기 해제' : '즐겨찾기 추가'">
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 이 날짜의 축제 목록(숨김; 클릭 시 아래 상세 패널에 복사해서 사용) -->
                     <div th:id="'day-' + ${day.date}" class="hidden">
                         <div th:each="festival : ${day.festivals}"
@@ -114,7 +206,9 @@
                                th:text="${festival.title}">
                                 축제 이름
                             </a>
-<!--                            <div class="flex gap-1 ml-2">-->
+
+                            <!-- 태그 이미지 삽입-->
+                            <!--                            <div class="flex gap-1 ml-2">-->
 <!--                                <img th:each="tagImg : ${festival.tagImageUrls}"-->
 <!--                                     th:src="${tagImg}"-->
 <!--                                     alt="태그"-->
@@ -148,39 +242,49 @@
 
 </div>
 
-<!-- 스크립트 -->
+<!-- 5. JS (토글, 상세 패널 등) -->
 <th:block layout:fragment="script">
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const detailPanel = document.getElementById('festivalDetail');
-            const detailContent = document.getElementById('detailContent');
-            const detailDateText = document.getElementById('detailDateText');
-            const closeBtn = document.getElementById('detailCloseBtn');
 
-            // 날짜별 "n개의 축제 존재함" 클릭 이벤트
-            document.querySelectorAll('.festival-toggle').forEach(function (btn) {
+            // ▶ 날짜 클릭 시 상세 목록 출력
+            document.querySelectorAll('.festival-toggle').forEach(btn => {
                 btn.addEventListener('click', function () {
-                    const dayId = this.dataset.dayId;
-                    const src = document.getElementById(dayId);
+                    const targetId = this.dataset.dayId;
+                    const src = document.getElementById(targetId);
                     if (!src) return;
 
-                    // 해당 날짜의 숨겨진 목록을 상세 패널에 복사
-                    detailContent.innerHTML = src.innerHTML;
+                    document.getElementById('detailContent').innerHTML = src.innerHTML;
+                    document.getElementById('detailDateText').textContent =
+                        this.dataset.date + ' 진행 축제 목록';
 
-                    const dateStr = this.dataset.date; // yyyy-MM-dd 형태
-                    detailDateText.textContent = dateStr + ' 진행 축제 목록';
-
-                    detailPanel.classList.remove('hidden');
-                    detailPanel.scrollIntoView({behavior: 'smooth', block: 'start'});
+                    document.getElementById('festivalDetail').classList.remove('hidden');
+                    document.getElementById('festivalDetail')
+                        .scrollIntoView({behavior: 'smooth', block: 'start'});
                 });
             });
 
-            // 닫기 버튼
+            // ▶ 상세 패널 닫기
+            const closeBtn = document.getElementById('detailCloseBtn');
             if (closeBtn) {
-                closeBtn.addEventListener('click', function () {
-                    detailPanel.classList.add('hidden');
+                closeBtn.addEventListener('click', () => {
+                    document.getElementById('festivalDetail').classList.add('hidden');
                 });
             }
+
+            // ▶ 즐겨찾기 더보기 토글
+            const favToggle = document.getElementById('favMoreToggle');
+            const favList = document.getElementById('favFullList');
+            const favLabel = document.getElementById('favMoreLabel');
+
+            if (favToggle && favList) {
+                favToggle.addEventListener('click', () => {
+                    const isHidden = favList.classList.contains('hidden');
+                    favList.classList.toggle('hidden');
+                    favLabel.textContent = isHidden ? '접기' : '전체 보기';
+                });
+            }
+
         });
     </script>
 </th:block>

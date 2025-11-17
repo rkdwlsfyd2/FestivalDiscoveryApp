@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>테스트 로그인</title>
+</head>
+<body>
+<h1>세션 테스트용 로그인</h1>
+
+<form th:action="@{/test-login}" method="post">
+    <div>
+        <label>아이디:
+            <input type="text" name="userId">
+        </label>
+    </div>
+    <div>
+        <label>비밀번호:
+            <input type="password" name="Password">
+        </label>
+    </div>
+
+    <div th:if="${loginError}" th:text="${loginError}" style="color:red;"></div>
+
+    <button type="submit">로그인</button>
+</form>
+
+<hr>
+
+<a th:href="@{/calendar}">캘린더로 가기</a> |
+<a th:href="@{/test-logout}">로그아웃</a>
+
+</body>
+</html>

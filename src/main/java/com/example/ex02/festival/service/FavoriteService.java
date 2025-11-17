@@ -19,16 +19,16 @@ public class FavoriteService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void toggleFavorite(Long memberNo, Long festivalId) {
+    public void toggleFavorite(Long memberNo, Long festivalNo) {
         Optional<FavoriteEntity> opt =
-                favoriteRepository.findByMemberUserNoAndFestivalFestivalNo(memberNo, festivalId);
+                favoriteRepository.findByMemberUserNoAndFestivalFestivalNo(memberNo, festivalNo);
 
         if (opt.isPresent()) {
             favoriteRepository.delete(opt.get()); // 즐겨찾기 해제
         } else {
             FavoriteEntity fav = new FavoriteEntity();
             fav.setMember(memberRepository.getReferenceById(memberNo));
-            fav.setFestival(festivalRepository.getReferenceById(festivalId));
+            fav.setFestival(festivalRepository.getReferenceById(festivalNo));
             favoriteRepository.save(fav);         // 즐겨찾기 추가
         }
     }

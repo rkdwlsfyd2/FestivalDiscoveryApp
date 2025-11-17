@@ -16,7 +16,7 @@ public class FavoriteController {
     private final FavoriteService favoriteService;
 
     @PostMapping("/toggle")
-    public String toggleFavorite(@RequestParam Long festivalId,
+    public String toggleFavorite(@RequestParam Long festivalNo,
                                  @RequestParam String redirectUrl,
                                  HttpSession session) {
 
@@ -25,11 +25,11 @@ public class FavoriteController {
 
         // 로그인 안 되어 있으면 로그인 페이지로
         if (memberNo == null) {
-            return "redirect:/login";   // 실제 로그인 URL에 맞게 수정
+            return "redirect:/test-login";   // 실제 로그인 URL에 맞게 수정
         }
 
         // 즐겨찾기 토글
-        favoriteService.toggleFavorite(memberNo, festivalId);
+        favoriteService.toggleFavorite(memberNo, festivalNo);
 
         // 다시 달력(or 원래 페이지)으로 리다이렉트
         return "redirect:" + redirectUrl;

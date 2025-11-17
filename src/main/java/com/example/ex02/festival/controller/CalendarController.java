@@ -4,13 +4,13 @@ import com.example.ex02.festival.dto.CalendarFestivalDto;
 import com.example.ex02.festival.service.CalendarService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +59,13 @@ public class CalendarController {
         // 주(week) 단위 달력 데이터
         List<List<CalendarFestivalDto>> weeks = calendarService.buildCalendar(targetYear, targetMonth, region, memberNo);
         model.addAttribute("weeks", weeks);
+
+        List<CalendarFestivalDto> favoriteFestivals =
+                calendarService.getMonthlyFavorites(targetYear, targetMonth, region, memberNo);
+        if(favoriteFestivals == null){
+            favoriteFestivals = Collections.emptyList();
+        }
+        model.addAttribute("favoriteFestivals", favoriteFestivals);
 
         return "festival/calendar";
     }
