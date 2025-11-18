@@ -1,105 +1,101 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
 </head>
 <body>
+    <!-- 축제 목록 표시 영역 (Thymeleaf fragment) -->
+    <div th:fragment="festivalList">
+        <div class="w-full h-full">
+            <div id="festivalListContainer" class="mb-8 overflow-y-auto overflow-x-hidden"
+                style="height: 450px; max-height: 500px; box-sizing: border-box;">
+                <div class="festival-items space-y-4 pr-2">
+                    <!-- 실제 데이터로 축제 카드들 생성 -->
+                    <div th:if="${festivalList == null or festivalList.empty}" class="text-center text-gray-500 py-8">
+                        <p>등록된 축제가 없습니다.</p>
+                    </div>
+                    <div th:each="festival : ${festivalList.content}"
+                        class="festival-card bg-white rounded-lg p-4 cursor-pointer border-l-4 border-main"
+                        th:data-lat="${festival.mapy}" th:data-lng="${festival.mapx}">
+                        
+                        <!-- 축제 이미지 표시 : 축제 이미지가 
+                         3장있으면 두번째 이미지(포스터)를 표시.
+                         없으면 첫번째 이미지를 표시. -->
+                        <img th:src="${festival.festivalImages.size() > 1 
+                            ? festival.festivalImages[1].imageUrl 
+                            : festival.festivalImages[0].imageUrl}" 
+                            class="w-full h-36 object-cover rounded-lg mb-3" />
 
-<!-- 축제 목록 표시 영역 (Thymeleaf fragment) -->
-<div th:fragment="festivalList">
-    <div class="w-full h-full">
-        <h1 class="text-h3 font-bold text-main mb-4">축제 목록</h1>
-        
-        <!-- 검색창 -->
-        <div class="mb-4">
-            <div class="flex gap-3">
-                <input 
-                    type="text"
-                    id="keywordInput"
-                    placeholder="축제명을 검색하세요..."
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-main focus:border-transparent"
-                    th:value="${keyword}">
-                <button 
-                    type="button" 
-                    id="searchBtn"
-                    class="px-4 py-2 bg-sub-red text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1 whitespace-nowrap">
-                    <i class="fas fa-search"></i>
-                    <span>검색</span>
-                </button>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2" th:text="${festival.title}">축제 제목</h3>
+
+                        <p class="text-sm text-gray-600 mb-2" th:if="${festival.addr}">
+                            <i class="fas fa-map-marker-alt"></i> <span th:text="${festival.addr}">주소</span>
+                        </p>
+                        
+                        <p class="text-sm text-gray-500 mb-2"
+                            th:if="${festival.eventStartDate != null and festival.eventEndDate != null}">
+                            <i class="fas fa-calendar"></i>
+                            <span th:text="${#temporals.format(festival.eventStartDate, 'yyyy.MM.dd')}">시작일</span>
+                            ~
+                            <span th:text="${#temporals.format(festival.eventEndDate, 'yyyy.MM.dd')}">종료일</span>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <!-- 축제 목록 컨테이너 -->
-        <div id="festivalListContainer" class="mb-8 overflow-y-auto overflow-x-hidden" style="height: 450px; max-height: 450px; box-sizing: border-box;">
-            <div class="space-y-4 pr-2">
-            <!-- 실제 데이터로 축제 카드들 생성 -->
-            <div th:if="${festivalList == null or festivalList.empty}" class="text-center text-gray-500 py-8">
-                <p>등록된 축제가 없습니다.</p>
-            </div>
+
+            <!-- 페이지네이션 -->
+            <div id="pagination" th:if="${festivalList != null and !festivalList.empty}" class="flex justify-center items-center gap-1.5 mt-16 mx-auto" style="max-width: 80%;">
+                <th:block th:with="
+                    total=${festivalList.totalPages},
+                    current=${festivalList.number},
+
+                    startCalc=${current - 2},
+                    start=${startCalc < 0 ? 0 : (startCalc > total - 5 ? total - 5 : startCalc)},
+
+                    start=${start < 0 ? 0 : start},
+                    endCalc=${start + 4},
+                    end=${endCalc >= total ? total - 1 : endCalc}
+                ">
+                    <!-- 이전 블록 -->
+                    <a href="#" th:data-page="${current - 1 < 0 ? 0 : current - 1}" th:if="${current > 0}"
+                       class="page-btn inline-flex items-center justify-center px-2 py-1.5 border rounded hover:bg-gray-100 cursor-pointer text-sm">
+                        ◀
+                    </a>
+                    <span th:if="${current == 0}" class="inline-flex items-center justify-center px-2 py-1.5 border rounded text-gray-400 cursor-pointer text-sm">◀</span>
             
-            <div th:each="festival : ${festivalList.content}" 
-                 class="festival-card bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-main hover:bg-[#E6E8F2]" 
-                 th:data-lat="${festival.mapy}" 
-                 th:data-lng="${festival.mapx}">
-                <h3 class="text-lg font-bold text-gray-800 mb-2" th:text="${festival.title}">축제 제목</h3>
-                <p class="text-sm text-gray-600 mb-2" th:if="${festival.addr}">
-                    <i class="fas fa-map-marker-alt"></i> <span th:text="${festival.addr}">주소</span>
-                </p>
-                <p class="text-sm text-gray-500 mb-2" th:if="${festival.eventStartDate != null and festival.eventEndDate != null}">
-                    <i class="fas fa-calendar"></i> 
-                    <span th:text="${#temporals.format(festival.eventStartDate, 'yyyy.MM.dd')}">시작일</span> 
-                    ~ 
-                    <span th:text="${#temporals.format(festival.eventEndDate, 'yyyy.MM.dd')}">종료일</span>
-                </p>
-                <p class="text-sm text-gray-500" th:if="${festival.state}">
-                    <span th:class="${festival.state == '진행중' or festival.state == 'Y'} ? 'inline-block bg-sub-blue text-white px-2 py-1 rounded text-xs' : 'inline-block bg-gray-400 text-white px-2 py-1 rounded text-xs'"
-                          th:text="${festival.state}">상태</span>
-                </p>
-            </div>
-            </div>
-        </div>
-
-
-        <!-- 페이지네이션 -->
-        <div id="pagination" class="flex justify-center items-center gap-2 mt-16">
-            <!-- 이전 -->
-            <a href="#" 
-            th:data-page="${festivalList.number - 1}"
-            th:if="${festivalList.hasPrevious()}"
-            class="page-btn inline-flex items-center justify-center px-3 py-2 border rounded hover:bg-gray-100 cursor-pointer">
-                ◀
-            </a>
-            <span th:if="${!festivalList.hasPrevious()}"
-                class="inline-flex items-center justify-center px-3 py-2 border rounded text-gray-400 cursor-pointer">
-                ◀
-            </span>
-            <!-- 번호 -->
-            <a th:each="i : ${#numbers.sequence(0, festivalList.totalPages - 1)}"
-            href="#"
-            th:data-page="${i}"
-            th:text="${i + 1}"
-            th:class="${i == festivalList.number} 
-                    ? 'page-btn inline-flex items-center justify-center px-4 py-2 rounded bg-main text-white cursor-pointer'
-                    : 'page-btn inline-flex items-center justify-center px-4 py-2 border rounded hover:bg-gray-100 cursor-pointer'">
-            </a>
-            <!-- 다음 -->
-            <a href="#"
-            th:data-page="${festivalList.number + 1}"
-            th:if="${festivalList.hasNext()}"
-            class="page-btn inline-flex items-center justify-center px-3 py-2 border rounded hover:bg-gray-100 cursor-pointer">
-                ▶
-            </a>
-            <span th:if="${!festivalList.hasNext()}" 
-                class="inline-flex items-center justify-center px-3 py-2 border rounded text-gray-400 cursor-pointer">
-                ▶
-            </span>
+                    <!-- 첫 페이지 항상 표시 -->
+                    <a href="#" th:data-page="0" th:if="${start > 0}"
+                       class="page-btn inline-flex items-center justify-center px-2.5 py-1.5 border rounded hover:bg-gray-100 cursor-pointer text-sm">1</a>
+                    
+                    <!-- 앞에 ... 표시 -->
+                    <span th:if="${start > 1}" class="px-1 text-sm">...</span>
+            
+                    <!-- 번호 버튼 -->
+                    <a th:each="i : ${#numbers.sequence(start, end)}" href="#" th:data-page="${i}" th:text="${i + 1}"
+                       th:class="${i == current} 
+                            ? 'page-btn inline-flex items-center justify-center px-2.5 py-1.5 rounded bg-main text-white cursor-pointer text-sm'
+                            : 'page-btn inline-flex items-center justify-center px-2.5 py-1.5 border rounded hover:bg-gray-100 cursor-pointer text-sm'">
+                    </a>
+            
+                    <!-- 뒤에 ... 표시 -->
+                    <span th:if="${end < total - 2}" class="px-1 text-sm">...</span>
+            
+                    <!-- 마지막 페이지 항상 표시 -->
+                    <a href="#" th:data-page="${total - 1}" th:if="${end < total - 1}"
+                       class="page-btn inline-flex items-center justify-center px-2.5 py-1.5 border rounded hover:bg-gray-100 cursor-pointer text-sm"
+                       th:text="${total}"></a>
+            
+                    <!-- 다음 블록 -->
+                    <a href="#" th:data-page="${current + 1 >= total ? total - 1 : current + 1}" th:if="${current < total - 1}"
+                       class="page-btn inline-flex items-center justify-center px-2 py-1.5 border rounded hover:bg-gray-100 cursor-pointer text-sm">
+                       ▶
+                    </a>
+                    <span th:if="${current >= total - 1}" class="inline-flex items-center justify-center px-2 py-1.5 border rounded text-gray-400 cursor-pointer text-sm">▶</span>
+                </th:block>
+            </div>                     
 
         </div>
     </div>
-</div>
-
-<!-- Font Awesome 아이콘 사용을 위한 CDN -->
-<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> -->
 
 </body>
 </html>

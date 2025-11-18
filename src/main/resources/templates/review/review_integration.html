@@ -17,64 +17,28 @@
                 min-height: 500px;
             }
         }
-        /* 전체 페이지 스크롤 개선 */
-        html {
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        body {
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        /* 컨테이너 스크롤 개선 */
-        .container {
-            overflow-x: hidden;
-        }
-        
-        /* 로딩 스피너 스타일 */
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4A80FA;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-overlay {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 450px;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-        }
-        
-        .loading-text {
-            margin-top: 16px;
-            color: #4A80FA;
-            font-weight: 500;
+        #festivalListContainer {
+            /* 기존 스타일 유지 */
+            transform: translateZ(0); 
+            will-change: transform, scroll-position; 
         }
     </style>
 </th:block>
 
 <div layout:fragment="content">
     <div class="container mx-auto px-4 py-8 mb-16 min-h-screen">
-        <!-- <h1 class="text-h1 font-bold text-main mb-6">축제 정보 맵</h1> -->
-
         <!-- 왼쪽 축제 목록, 오른쪽 지도 레이아웃 -->
         <div class="bg-[#E6E8F2] rounded-lg shadow-lg 
                 flex flex-col lg:flex-row gap-6 w-full max-w-7xl mx-auto items-start p-4">
 
             <!-- 왼쪽: 축제 목록 -->
             <div class="w-full lg:w-1/3" id="festivalListWrapper">
+                <h1 class="text-h3 font-bold text-main mb-4">축제 목록</h1>
+                
+                <!-- 검색창 및 태그 필터 -->
+                <div th:replace="review/filterui :: filterUI"></div>
+                
+                <!-- 축제 목록카드들 -->
                 <div th:replace="review/festivalList :: festivalList"></div>
             </div>
 
@@ -95,102 +59,83 @@
 
     <script type="text/javascript">
 
-        // 로딩 표시 HTML 생성
-        function createLoadingHTML(searchValue = "") {
-            // 특수 문자 이스케이프 처리
-            const escapedValue = searchValue.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-            return `
-                <div class="w-full h-full">
-                    <h1 class="text-h3 font-bold text-main mb-4">축제 목록</h1>
-                    <div class="mb-4">
-                        <div class="flex gap-3">
-                            <input 
-                                type="text"
-                                id="keywordInput"
-                                placeholder="축제명을 검색하세요..."
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-main focus:border-transparent"
-                                value="${escapedValue}">
-                            <button 
-                                type="button" 
-                                id="searchBtn"
-                                class="px-4 py-2 bg-sub-red text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1 whitespace-nowrap">
-                                <i class="fas fa-search"></i>
-                                <span>검색</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="festivalListContainer" class="mb-8 overflow-y-auto overflow-x-hidden" style="height: 450px; max-height: 450px; box-sizing: border-box;">
-                        <div class="loading-overlay">
-                            <div class="loading-spinner"></div>
-                            <div class="loading-text">축제 목록을 불러오는 중...</div>
-                        </div>
-                    </div>
-                    <div id="pagination" class="flex justify-center items-center gap-2 mt-16"></div>
-                </div>
+        // "로딩 오버레이" 표시
+        function showLoadingOverlay() {
+            // 이미 존재하면 중복 생성 X
+            if (document.getElementById("loadingOverlay")) return;
+            const overlay = document.createElement("div");
+            overlay.id = "loadingOverlay";
+            overlay.className = "fixed inset-0 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center z-50";
+            overlay.innerHTML = `
+                <div class="loading-spinner"></div>
+                <div class="loading-text mt-2 text-gray-700">불러오는 중...</div>
             `;
+            document.body.appendChild(overlay);
         }
 
-        // AJAX로 축제 목록 업데이트하는 공통 함수
+        function removeLoadingOverlay() {
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) overlay.remove();
+        }
+
+        //축제 목록 데이터 비동기 요청
         function updateFestivalList(page = 0, keyword = "") {
+            showLoadingOverlay(); 
+
+            // 검색어 감지(null일때 처리)
             const keywordInput = document.querySelector("#keywordInput");
             const searchKeyword = keyword || (keywordInput?.value || "");
-            const wrapper = document.getElementById('festivalListWrapper');
+            // .festival-items인 요소에 데이터를 넣어준다.
+            const items = document.querySelector(".festival-items");
             
-            // 로딩 표시 (검색어 값 유지)
-            if (wrapper) {
-                wrapper.innerHTML = createLoadingHTML(searchKeyword);
-            }
-            
-            // AJAX 요청
-            fetch(`/festivals/review/ajax?page=${page}&size=5&keyword=${encodeURIComponent(searchKeyword)}`)
+            const url = `/festivals/review/ajax?page=${page}&keyword=${encodeURIComponent(searchKeyword)}&_=${new Date().getTime()}`;
+            fetch(url)
                 .then(res => res.text())
                 .then(html => {
-                    // 데이터 로드 완료 후 0.5초 지연
-                    return new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve(html);
-                        }, 500);
-                    });
-                })
-                .then(html => {
-                    if (wrapper) {
-                        wrapper.innerHTML = html;
-                        // 스크롤을 맨 위로 이동
-                        const container = document.getElementById('festivalListContainer');
-                        if (container) {
-                            container.scrollTop = 0;
-                        }
-                    }
-                });
-        }
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
 
-        // 페이징 처리 시, 전체 페이지를 리로드하지 않고 AJAX로 축제 목록만 업데이트
+                    const newItems = doc.querySelector(".festival-items");
+                    const newPagination = doc.querySelector("#pagination");
+
+                    const pagination = document.querySelector("#pagination");
+
+                    if (items && newItems) items.replaceChildren(...newItems.children);
+                    if (pagination && newPagination) pagination.replaceChildren(...newPagination.children);
+                })
+                .finally(() => {
+                    removeLoadingOverlay(); // 요청 완료 시 오버레이 제거
+                });
+            }
+
+        
         document.addEventListener("click", function (e) {
+            // 페이지네이션 버튼을 눌렀을 때
             if (e.target.classList.contains("page-btn")) {
                 e.preventDefault();
-                let page = e.target.dataset.page;
+                const page = e.target.dataset.page;
                 updateFestivalList(page);
             }
-            
-            // 검색 버튼 클릭 시
+            // 검색 버튼을 눌렀을 때 
             if (e.target.id === "searchBtn" || e.target.closest("#searchBtn")) {
                 e.preventDefault();
-                updateFestivalList(0); // 검색 시 첫 페이지로 이동
+                updateFestivalList(0);
             }
         });
 
-        // 검색창에서 Enter 키 입력 시 검색
+        // 검색창에서 Enter 키를 눌렀을 때 
         document.addEventListener("DOMContentLoaded", function() {
             const keywordInput = document.querySelector("#keywordInput");
             if (keywordInput) {
                 keywordInput.addEventListener("keypress", function(e) {
                     if (e.key === "Enter") {
                         e.preventDefault();
-                        updateFestivalList(0); // 검색 시 첫 페이지로 이동
+                        updateFestivalList(0);
                     }
                 });
             }
         });
+
     </script>
 </th:block>
 
