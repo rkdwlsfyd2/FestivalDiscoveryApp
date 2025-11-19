@@ -30,6 +30,13 @@ public class CalendarFestivalDto {
     // 즐겨찾기 여부 (현재 로그인 사용자 기준)
     private boolean favorite;
 
+    // 구글 캘린더 스타일 바 표시용
+    // "SINGLE", "START", "MIDDLE", "END" 중 하나로 쓸 예정
+    private String barType;
+
+    // 이 달에서 이 날짜에만 제목을 보여줄지 여부
+    private boolean showTitle;
+
     // 편의를 위한 포맷 문자열
     public String getPeriodText() {
         if (startDate == null || endDate == null) return "";
@@ -48,6 +55,8 @@ public class CalendarFestivalDto {
                 .playtime(entity.getPlaytime())
                 .state(entity.getState())
                 .favorite(favorite)
+                .barType("SINGLE")
+                .showTitle(true)
                 .build();
     }
 }

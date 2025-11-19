@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<head>
+    <title>축제 캘린더</title>
+
+    <th:block layout:fragment="css">
+        <style>
+            .calendar-day { min-height: 120px; }
+        </style>
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="qwert font-suit">
+
+    <!-- 상단 타이틀 / 월 이동 / 지역 필터 -->
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-h1 font-bold">축제 캘린더</h1>
+            <p class="text-subtext text-gray-500 mt-1">
+                달력을 넘기며 원하는 달의 축제를 한눈에 확인해보세요.
+            </p>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-3 md:items-center">
+            <div class="flex items-center gap-2 justify-between md:justify-end">
+                <a th:href="@{/calendar(year=${prevYear}, month=${prevMonth}, region=${selectedRegion})}"
+                   class="px-3 py-1.5 rounded-full border border-gray-300 text-sm bg-white hover:bg-gray-50">
+                    ◀ 이전 달
+                </a>
+                <div class="text-h3 font-semibold text-main mx-1">
+                    <span th:text="${year}">2025</span>.
+                    <span th:text="${month}">11</span>
+                </div>
+                <a th:href="@{/calendar(year=${nextYear}, month=${nextMonth}, region=${selectedRegion})}"
+                   class="px-3 py-1.5 rounded-full border border-gray-300 text-sm bg-white hover:bg-gray-50">
+                    다음 달 ▶
+                </a>
+            </div>
+
+            <!-- 지역 필터 -->
+            <form method="get" th:action="@{/calendar}" class="flex items-center gap-2">
+                <input type="hidden" name="year" th:value="${year}">
+                <input type="hidden" name="month" th:value="${month}">
+                <select name="region"
+                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-main">
+                    <option value="">전체 지역</option>
+                    <option th:each="r : ${regions}"
+                            th:value="${r}"
+                            th:text="${r}"
+                            th:selected="${selectedRegion == r}">
+                    </option>
+                </select>
+                <button type="submit"
+                        class="px-3 py-1.5 bg-main text-foreground text-sm rounded-lg shadow hover:opacity-90">
+                    적용
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. 이 달의 즐겨찾기 요약 박스 -->
+    <div th:if="${#lists.size(favoriteFestivals) > 0}"
+         class="mt-6 bg-white rounded-2xl shadow-md p-4">
+
+        <!-- 전체 즐겨찾기 리스트 (숨김 → 토글로 표시) -->
+        <div id="favFullList" class="mt-3 hidden divide-y divide-gray-100">
+            <div th:each="f : ${favoriteFestivals}"
+                 class="py-2 flex items-center justify-between">
+
+                <div>
+                    <div class="text-sm font-medium" th:text="${f.title}"></div>
+                    <div class="text-[11px] text-gray-500" th:text="${f.periodText}"></div>
+                </div>
+
+                <!-- 즐겨찾기 해제 버튼 -->
+                <form method="post" th:action="@{/favorite/toggle}">
+                    <input type="hidden" name="festivalNo" th:value="${f.festivalNo}">
+                    <input type="hidden" name="redirectUrl"
+                           th:value="@{/calendar(year=${year}, month=${month}, region=${selectedRegion})}">
+                    <button type="submit"
+                            class="text-xs px-2 py-1 border rounded-lg text-red-500 border-red-300">
+                        즐겨찾기 해제
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- 달력 그리드 -->
+    <div class="mt-6 bg-white rounded-2xl shadow-md overflow-hidden">
+        <!-- 요일 헤더 -->
+        <div class="grid grid-cols-7 bg-sub-blue text-foreground text-center text-subtext py-2 font-medium">
+            <div class="text-red-500">일</div>
+            <div>월</div>
+            <div>화</div>
+            <div>수</div>
+            <div>목</div>
+            <div>금</div>
+            <div class="text-blue-500">토</div>
+        </div>
+
+        <!-- 날짜들 -->
+        <div class="grid grid-cols-7 bg-sub-blue bg-opacity-10 gap-px">
+            <div class="contents" th:each="week : ${weeks}">
+                <div class="calendar-day bg-white p-2 flex flex-col border border-gray-100
+                            hover:bg-sub-blue hover:bg-opacity-10 transition"
+                     th:each="day : ${week}"
+                     th:classappend="${!day.inMonth} ? ' opacity-40 bg-gray-50 hover:bg-gray-50'">
+
+                    <!-- 날짜 숫자 -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold"
+                              th:text="${day.date.dayOfMonth}">1</span>
+                    </div>
+
+                    <!-- 날짜별 즐겨찾기 목록: day.festivals 중 favorite == true인 항목만 -->
+                    <div class="mt-1 flex flex-wrap gap-1"
+                         th:if="${#lists.size(day.festivals.?[favorite]) > 0}">
+
+                        <a th:each="f : ${day.festivals.?[favorite]}"
+                           th:href="@{/festival/detail(festivalNo=${f.festivalNo})}"
+                           th:text="${f.title}"
+                           class="text-[10px] px-2 py-[1px] rounded-full max-w-[120px] truncate
+              bg-yellow-100 border border-yellow-300 text-yellow-700
+              hover:bg-yellow-200">
+                        </a>
+
+                    </div>
+
+
+                    <!-- 축제 개수 / 클릭 텍스트 -->
+                    <div class="mt-2">
+                        <span th:if="${#lists.size(day.festivals) > 0}"
+                              class="text-[12px] text-main underline cursor-pointer festival-toggle"
+                              th:data-date="${day.date}"
+                              th:data-day-id="'day-' + ${day.date}">
+                            <span th:text="${#lists.size(day.festivals)}">0</span>개의 축제
+                        </span>
+
+                        <span th:if="${#lists.size(day.festivals) == 0}"
+                              class="text-[11px] text-gray-400">
+                        </span>
+                    </div>
+
+                    <!-- 4. 날짜별 축제 상세 (숨겨진 영역) -->
+                    <div th:id="'day-' + ${day.date}" class="hidden">
+                        <div th:each="festival : ${day.festivals}"
+                             class="flex items-center justify-between py-1">
+
+                            <div>
+                                <a th:href="@{/festival/detail(festivalNo=${festival.festivalNo})}"
+                                   class="text-sm font-medium hover:underline"
+                                   th:text="${festival.title}"></a>
+
+                                <!-- 기간 표시 --> <!-- //! NEW -->
+                                <div class="text-[11px] text-gray-500"
+                                     th:text="${festival.periodText}"></div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <!-- 태그 이미지 --> <!-- //! NEW -->
+                                <div class="flex gap-1">
+                                    <img th:each="tagImg : ${festival.tagImageUrls}"
+                                         th:src="${tagImg}"
+                                         class="w-5 h-5 rounded-full border border-gray-300 object-cover">
+                                </div>
+
+                                <!-- 즐겨찾기 토글 버튼 --> <!-- //! NEW -->
+                                <form method="post" th:action="@{/favorite/toggle}">
+                                    <input type="hidden" name="festivalNo"
+                                           th:value="${festival.festivalNo}">
+                                    <input type="hidden" name="redirectUrl"
+                                           th:value="@{/calendar(year=${year}, month=${month}, region=${selectedRegion})}">
+
+                                    <button type="submit"
+                                            class="text-[11px] px-2 py-1 rounded-lg border"
+                                            th:classappend="${festival.favorite} ? ' bg-yellow-300 border-yellow-400' : ' border-gray-300'"
+                                            th:text="${festival.favorite} ? '즐겨찾기 해제' : '즐겨찾기 추가'">
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 이 날짜의 축제 목록(숨김; 클릭 시 아래 상세 패널에 복사해서 사용) -->
+                    <div th:id="'day-' + ${day.date}" class="hidden">
+                        <div th:each="festival : ${day.festivals}"
+                             class="flex items-center justify-between py-1">
+                            <a th:href="@{/festival/detail(festivalNo=${festival.festivalNo})}"
+                               class="text-sm font-medium hover:underline"
+                               th:text="${festival.title}">
+                                축제 이름
+                            </a>
+
+                            <!-- 태그 이미지 삽입-->
+                            <!--                            <div class="flex gap-1 ml-2">-->
+                            <!--                                <img th:each="tagImg : ${festival.tagImageUrls}"-->
+                            <!--                                     th:src="${tagImg}"-->
+                            <!--                                     alt="태그"-->
+                            <!--                                     class="w-5 h-5 rounded-full object-cover border border-gray-200">-->
+                            <!--                            </div>-->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 아래에 선택된 날짜의 축제 목록 표시 영역 -->
+    <div id="festivalDetail" class="mt-6 bg-white rounded-2xl shadow-md p-4 hidden">
+        <div class="flex items-center justify-between mb-3">
+            <div class="font-semibold text-main" id="detailDateText">선택한 날짜의 축제 목록</div>
+            <button type="button" id="detailCloseBtn"
+                    class="text-xs text-gray-400 hover:text-gray-600">
+                닫기 ✕
+            </button>
+        </div>
+        <div id="detailContent" class="divide-y divide-gray-100">
+            <!-- JS로 각 날짜의 hidden 목록을 복사해서 여기에 넣음 -->
+        </div>
+    </div>
+
+    <div class="mt-4 text-subtext text-gray-500">
+        날짜 아래의 "<b>n개의 축제</b>" 텍스트를 클릭하면, 해당 날짜의 축제 목록과 태그를 아래에서 확인할 수 있습니다.
+    </div>
+
+</div>
+
+<!-- 5. JS (토글, 상세 패널 등) -->
+<th:block layout:fragment="script">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ▶ 날짜 클릭 시 상세 목록 출력
+            document.querySelectorAll('.festival-toggle').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const targetId = this.dataset.dayId;
+                    const src = document.getElementById(targetId);
+                    if (!src) return;
+
+                    document.getElementById('detailContent').innerHTML = src.innerHTML;
+                    document.getElementById('detailDateText').textContent =
+                        this.dataset.date + ' 진행 축제 목록';
+
+                    document.getElementById('festivalDetail').classList.remove('hidden');
+                    document.getElementById('festivalDetail')
+                        .scrollIntoView({behavior: 'smooth', block: 'start'});
+                });
+            });
+
+            // ▶ 상세 패널 닫기
+            const closeBtn = document.getElementById('detailCloseBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    document.getElementById('festivalDetail').classList.add('hidden');
+                });
+            }
+
+            // ▶ 즐겨찾기 더보기 토글
+            const favToggle = document.getElementById('favMoreToggle');
+            const favList = document.getElementById('favFullList');
+            const favLabel = document.getElementById('favMoreLabel');
+
+            if (favToggle && favList) {
+                favToggle.addEventListener('click', () => {
+                    const isHidden = favList.classList.contains('hidden');
+                    favList.classList.toggle('hidden');
+                    favLabel.textContent = isHidden ? '접기' : '전체 보기';
+                });
+            }
+
+        });
+    </script>
+</th:block>
+
+</body>
+</html>
