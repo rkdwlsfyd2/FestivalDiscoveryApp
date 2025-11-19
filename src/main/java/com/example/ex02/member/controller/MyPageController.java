@@ -60,12 +60,20 @@ public class MyPageController {
        회원정보 수정 (POST)
     ------------------------------ */
     @PostMapping("/account/update")
-    public String update(@ModelAttribute MypageAccountDto dto) {
+    public String updateAccount(@ModelAttribute MypageAccountDto dto) {
 
+        // 기존 회원정보 + 비밀번호 변경 처리
         myPageService.updateMember(loginUserNo, dto);
 
+        // 비밀번호가 입력된 경우 → 비밀번호 변경 성공 팝업을 띄우기 위한 파라미터 추가
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            return "redirect:/mypage/account?success=true";
+        }
+
+        // 그 외 수정은 updated=true (일반 정보 수정)
         return "redirect:/mypage/account?updated=true";
     }
+
 
 
     /* ------------------------------
@@ -151,7 +159,7 @@ public class MyPageController {
     @PostMapping("/withdraw")
     public String withdraw() {
 
-        Long loginUserNo = 1L; // ★ 실제 로그인 세션 값으로 바꿀 예정
+        Long loginUserNo = 1L; // 실제 로그인 세션 값으로 바꿀 예정
 
         myPageService.withdrawMember(loginUserNo);
 

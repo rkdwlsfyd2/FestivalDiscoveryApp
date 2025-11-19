@@ -1,6 +1,7 @@
+<!--mylayout.html-->
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
     <title>mylayout</title>
@@ -37,21 +38,23 @@ xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
     <!-- Custom CSS -->
     <link th:href="@{/css/tailwind.css}" rel="stylesheet">
 
-    <!--제이쿼리 설정은 부모 템플릿에서 작성 후 자식템플릿에서 script 영역에서 사용가능-->
-    <!--<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>-->
-
-    <!--자식 페이지에서 내용 추가 주입 필요-->
-    <!--자식 페이지에서는 해당 태그를 작성한 뒤 그 안에 css/script 태그 추가 후 추가 작업 진행-->
+    <!--  스크립트/스타일 블록은 하나씩만 선언 -->
     <th:block layout:fragment="css"></th:block>
     <th:block layout:fragment="script"></th:block>
-    <th:block layout:fragment="script"></th:block>
+
 </head>
-<body>
-    <div th:replace="~{common/header::top}"></div>
-    <!--자식 페이지에서 내용 추가 주입 필요. replace된 영역은
-    layout:decorate="~{common/mylayout}" 속성이 html에 붙은 페이지라면 항상 브라우저에 노출됨-->
+<body class="min-h-screen flex flex-col">
+
+<!-- Header -->
+<div th:replace="~{common/header::top}"></div>
+
+<!-- Main content (flex-grow to push footer down) -->
+<main class="flex-grow">
     <div layout:fragment="content"></div>
-    <div th:replace="~{common/footer::bottom}"></div>
+</main>
+
+<!-- Footer -->
+<div th:replace="~{common/footer::bottom}"></div>
+
 </body>
 </html>
-

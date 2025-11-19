@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 
 @Data
 @Builder
@@ -17,4 +19,5 @@ public class MypageFavoriteDto {
     private String state;
     private String playtime;
     private String imageUrl;  // 이미지 URL
+    private LocalDateTime favoriteDate;
 }

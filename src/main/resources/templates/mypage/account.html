@@ -1,12 +1,17 @@
+<!-- account.html -->
 <!DOCTYPE html>
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{common/mylayout}">
 
-<div layout:fragment="content" class="bg-gray-50 min-h-screen">
+<head>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
 
-    <!-- 전체 영역 -->
+<div layout:fragment="content" class="bg-gray-50 min-h-screen ">
+
     <div class="flex max-w-6xl mx-auto py-10">
 
         <!-- 사이드바 -->
@@ -15,37 +20,41 @@
 
             <nav class="flex flex-col space-y-3">
                 <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gray-100">프로필 확인</a>
-                <a href="/mypage/account" class="px-3 py-2 rounded-md bg-gray-200 font-semibold">
-                    회원수정 및 회원탈퇴
-                </a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md bg-gray-200 font-semibold">회원수정 및 회원탈퇴</a>
                 <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gray-100">축제 즐겨찾기</a>
                 <a href="/mypage/reviews" class="px-3 py-2 rounded-md hover:bg-gray-100">내 리뷰 관리</a>
             </nav>
         </aside>
 
-        <!-- 우측 본문 (프로필 페이지와 동일 스타일 적용) -->
+        <!-- 본문 -->
         <main class="flex-1">
-
-            <!-- 흰색 카드 박스 (프로필 화면과 동일) -->
             <div class="bg-white shadow-md rounded-2xl p-10">
 
                 <h2 class="text-2xl font-bold mb-10">회원 정보 수정</h2>
 
-                <!-- 입력 폼 -->
-                <form th:action="@{/mypage/account/update}" method="post" class="space-y-8">
+                <form id="accountForm" th:action="@{/mypage/account/update}" method="post" class="space-y-8">
 
-                    <!-- 이름 / 이메일 -->
+                    <!-- 아이디 / 이름 -->
                     <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block font-semibold mb-2">아이디</label>
+                            <input type="text" th:value="${member.userId}"
+                                   class="w-full border rounded-md p-2 bg-gray-100 text-gray-500" disabled>
+                        </div>
                         <div>
                             <label class="block font-semibold mb-2">이름</label>
                             <input type="text" name="name" th:value="${member.name}"
-                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                                   class="w-full border rounded-md p-2">
                         </div>
+                    </div>
 
+                    <!-- 이메일 -->
+                    <div class="grid grid-cols-2 gap-12">
                         <div>
                             <label class="block font-semibold mb-2">이메일</label>
-                            <input type="text" name="email" th:value="${member.email}"
-                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                            <input id="email" type="text" name="email" th:value="${member.email}"
+                                   class="w-full border rounded-md p-2">
+                            <p id="emailError" class="text-red-500 text-sm mt-1 hidden">올바른 이메일 형식이 아닙니다.</p>
                         </div>
                     </div>
 
@@ -53,18 +62,64 @@
                     <div class="grid grid-cols-2 gap-12">
                         <div>
                             <label class="block font-semibold mb-2">전화번호</label>
-                            <input type="text" name="phone" th:value="${member.phone}"
-                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                            <input id="phone" type="text" name="phone" th:value="${member.phone}"
+                                   class="w-full border rounded-md p-2">
+                            <p id="phoneError" class="text-red-500 text-sm mt-1 hidden">
+                                전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)
+                            </p>
                         </div>
 
                         <div>
-                            <label class="block font-semibold mb-2">비밀번호 변경</label>
-                            <input type="password" name="password" placeholder="변경 시 입력"
-                                   class="w-full border rounded-md p-2 focus:ring-main focus:border-main">
+                            <label class="block font-semibold mb-2">새 비밀번호 (6자리 이상)</label>
+                            <input id="password" type="password" name="password" placeholder="변경 시 입력"
+                                   class="w-full border rounded-md p-2">
                         </div>
                     </div>
 
-                    <!-- 정보 수정 버튼 -->
+                    <!-- 비밀번호 확인 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div></div>
+
+                        <div>
+                            <label class="block font-semibold mb-2">비밀번호 확인</label>
+                            <input id="passwordConfirm" type="password" placeholder="한번 더 입력"
+                                   class="w-full border rounded-md p-2">
+                            <p id="pwError" class="text-red-500 text-sm mt-1 hidden">
+                                비밀번호가 일치하지 않거나 6자리 미만입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!--  선호 태그 (1개) -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block font-semibold mb-2">선호 태그 (1개 선택)</label>
+
+                            <!-- 선택된 태그 칩 -->
+                            <div id="tagContainer" class="flex flex-wrap gap-2 mb-3"></div>
+
+                            <!-- Hidden input -->
+                            <input type="hidden" id="favoriteTag" name="favoriteTag"
+                                   th:value="${member.favoriteTag}">
+
+                            <!-- 추천 태그 7개 -->
+                            <div class="mt-4">
+                                <p class="text-gray-600 text-sm mb-2">추천 태그</p>
+
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" class="tag-btn bg-gray-200 px-3 py-1 rounded-full text-sm" data-tag="자연">자연</button>
+                                    <button type="button" class="tag-btn bg-gray-200 px-3 py-1 rounded-full text-sm" data-tag="야간">야간</button>
+                                    <button type="button" class="tag-btn bg-gray-200 px-3 py-1 rounded-full text-sm" data-tag="먹거리">먹거리</button>
+                                    <button type="button" class="tag-btn bg-gray-200 px-3 py-1 rounded-full text-sm" data-tag="체험">체험</button>
+                                    <button type="button" class="tag-btn bg-gray-200 px-3 py-1 rounded-full text-sm" data-tag="계절">계절</button>
+                                    <button type="button" class="tag-btn bg-gray-200 px-3 py-1 rounded-full text-sm" data-tag="문화">문화</button>
+                                    <button type="button" class="tag-btn bg-gray-200 px-3 py-1 rounded-full text-sm" data-tag="아동">아동</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 수정 버튼 -->
                     <div>
                         <button type="submit"
                                 class="bg-main text-white px-6 py-3 rounded-md shadow hover:bg-foregroundSub transition">
@@ -73,7 +128,7 @@
                     </div>
                 </form>
 
-                <!-- 회원탈퇴 버튼 -->
+                <!-- 회원탈퇴 -->
                 <div class="mt-10">
                     <form action="/mypage/withdraw" method="post">
                         <button type="submit"
@@ -83,9 +138,124 @@
                     </form>
                 </div>
 
-            </div> <!-- 카드 박스 끝 -->
+            </div>
         </main>
     </div>
+    <!-- 반드시 fragment 내부에 있어야 작동함 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            /* ------------------------------
+               1) 태그 선택 기능 (1개)
+            ------------------------------ */
+            const tagContainer = document.getElementById("tagContainer");
+            const hiddenTagInput = document.getElementById("favoriteTag");
+            let selectedTag = hiddenTagInput.value || "";
+
+            if (selectedTag) {
+                addTagChip(selectedTag);
+            }
+
+            function addTagChip(tag) {
+                tagContainer.innerHTML = "";
+                selectedTag = tag;
+
+                const chip = document.createElement("button");
+                chip.type = "button";
+                chip.className = "bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center gap-2 border";
+                chip.innerHTML = `${tag} <span class="text-red-500 font-bold cursor-pointer">×</span>`;
+
+                chip.querySelector("span").addEventListener("click", () => {
+                    selectedTag = "";
+                    hiddenTagInput.value = "";
+                    chip.remove();
+                });
+
+                tagContainer.appendChild(chip);
+                hiddenTagInput.value = selectedTag;
+            }
+
+            document.querySelectorAll(".tag-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    addTagChip(btn.dataset.tag);
+                });
+            });
+
+
+            /* ------------------------------
+               2) 폼 제출 시 전체 입력 검증
+            ------------------------------ */
+            document.getElementById("accountForm").addEventListener("submit", function(e) {
+
+                let valid = true;
+
+                /* ------------------------------
+                   이메일 검증
+                ------------------------------ */
+                const email = document.getElementById("email").value.trim();
+                const emailError = document.getElementById("emailError");
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!emailRegex.test(email)) {
+                    valid = false;
+                    emailError.classList.remove("hidden");
+                } else {
+                    emailError.classList.add("hidden");
+                }
+
+                /* ------------------------------
+                   전화번호 검증
+                ------------------------------ */
+                const phone = document.getElementById("phone").value.trim();
+                const phoneError = document.getElementById("phoneError");
+
+                const phoneRegex = /^010-\d{4}-\d{4}$/;
+
+                if (!phoneRegex.test(phone)) {
+                    valid = false;
+                    phoneError.classList.remove("hidden");
+                } else {
+                    phoneError.classList.add("hidden");
+                }
+
+
+                /* ------------------------------
+                   비밀번호 검증
+                ------------------------------ */
+                const pw = document.getElementById("password").value.trim();
+                const pwConfirm = document.getElementById("passwordConfirm").value.trim();
+                const pwError = document.getElementById("pwError");
+
+                if (pw.length > 0) {   // 비밀번호 수정할 때만 검사
+
+                    // 6자리 미만 or 서로 불일치
+                    if (pw.length < 6 || pw !== pwConfirm) {
+                        valid = false;
+                        pwError.classList.remove("hidden");
+                    } else {
+                        pwError.classList.add("hidden");
+                    }
+                } else {
+                    pwError.classList.add("hidden");
+                }
+
+
+                /* ------------------------------
+                   하나라도 오류 있으면 제출 막기
+                ------------------------------ */
+                if (!valid) {
+                    e.preventDefault();
+                }
+
+            });
+
+        });
+    </script>
+
+
 
 </div>
+
+
 </html>

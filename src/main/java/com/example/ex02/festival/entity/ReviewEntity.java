@@ -1,3 +1,4 @@
+//ReviewEntity
 package com.example.ex02.festival.entity;
 
 import com.example.ex02.member.entity.MemberEntity;

@@ -1,3 +1,4 @@
+<!--mypage-favorites.html-->
 <!DOCTYPE html>
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
@@ -28,29 +29,38 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
-                    <div th:each="f : ${favorites}" class="bg-white rounded-xl shadow hover:shadow-lg transition p-4">
+                    <div th:each="f : ${favorites}"
+                         class="bg-white rounded-xl shadow hover:shadow-lg transition p-4">
 
-                        <img th:src="${f.imageUrl != null ? f.imageUrl : '/img/default.jpg'}"
-                             class="w-full h-40 object-cover rounded-md"/>
+                        <!-- 상세 페이지 링크 감싸기 -->
+                        <a th:href="@{'/festival/detail/' + ${f.festivalNo}}"
+                           class="block">
 
-                        <div class="mt-4">
-                            <div class="font-bold text-lg mb-2" th:text="${f.title}"></div>
+                            <img th:src="${f.imageUrl != null ? f.imageUrl : '/img/default.jpg'}"
+                                 class="w-full h-40 object-cover rounded-md"/>
 
-                            <form th:action="@{'/mypage/favorites/delete/' + ${f.favoriteNo}}" method="post">
-                                <button class="border border-red-500 text-red-500 px-3 py-1 rounded-md hover:bg-red-100">
-                                    즐겨찾기 해제
-                                </button>
-                            </form>
-                        </div>
+                            <div class="mt-4">
+                                <div class="font-bold text-lg mb-1"
+                                     th:text="${f.title}"></div>
 
+                                <!-- 날짜 추가 -->
+                                <div class="text-sm text-gray-500"
+                                     th:text="${#temporals.format(f.favoriteDate, 'yyyy-MM-dd HH:mm')}">
+                                </div>
+                            </div>
+
+                        </a>
+
+                        <!-- 즐겨찾기 해제 버튼 -->
+                        <form th:action="@{'/mypage/favorites/delete/' + ${f.favoriteNo}}" method="post" class="mt-3">
+                            <button class="border border-red-500 text-red-500 px-3 py-1 rounded-md hover:bg-red-100 w-full">
+                                즐겨찾기 해제
+                            </button>
+                        </form>
                     </div>
-
                 </div>
             </div>
-
         </main>
-
     </div>
-
 </div>
 </html>

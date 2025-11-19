@@ -65,9 +65,11 @@ public class MyPageService {
 
         return MypageAccountDto.builder()
                 .userNo(m.getUserNo())
+                .userId(m.getUserId())
                 .name(m.getName())
                 .email(m.getEmail())
                 .phone(m.getPhone())
+                .favoriteTag(m.getFavoriteTag())
                 .build();
     }
 
@@ -93,6 +95,7 @@ public class MyPageService {
                     .state(f.getFestival().getState())
                     .playtime(f.getFestival().getPlaytime())
                     .imageUrl(imageUrl) // 이미지 URL
+                    .favoriteDate(f.getFavoriteDate())
                     .build();
 
         }).toList();
@@ -118,6 +121,8 @@ public class MyPageService {
         m.setName(updated.getName());
         m.setEmail(updated.getEmail());
         m.setPhone(updated.getPhone());
+        // 선호 태그 업데이트 추가
+        m.setFavoriteTag(updated.getFavoriteTag());
 
         // 비밀번호 변경 시
         if (updated.getPassword() != null && !updated.getPassword().isEmpty()) {

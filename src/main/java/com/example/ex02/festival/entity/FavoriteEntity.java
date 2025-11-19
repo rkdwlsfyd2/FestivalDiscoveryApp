@@ -1,4 +1,5 @@
 // src/main/java/com/example/ex02/favorite/entity/FavoriteEntity.java
+//FavoriteEntity
 package com.example.ex02.festival.entity;
 
 import com.example.ex02.festival.entity.FestivalEntity;
@@ -39,7 +40,6 @@ public class FavoriteEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "FESTIVAL_NO", nullable = false)
     private FestivalEntity festival;
-    private String imageUrl;
     @Column(name = "FAVORITE_DATE")
     private LocalDateTime favoriteDate;
 }

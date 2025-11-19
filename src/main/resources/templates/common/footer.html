@@ -1,3 +1,4 @@
+<!--footer.html-->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
@@ -6,7 +7,27 @@
 <div class="footer" th:fragment="bottom">
     <footer class="w-full bg-main text-white py-4 mt-10">
         <div class="text-center text-sm font-suit tracking-wide opacity-90">
-            축제 추천 Website
+            <!-- 왼쪽: 푸터 텍스트 -->
+            <div class="text-lg font-semibold">
+                푸터
+            </div>
+
+            <!-- 오른쪽: 버튼 그룹 -->
+            <div class="flex gap-4">
+
+                <a href="#" class="px-4 py-2 border border-gray-400 rounded-md text-sm hover:bg-gray-100 transition">
+                    사이트 로고
+                </a>
+
+                <a href="#" class="px-4 py-2 border border-gray-400 rounded-md text-sm hover:bg-gray-100 transition text-center">
+                    사이트 주소 및 정보
+                </a>
+
+                <a href="#" class="px-4 py-2 border border-gray-400 rounded-md text-sm hover:bg-gray-100 transition">
+                    이용약관
+                </a>
+
+            </div>
         </div>
     </footer>
 </div>

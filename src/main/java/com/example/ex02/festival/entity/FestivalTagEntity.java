@@ -1,3 +1,4 @@
+//FestivalTagEntity
 package com.example.ex02.festival.entity;
 
 import jakarta.persistence.*;
