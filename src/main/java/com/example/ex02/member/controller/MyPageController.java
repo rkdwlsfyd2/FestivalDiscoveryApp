@@ -82,17 +82,18 @@ public class MyPageController {
     /* ------------------------------
        회원 탈퇴
     ------------------------------ */
-    @PostMapping("/account/deactivate")
-    public String deactivate(HttpSession session) {
+    @PostMapping("/withdraw")
+    public String withdraw(HttpSession session) {
 
         Long userNo = getLoginUserNo(session);
         if (userNo == null) return "redirect:/login";
 
         myPageService.deactivate(userNo);
+        session.invalidate();
 
-        session.invalidate(); // 세션 초기화
         return "redirect:/";
     }
+
 
     /* ------------------------------
        즐겨찾기 목록

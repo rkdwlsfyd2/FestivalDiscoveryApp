@@ -29,4 +29,7 @@ public class FestivalTagEntity {
 
     @Column(name = "TAG", length = 30, nullable = false)
     private String tag;
+
+	@Column(name = "TAG_STRENGTH", nullable = false)
+	private Double tagStrength;
 }

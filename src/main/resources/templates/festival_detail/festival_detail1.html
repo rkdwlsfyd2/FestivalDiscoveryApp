@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  lang="ko"
+	  layout:decorate="common/mylayout"> <!-- 506690 -->
+	<head>
+		<meta charset="UTF-8">
+		<title>축제 상세 보기</title>
+
+		<!-- 이 페이지 전용 최소 CSS -->
+		<style>
+			/* 페이지 전체 폭/여백 */
+			.page-wrap {
+				max-width: 960px;
+				margin: 24px auto 80px;
+				padding: 0 16px;
+			}
+
+			/* 카드 컴포넌트: 배경·라운드·그림자 */
+			.card {
+				background: #ffffff;
+				border-radius: 8px;
+				padding: 24px;
+				box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+				margin-bottom: 24px;
+			}
+
+			/* 상태/리뷰 요약 줄 */
+			.fd-badge-row {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				margin: 6px 0;
+				flex-wrap: wrap;
+			}
+
+			/* 상태 배지 공통 */
+			.fd-status-badge {
+				display: inline-flex;
+				align-items: center;
+				padding: 4px 10px;
+				border-radius: 999px;
+				font-size: 12px;
+				font-weight: 600;
+			}
+
+			/* 진행 중 / 종료 색상 (진행 예정은 bg-main 유틸 사용) */
+			.fd-status-badge--ongoing {
+				background: #22c55e;
+				color: #ffffff;
+			}
+
+			.fd-status-badge--finished {
+				background: #9ca3af;
+				color: #ffffff;
+			}
+
+			/* 날짜·주소 메타 정보 */
+			.fd-meta {
+				font-size: 13px;
+				color: #444444;
+				margin-top: 4px;
+			}
+
+			.fd-meta span {
+				display: inline-block;
+				margin-right: 12px;
+			}
+
+			/* 제목 옆 태그 칩: 모양만, 색은 bg-sub-blue / text-main 으로 처리 */
+			.fd-tag-chip {
+				display: inline-block;
+				font-size: 12px;
+				padding: 3px 8px;
+				border-radius: 999px;
+				margin-right: 4px;
+			}
+
+			/* 상단 좌/우 레이아웃 */
+			.fd-top-layout {
+				display: flex;
+				align-items: flex-start;
+				gap: 24px;
+				margin-top: 12px;
+			}
+
+			.fd-top-left {
+				flex: 3;
+			}
+
+			.fd-top-right {
+				flex: 2;
+				border-left: 1px solid #f0f0f0;
+				padding-left: 16px;
+			}
+
+			/* 기본 정보 리스트 */
+			.fd-info-list {
+				list-style: none;
+				padding: 0;
+				margin: 8px 0 0;
+				font-size: 13px;
+			}
+
+			.fd-info-list li {
+				margin-bottom: 6px;
+			}
+
+			.fd-info-list strong {
+				display: inline-block;
+				width: 60px;
+				color: #555555;
+			}
+
+			/* 리뷰 카드 내부 */
+			.fd-review-item {
+				border-top: 1px solid #eeeeee;
+				padding-top: 10px;
+				margin-top: 10px;
+			}
+
+			.fd-review-meta {
+				font-size: 12px;
+				color: #777777;
+				margin-bottom: 4px;
+				display: inline-block;
+			}
+
+			.fd-review-text {
+				margin-top: 4px;
+			}
+
+			/* 별점 표시 */
+			/* 별점 래퍼 */
+			.star-rating {
+				display: inline-flex;
+				font-size: 13px;
+				line-height: 1;
+			}
+
+			/* 공통 별 컨테이너 */
+			.star {
+				position: relative;
+				display: inline-block;
+				width: 1em;
+				height: 1em;
+				margin-right: 1px;
+			}
+
+			/* 기본: 빈 별(회색) */
+			.star::before {
+				content: '★';
+				position: absolute;
+				left: 0;
+				top: 0;
+				color: #e5e7eb; /* 연한 회색 */
+			}
+
+			/* 꽉 찬 별: 전부 노란색 */
+			.star-full::before {
+				color: #fbbf24; /* 노란색 */
+			}
+
+			/* 완전히 빈 별은 기본 색 유지 (추가 코드 필요 없음) */
+			.star-empty::before {
+				/* 그대로 회색 사용 */
+			}
+
+			/* 반 별: 회색 전체 + 노란색 50% 덮기 */
+			.star-half::before {
+				color: #e5e7eb; /* 바닥은 회색 */
+			}
+
+			/* 노란색 절반만 덮는 레이어 */
+			.star-half::after {
+				content: '★';
+				position: absolute;
+				left: 0;
+				top: 0;
+				color: #fbbf24;
+				width: 70%;                  /* ↔ 50% → 60% */
+				overflow: hidden;
+				clip-path: inset(0 30% 0 0); /* ↔ 오른쪽 40%만 잘라냄 */
+			}
+
+			/* 축제 소개/내용 2단 레이아웃 */
+			.fd-intro-layout {
+				display: flex;
+				align-items: flex-start;
+				gap: 24px;
+			}
+
+			/* 각 컬럼 */
+			.fd-intro-col {
+				flex: 1;
+			}
+
+			/* 화면이 좁으면 위/아래로 쌓기 (선택) */
+			@media (max-width: 768px) {
+				.fd-intro-layout {
+					flex-direction: column;
+				}
+			}
+		</style>
+
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+				const container = document.getElementById('imageSliderContainer');
+				const prevBtn = document.getElementById('prevImageBtn');
+				const nextBtn = document.getElementById('nextImageBtn');
+				const info = document.getElementById('imageSliderInfo');
+
+				const modal = document.getElementById('imageModal');
+				const modalImg = document.getElementById('modalImage');
+				const modalClose = document.getElementById('modalCloseBtn');
+				const modalPrev = document.getElementById('modalPrevBtn');
+				const modalNext = document.getElementById('modalNextBtn');
+
+				if (!container) return;
+				const images = container.querySelectorAll('img');
+				if (!images || images.length === 0) return;
+
+				let currentIndex = 0;
+
+				function showImage(index) {
+					for (let i = 0; i < images.length; i++) {
+						images[i].style.display = (i === index) ? '' : 'none';
+					}
+					if (info) {
+						info.textContent = (index + 1) + ' / ' + images.length;
+					}
+					if (modal && modal.style.display === 'flex') {
+						modalImg.src = images[index].src;
+					}
+				}
+
+				function openModal(index) {
+					if (!modal) return;
+					modal.style.display = 'flex';
+					modalImg.src = images[index].src;
+				}
+
+				function closeModal() {
+					if (!modal) return;
+					modal.style.display = 'none';
+				}
+
+				showImage(currentIndex);
+
+				if (prevBtn) {
+					prevBtn.addEventListener('click', function () {
+						currentIndex = (currentIndex - 1 + images.length) % images.length;
+						showImage(currentIndex);
+					});
+				}
+
+				if (nextBtn) {
+					nextBtn.addEventListener('click', function () {
+						currentIndex = (currentIndex + 1) % images.length;
+						showImage(currentIndex);
+					});
+				}
+
+				if (container) {
+					container.addEventListener('click', function () {
+						openModal(currentIndex);
+					});
+				}
+
+				if (modalClose) {
+					modalClose.addEventListener('click', function () {
+						closeModal();
+					});
+				}
+
+				if (modal) {
+					modal.addEventListener('click', function (e) {
+						if (e.target === modal) {
+							closeModal();
+						}
+					});
+				}
+
+				if (modalPrev) {
+					modalPrev.addEventListener('click', function (e) {
+						e.stopPropagation();
+						currentIndex = (currentIndex - 1 + images.length) % images.length;
+						showImage(currentIndex);
+					});
+				}
+
+				if (modalNext) {
+					modalNext.addEventListener('click', function (e) {
+						e.stopPropagation();
+						currentIndex = (currentIndex + 1) % images.length;
+						showImage(currentIndex);
+					});
+				}
+			});
+		</script>
+	</head>
+	<body>
+		<section layout:fragment="content" class="festival-detail-page">
+			<div class="page-wrap">
+
+				<!-- A. 상단: 제목 + 태그 + 상태 + (왼)이미지 / (오른쪽)기본정보 -->
+				<div class="card">
+					<header>
+						<!-- 1. 축제명, 태그 -->
+						<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+							<!-- 축제명 -->
+							<h1 class="text-h1 font-bold" th:text="${festival.title}"></h1>
+
+							<!-- 태그 -->
+							<div>
+								<span class="fd-tag-chip bg-sub-blue" th:each="tag : ${festival.tags}" th:text="|${tag.tag}|"></span>
+							</div>
+						</div>
+
+						<!-- 2. 진행 상태, 리뷰 요약 -->
+						<div class="fd-badge-row">
+							<!-- 진행 상태 -->
+							<th:block th:with="today=${T(java.time.LocalDate).now()},
+											   start=${festival.eventStartDate.toLocalDate()},
+											   end=${festival.eventEndDate.toLocalDate()}">
+								<!-- 진행 예정 -->
+								<span class="fd-status-badge bg-main text-foreground" th:if="${today.isBefore(start)}">
+									축제 진행 예정
+								</span>
+
+								<!-- 진행 중 -->
+								<span class="fd-status-badge fd-status-badge--ongoing" th:if="${!today.isBefore(start) and !today.isAfter(end)}">
+									축제 진행 중
+								</span>
+								<!-- 종료 -->
+								<span class="fd-status-badge fd-status-badge--finished" th:if="${today.isAfter(end)}">
+									축제 종료
+								</span>
+							</th:block>
+
+							<!-- 리뷰 요약 -->
+							<span class="text-subtext" th:text="|⭐ ${#numbers.formatDecimal(festival.avgRating, 1, 1)} / 5.0|"></span>
+							<span class="text-subtext text-gray-600" th:text="|리뷰 (${festival.reviews.size()}개)|"></span>
+						</div>
+					</header>
+
+					<div class="fd-top-layout">
+						<!-- 3. 이미지 슬라이더 -->
+						<div class="fd-top-left">
+							<section>
+								<div style="width: 100%;
+											max-width: 420px;
+											margin: 0 auto;
+											display: flex;
+											align-items: center;
+											justify-content: center;">
+									<button type="button" id="prevImageBtn" style="margin-right: 8px;">◀</button>
+
+									<div id="imageSliderContainer"
+										 style="width: 100%;
+												height: 260px;
+												display: flex;
+												align-items: center;
+												justify-content: center;
+												overflow: hidden;
+												cursor: pointer;
+												background: #000000;">
+										<img th:each="image : ${festival.images}"
+											 th:src="${image.imageUrl}"
+											 th:alt="${image.imageUrl}"
+											 style="max-width: 100%;
+													max-height: 100%;
+													width: auto;
+													height: auto;">
+									</div>
+
+									<button type="button" id="nextImageBtn" style="margin-left: 8px;">▶</button>
+								</div>
+
+								<p id="imageSliderInfo"
+								   class="text-subtext"
+								   style="text-align: center;
+										  margin-top: 6px;
+										  color: #666666;"></p>
+
+								<!-- 모달 -->
+								<div id="imageModal"
+									 style="display: none;
+											position: fixed;
+											left: 0;
+											top: 0;
+											width: 100%;
+											height: 100%;
+											background: rgba(0,0,0,0.7);
+											z-index: 9999;
+											align-items: center;
+											justify-content: center;">
+									<button id="modalCloseBtn"
+											type="button"
+											style="position: absolute;
+												   top: 16px;
+												   right: 24px;
+												   font-size: 24px;
+												   border: none;
+												   background: none;
+												   color: #ffffff;
+												   cursor: pointer;">
+										✕
+									</button>
+
+									<button id="modalPrevBtn"
+											type="button"
+											style="position: absolute;
+												   left: 16px;
+												   font-size: 32px;
+												   border: none;
+												   background: none;
+												   color: #ffffff;
+												   cursor: pointer;">
+										◀
+									</button>
+
+									<button id="modalNextBtn"
+											type="button"
+											style="position: absolute;
+												   right: 16px;
+												   font-size: 32px;
+												   border: none;
+												   background: none;
+												   color: #ffffff;
+												   cursor: pointer;">
+										▶
+									</button>
+
+									<img id="modalImage"
+										 src=""
+										 alt="원본 이미지"
+										 style="max-width: 90%;
+												max-height: 90%;
+												box-shadow: 0 0 12px rgba(0,0,0,0.5);
+												background: #ffffff;">
+								</div>
+							</section>
+						</div>
+
+						<!-- 4. 기본 정보 -->
+						<div class="fd-top-right">
+							<section>
+								<h2 class="text-h3 font-semibold mb-2">기본 정보</h2>
+								<ul class="fd-info-list">
+									<li>
+										<strong>기간</strong>
+										<span th:text="|${festival.eventStartDate.toLocalDate()} ~ ${festival.eventEndDate.toLocalDate()}|"></span>
+									</li>
+									<li>
+										<strong>장소</strong>
+										<span th:text="${festival.addr}"></span>
+									</li>
+									<li>
+										<strong>요금</strong>
+										<span th:text="${festival.detail.festivalFee}"></span>
+									</li>
+									<li>
+										<strong>주최</strong>
+										<span th:text="${festival.detail.host}"></span>
+									</li>
+									<li>
+										<strong>문의</strong>
+										<span th:text="${festival.detail.hostTel}"></span>
+									</li>
+									<li>
+										<strong>홈페이지</strong>
+										<a th:href="${festival.detail.homepage}"
+										   target="_blank"
+										   class="text-subtext text-foreground bg-main"
+										   style="display:inline-block;
+												  margin-left:4px;
+												  padding:6px 10px;
+												  border-radius:4px;
+												  text-decoration:none;">
+											홈페이지 바로가기
+										</a>
+									</li>
+								</ul>
+							</section>
+						</div>
+					</div>
+				</div>
+
+				<!-- B. 리뷰 -->
+				<div class="card" id="reviewSection">
+					<h2 class="text-h3 font-semibold mb-3">리뷰</h2>
+					<p class="text-body" style="margin-bottom: 8px;">
+						평균 평점
+						<strong th:text="|⭐ ${#numbers.formatDecimal(festival.avgRating, 1, 1)} / 5.0 · 리뷰 ${festival.reviews.size()}개|"></strong>
+					</p>
+
+					<div class="fd-review-item" th:each="review : ${festival.reviews}">
+						<!-- 이름 -->
+						<span class="fd-review-meta" th:text="${review.member.name}"></span>
+
+						<!-- 구분점 -->
+						<span class="fd-review-meta"> · </span>
+
+						<!-- 별점 -->
+						<span class="fd-review-meta star-rating">
+							<span th:each="i : ${#numbers.sequence(1,5)}">
+								<!-- 꽉 찬 별 -->
+								<span class="star star-full"
+									  th:if="${review.rating >= i}"></span>
+
+								<!-- 반 별: (i-0.5) 이상, i 미만 -->
+								<span class="star star-half"
+									  th:if="${review.rating < i and review.rating >= i - 0.5}"></span>
+
+								<!-- 빈 별 -->
+								<span class="star star-empty"
+									  th:if="${review.rating < i - 0.5}"></span>
+							</span>
+						</span>
+
+
+						<!-- 구분점 -->
+						<span class="fd-review-meta"> · </span>
+
+						<!-- 날짜 -->
+						<span class="fd-review-meta" th:text="${#temporals.format(review.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+
+						<div class="fd-review-text text-body" th:text="${review.content}"></div>
+					</div>
+				</div>
+
+				<!-- C. 축제 소개 -->
+				<div class="card">
+					<div class="fd-intro-layout">
+						<!-- 왼쪽: 축제 소개 (infotext1) -->
+						<section class="fd-intro-col">
+							<h2 class="text-h3 font-semibold mb-3">축제 소개</h2>
+							<p class="text-body" th:text="${festival.detail.infotext1}"></p>
+						</section>
+
+						<!-- 오른쪽: 축제 내용 (infotext2 있을 때만) -->
+						<section class="fd-intro-col"
+								 th:if="${festival.detail.infotext2 != null and !#strings.isEmpty(festival.detail.infotext2)}">
+							<h2 class="text-h3 font-semibold mb-3">축제 내용</h2>
+							<p class="text-body" th:text="${festival.detail.infotext2}"></p>
+						</section>
+					</div>
+				</div>
+
+
+				<!-- D. 위치 안내 -->
+				<div class="card">
+					<h2 class="text-h3 font-semibold mb-3">위치 안내</h2>
+					<div id="map" style="width:100%; height:260px;"></div>
+					<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=022dfc0274bfeb04bf381c2437e71f95"></script>
+					<script th:inline="javascript">
+						document.addEventListener('DOMContentLoaded', function () {
+							var container = document.getElementById('map');
+							if (!container) return;
+
+							var options = {
+								center: new kakao.maps.LatLng([[${festival.mapy}]], [[${festival.mapx}]]),
+								level: 3,
+								draggable: false
+							};
+
+							var map = new kakao.maps.Map(container, options);
+
+							var markerPosition = new kakao.maps.LatLng([[${festival.mapy}]], [[${festival.mapx}]]);
+
+// 마커를 생성합니다
+							var marker = new kakao.maps.Marker({
+								position: markerPosition
+							});
+
+// 마커가 지도 위에 표시되도록 설정합니다
+							marker.setMap(map);
+						});
+					</script>
+					<p class="text-subtext"
+					   style="margin-top: 8px;
+							  color: #555555;"
+					   th:text="${festival.addr}">
+					</p>
+				</div>
+			</div>
+		</section>
+	</body>
+</html>

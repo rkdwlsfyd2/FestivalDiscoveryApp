@@ -118,4 +118,11 @@ public class MemberController {
         model.addAttribute("token", token);
         return "member/reset-password";
     }
+    // 로그아웃 기능
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();  // 세션 전체 삭제 → 로그인 해제됨
+        return "redirect:/";   // 로그아웃 후 메인으로 이동
+    }
+
 }

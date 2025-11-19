@@ -35,7 +35,7 @@ public class ReviewEntity {
     private FestivalEntity festival;
 
     @Column(name = "RATING", precision = 1)
-    private Integer rating;  // 1~5
+    private Double rating;  // 1~5
 
     @Column(name = "CONTENT", length = 1000)
     private String content;

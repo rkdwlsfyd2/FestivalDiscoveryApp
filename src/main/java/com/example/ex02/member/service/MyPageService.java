@@ -8,13 +8,12 @@ import com.example.ex02.festival.repository.FavoriteRepository;
 import com.example.ex02.festival.repository.FestivalImageRepository;
 import com.example.ex02.festival.repository.ReviewRepository;
 import com.example.ex02.member.dto.MypageAccountDto;
+import com.example.ex02.member.dto.MypageFavoriteDto;
 import com.example.ex02.member.dto.MypageProfileDto;
 import com.example.ex02.member.entity.MemberEntity;
 import com.example.ex02.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.example.ex02.festival.entity.FestivalImageEntity;
-import com.example.ex02.member.dto.MypageFavoriteDto;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -143,22 +142,18 @@ public class MyPageService {
     /* ----------------------------------------
        회원 탈퇴 (isActive = 'N')
     ---------------------------------------- */
+    @Transactional
     public void deactivate(Long userNo) {
 
-        MemberEntity m = memberRepository.findById(userNo)
-                .orElseThrow();
+        MemberEntity member = memberRepository.findById(userNo)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
-        //  gender가 null이면 기본값 보정
-        if (m.getGender() == null || m.getGender().trim().isEmpty()) {
-            m.setGender("M"); // 또는 F
-        }
+        member.setIsActive("N");
+        member.setWithdrawDate(LocalDate.now());
 
-        m.setIsActive("N");
-        m.setWithdrawDate(LocalDate.now());
-
-
-        memberRepository.save(m);
+        memberRepository.save(member);
     }
+
 
     /* ----------------------------------------
    리뷰 상세 조회 (수정용)
@@ -171,7 +166,7 @@ public class MyPageService {
     /* ----------------------------------------
        리뷰 수정
     ---------------------------------------- */
-    public void updateReview(Long reviewNo, String content, Integer rating) {
+    public void updateReview(Long reviewNo, String content, Double rating) {
 
         ReviewEntity review = reviewRepository.findById(reviewNo)
                 .orElseThrow();
@@ -201,6 +196,5 @@ public class MyPageService {
         member.setIsActive("N");
         member.setWithdrawDate(LocalDate.now());
     }
-
 
 }

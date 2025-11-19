@@ -4,7 +4,10 @@ import com.example.ex02.festival.service.FestivalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/festivals")
@@ -41,4 +44,12 @@ public class FestivalController {
     public String reviewPage() {
         return "review/review_integration";
     }
+
+	@GetMapping("/detail")
+	public String festivalDetail(@RequestParam Long festivalNo, Model model) {
+		model.addAttribute("festival", festivalService.findFestivalById(festivalNo));
+
+		return "festival_detail/festival_detail1";
+	}
+
 }
