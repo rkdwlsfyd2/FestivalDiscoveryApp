@@ -6,6 +6,10 @@
 <body>
     <!-- 축제 목록 표시 영역 (Thymeleaf fragment) -->
     <div th:fragment="festivalList">
+        <!-- 마커 업데이트용 JSON 데이터 (숨겨진 script 태그) -->
+        <script th:inline="javascript" style="display:none;">
+            window.ajaxFestivalsJson = /*[[${festivalsJson}]]*/ '[]';
+        </script>
         <div class="w-full h-full">
             <div id="festivalListContainer" class="mb-8 overflow-y-auto overflow-x-hidden"
                 style="height: 450px; max-height: 500px; box-sizing: border-box;">
@@ -43,8 +47,16 @@
                 </div>
             </div>
 
+            <!-- 현재 진행중인 축제만 보기 체크박스 -->
+            <div class="flex items-center mt-4 mb-2">
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" id="ongoingOnlyCheckbox" class="w-4 h-4 text-main border-gray-300 rounded focus:ring-main focus:ring-2 cursor-pointer">
+                    <span class="ml-2 text-sm text-gray-700">현재 진행중인 축제만 보기</span>
+                </label>
+            </div>
+
             <!-- 페이지네이션 -->
-            <div id="pagination" th:if="${festivalList != null and !festivalList.empty}" class="flex justify-center items-center gap-1.5 mt-16 mx-auto" style="max-width: 80%;">
+            <div id="pagination" th:if="${festivalList != null and !festivalList.empty}" class="flex justify-center items-center gap-1.5 mt-4 mx-auto" style="max-width: 80%;">
                 <th:block th:with="
                     total=${festivalList.totalPages},
                     current=${festivalList.number},

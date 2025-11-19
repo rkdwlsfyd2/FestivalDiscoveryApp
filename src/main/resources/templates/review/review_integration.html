@@ -1,14 +1,32 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{common/mylayout}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{common/mylayout}">
 
 <th:block layout:fragment="css">
     <style>
         #naverMap {
             width: 100%;
-            height: 600px;
-            min-height: 600px;
+            height: 720px;
+            min-height: 720px;
+        }
+        
+        /* 지도 높이를 축제 목록 영역과 맞추기 */
+        @media (min-width: 1024px) {
+            #mapWrapper {
+                display: flex;
+                flex-direction: column;
+            }
+            #festivalListWrapper {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+        #naverMap *,
+        #naverMap canvas,
+        .naver-map-container,
+        .naver-map-container * {
+            box-shadow: none !important;
+            filter: drop-shadow(none) !important;
         }
         /* 반응형 디자인 */
         @media (max-width: 1024px) {
@@ -18,9 +36,8 @@
             }
         }
         #festivalListContainer {
-            /* 기존 스타일 유지 */
-            transform: translateZ(0); 
-            will-change: transform, scroll-position; 
+            transform: translateZ(0);
+            will-change: transform, scroll-position;
         }
     </style>
 </th:block>
@@ -29,23 +46,23 @@
     <div class="container mx-auto px-4 py-8 mb-16 min-h-screen">
         <!-- 왼쪽 축제 목록, 오른쪽 지도 레이아웃 -->
         <div class="bg-[#E6E8F2] rounded-lg shadow-lg 
-                flex flex-col lg:flex-row gap-6 w-full max-w-7xl mx-auto items-start p-4">
+                flex flex-col lg:flex-row gap-6 w-full max-w-[1600px] mx-auto items-start p-4">
 
             <!-- 왼쪽: 축제 목록 -->
             <div class="w-full lg:w-1/3" id="festivalListWrapper">
                 <h1 class="text-h3 font-bold text-main mb-4">축제 목록</h1>
-                
+
                 <!-- 검색창 및 태그 필터 -->
                 <div th:replace="review/filterui :: filterUI"></div>
-                
+
                 <!-- 축제 목록카드들 -->
                 <div th:replace="review/festivalList :: festivalList"></div>
             </div>
 
             <!-- 오른쪽: 네이버 지도 -->
-            <div class="w-full lg:w-2/3">
+            <div class="w-full lg:w-2/3" id="mapWrapper">
                 <h2 class="text-h3 font-bold text-main mb-4 invisible">축제 목록</h2>
-                <div class="w-full rounded-lg overflow-hidden shadow-lg">
+                <div class="w-full rounded-lg overflow-hidden flex-1" style="min-height: 600px;">
                     <div th:replace="~{review/navermap::mapContent}"></div>
                 </div>
             </div>
@@ -53,62 +70,24 @@
     </div>
 </div>
 
-
 <th:block layout:fragment="script">
+    <!-- 정보창 HTML 생성 함수 포함 -->
+    <th:block th:replace="~{review/infoContent :: script}"></th:block>
+    
+    <!-- XSS 방지 --> 
+    <script th:inline="javascript">
+        // 축제 JSON 데이터를 JavaScript 전역 변수로 설정
+        // navermap.html fragment에서 사용하기 위해 전역 변수로 전달
+        // (fragment에서도 Model 접근 가능하지만, 전역 변수 방식이 더 명확함)
+        window.festivalsJsonData = /*[[${festivalsJson}]]*/ '[]';
+    </script>
     <th:block th:replace="~{review/navermap::mapScript}"></th:block>
 
+    <!-- 축제 데이터 로드 및 마커 업데이트 스크립트 -->
+    <script type="text/javascript" th:src="@{/js/festivalDataLoad.js}"></script>
+    
+    <!-- 페이지네이션/검색색 처리 -->
     <script type="text/javascript">
-
-        // "로딩 오버레이" 표시
-        function showLoadingOverlay() {
-            // 이미 존재하면 중복 생성 X
-            if (document.getElementById("loadingOverlay")) return;
-            const overlay = document.createElement("div");
-            overlay.id = "loadingOverlay";
-            overlay.className = "fixed inset-0 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center z-50";
-            overlay.innerHTML = `
-                <div class="loading-spinner"></div>
-                <div class="loading-text mt-2 text-gray-700">불러오는 중...</div>
-            `;
-            document.body.appendChild(overlay);
-        }
-
-        function removeLoadingOverlay() {
-            const overlay = document.getElementById("loadingOverlay");
-            if (overlay) overlay.remove();
-        }
-
-        //축제 목록 데이터 비동기 요청
-        function updateFestivalList(page = 0, keyword = "") {
-            showLoadingOverlay(); 
-
-            // 검색어 감지(null일때 처리)
-            const keywordInput = document.querySelector("#keywordInput");
-            const searchKeyword = keyword || (keywordInput?.value || "");
-            // .festival-items인 요소에 데이터를 넣어준다.
-            const items = document.querySelector(".festival-items");
-            
-            const url = `/festivals/review/ajax?page=${page}&keyword=${encodeURIComponent(searchKeyword)}&_=${new Date().getTime()}`;
-            fetch(url)
-                .then(res => res.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, "text/html");
-
-                    const newItems = doc.querySelector(".festival-items");
-                    const newPagination = doc.querySelector("#pagination");
-
-                    const pagination = document.querySelector("#pagination");
-
-                    if (items && newItems) items.replaceChildren(...newItems.children);
-                    if (pagination && newPagination) pagination.replaceChildren(...newPagination.children);
-                })
-                .finally(() => {
-                    removeLoadingOverlay(); // 요청 완료 시 오버레이 제거
-                });
-            }
-
-        
         document.addEventListener("click", function (e) {
             // 페이지네이션 버튼을 눌렀을 때
             if (e.target.classList.contains("page-btn")) {
@@ -122,24 +101,60 @@
                 updateFestivalList(0);
             }
         });
-
+        
         // 검색창에서 Enter 키를 눌렀을 때 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const keywordInput = document.querySelector("#keywordInput");
             if (keywordInput) {
-                keywordInput.addEventListener("keypress", function(e) {
+                keywordInput.addEventListener("keypress", function (e) {
                     if (e.key === "Enter") {
                         e.preventDefault();
                         updateFestivalList(0);
                     }
                 });
             }
+            
+            // 현재 진행중인 축제만 보기 체크박스 이벤트
+            const ongoingOnlyCheckbox = document.querySelector("#ongoingOnlyCheckbox");
+            if (ongoingOnlyCheckbox) {
+                ongoingOnlyCheckbox.addEventListener("change", function(e) {
+                    const isChecked = e.target.checked;
+                    // 체크박스 상태 변경 시 첫 페이지로 리셋하여 목록 업데이트
+                    updateFestivalList(0, "", isChecked);
+                });
+            }
+            
+            // 지도 높이를 축제 목록 영역과 맞추기
+            function adjustMapHeight() {
+                if (window.innerWidth >= 1024) {
+                    const festivalListWrapper = document.querySelector("#festivalListWrapper");
+                    const mapWrapper = document.querySelector("#mapWrapper");
+                    const naverMap = document.querySelector("#naverMap");
+                    
+                    if (festivalListWrapper && mapWrapper && naverMap) {
+                        const festivalHeight = festivalListWrapper.offsetHeight;
+                        mapWrapper.style.height = festivalHeight + 'px';
+                        naverMap.style.height = '100%';
+                    }
+                }
+            }
+            
+            // 초기 조정 및 리사이즈 시 조정
+            adjustMapHeight();
+            window.addEventListener('resize', adjustMapHeight);
+            
+            // AJAX 업데이트 후에도 높이 조정
+            const originalUpdateFestivalList = window.updateFestivalList;
+            if (originalUpdateFestivalList) {
+                window.updateFestivalList = function(...args) {
+                    const result = originalUpdateFestivalList.apply(this, args);
+                    setTimeout(adjustMapHeight, 100);
+                    return result;
+                };
+            }
         });
-
     </script>
 </th:block>
-
-
 
 
 

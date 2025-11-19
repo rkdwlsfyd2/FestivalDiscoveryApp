@@ -34,5 +34,68 @@
             </p>
         </div>
     </div>
+    
+    <!-- JavaScript 함수: 네이버맵 정보창 HTML 생성 -->
+    <th:block th:fragment="script">
+    <script type="text/javascript">
+        function createInfoWindowContent(festival) {
+            // 기간 텍스트 생성
+            let periodText = '';
+            if (festival.startDate && festival.endDate) {
+                const startDate = new Date(festival.startDate);
+                const endDate = new Date(festival.endDate);
+                if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                    periodText = `<p style="margin:5px 0; color:#666; font-size:14px;"><strong>기간:</strong> ${startDate.toLocaleDateString('ko-KR')} ~ ${endDate.toLocaleDateString('ko-KR')}</p>`;
+                }
+            }
+            
+            // 정보창 HTML 생성
+            const infoContent = `
+                <div style="padding:15px; min-width:200px; box-shadow:none;">
+                    <h3 style="margin:0 0 10px 0; font-size:18px; font-weight:bold; color:#333;">
+                        ${festival.name || '축제명 없음'}
+                    </h3>
+                    <p style="margin:5px 0; color:#666; font-size:14px;">
+                        <strong>주소:</strong> ${festival.address || '주소 없음'}
+                    </p>
+                    ${periodText}
+                </div>
+            `;
+            return infoContent;
+        }
+        
+        // 정보창 생성 함수
+        function createInfoWindow(festival, marker, map, infoWindows) {
+            // 정보창 HTML 내용 생성
+            const infoContent = createInfoWindowContent(festival);
+            
+            // InfoWindow 생성
+            const infowindow = new naver.maps.InfoWindow({
+                content: infoContent,
+                anchorSize: new naver.maps.Size(15, 5),
+                pixelOffset: new naver.maps.Point(0, -10),
+                shadow: false
+            });
+            
+            // 마커 클릭 이벤트 리스너 등록
+            naver.maps.Event.addListener(marker, "click", function() {
+                // 다른 모든 정보창 닫기
+                if (infoWindows && Array.isArray(infoWindows)) {
+                    infoWindows.forEach(function(iw) {
+                        iw.close();
+                    });
+                }
+                // 현재 정보창 토글 (열려있으면 닫고, 닫혀있으면 열기)
+                if (infowindow.getMap()) {
+                    infowindow.close();
+                } else {
+                    infowindow.open(map, marker);
+                }
+            });
+            
+            return infowindow;
+        }
+    </script>
+    </th:block>
 </body>
 </html>
