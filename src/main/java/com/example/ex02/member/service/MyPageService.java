@@ -17,6 +17,7 @@ import com.example.ex02.festival.entity.FestivalImageEntity;
 import com.example.ex02.member.dto.MypageFavoriteDto;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -152,8 +153,9 @@ public class MyPageService {
             m.setGender("M"); // 또는 F
         }
 
-        m.setIsActive(false);
-        m.setWithdrawDate(LocalDateTime.now());
+        m.setIsActive("N");
+        m.setWithdrawDate(LocalDate.now());
+
 
         memberRepository.save(m);
     }
@@ -196,8 +198,8 @@ public class MyPageService {
         MemberEntity member = memberRepository.findById(userNo)
                 .orElseThrow(() -> new RuntimeException("회원이 존재하지 않습니다."));
 
-        member.setIsActive(false);
-        member.setWithdrawDate(LocalDateTime.now());
+        member.setIsActive("N");
+        member.setWithdrawDate(LocalDate.now());
     }
 
 

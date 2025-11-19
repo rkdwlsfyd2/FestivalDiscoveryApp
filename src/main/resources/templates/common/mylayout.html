@@ -1,7 +1,8 @@
-<!--mylayout.html-->
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
 <head>
     <meta charset="UTF-8">
     <title>mylayout</title>
@@ -35,20 +36,19 @@
         }
     </script>
 
-    <!-- Custom CSS -->
+    <!-- Custom CSS (필요하면 사용) -->
     <link th:href="@{/css/tailwind.css}" rel="stylesheet">
 
-    <!--  스크립트/스타일 블록은 하나씩만 선언 -->
+    <!-- CSS fragment -->
     <th:block layout:fragment="css"></th:block>
-    <th:block layout:fragment="script"></th:block>
-
 </head>
+
 <body class="min-h-screen flex flex-col">
 
 <!-- Header -->
 <div th:replace="~{common/header::top}"></div>
 
-<!-- Main content (flex-grow to push footer down) -->
+<!-- Content -->
 <main class="flex-grow">
     <div layout:fragment="content"></div>
 </main>
@@ -56,5 +56,7 @@
 <!-- Footer -->
 <div th:replace="~{common/footer::bottom}"></div>
 
+<!-- Script fragment ( 반드시 body 아래에 위치해야 함) -->
+<th:block layout:fragment="script"></th:block>
 </body>
 </html>

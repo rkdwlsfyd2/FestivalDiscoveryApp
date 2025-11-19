@@ -22,8 +22,6 @@
                     지도
                 </a>
 
-
-
                 <!-- 로고(중앙) -->
                 <a href="/" class="px-4 py-2 border rounded bg-white hover:bg-gray-100">
                     로고
@@ -33,21 +31,32 @@
             <!-- 오른쪽 메뉴 -->
             <div class="flex items-center space-x-3">
 
-                <a href="/login" class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                <!--  비로그인 상태: 로그인 / 회원가입 -->
+                <a th:if="${session.loginUser == null}"
+                   href="/login"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
                     로그인
                 </a>
 
-                <a href="/logout" class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
-                    로그아웃
-                </a>
-
-                <a href="/signup" class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                <a th:if="${session.loginUser == null}"
+                   href="/signup"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
                     회원가입
                 </a>
 
-                <a href="/mypage/profile" class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                <!--  로그인 상태: 로그아웃 / 마이페이지 -->
+                <a th:if="${session.loginUser != null}"
+                   href="/logout"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                    로그아웃
+                </a>
+
+                <a th:if="${session.loginUser != null}"
+                   href="/mypage/profile"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
                     마이페이지
                 </a>
+
             </div>
 
         </div>
