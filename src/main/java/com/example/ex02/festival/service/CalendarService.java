@@ -19,77 +19,163 @@ public class CalendarService {
     private final FestivalRepository festivalRepository;
     private final FavoriteRepository favoriteRepository;
 
-    // year, month, region 기준으로 달력 데이터 조회
-    public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year, int month, String region,Long userNo) {
+    public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year, int month, String region, Long userNo) {
 
         YearMonth ym = YearMonth.of(year, month);
-        LocalDate startOfMonth = ym.atDay(1);
-        LocalDate endOfMonth = ym.atEndOfMonth();
+        LocalDate monthStart = ym.atDay(1);
+        LocalDate monthEnd   = ym.atEndOfMonth();
 
-        LocalDateTime startDateTime = startOfMonth.atStartOfDay();
-        LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+        LocalDateTime startDateTime = monthStart.atStartOfDay();
+        LocalDateTime endDateTime   = monthEnd.atTime(23, 59, 59);
 
-        // 현재 로그인 사용자의 즐겨찾기 축제 id 목록
+        // 0) 즐겨찾기 id 셋
         Set<Long> favoriteIdSet = Collections.emptySet();
         if (userNo != null) {
             List<Long> favIds = favoriteRepository.findFestivalNosByMember(userNo);
             favoriteIdSet = new HashSet<>(favIds);
         }
 
-        // 1) 해당 월에 겹치는 축제 전체 조회
+        // 1) 해당 월에 걸치는 축제 전체 조회
         List<FestivalEntity> festivals = festivalRepository.findFestivalsForMonth(
                 startDateTime, endDateTime, region
         );
 
         // 2) 월 전체 날짜를 미리 Map으로 생성
         Map<LocalDate, List<CalendarFestivalDto>> calendarMap = new LinkedHashMap<>();
-        LocalDate cursor = startOfMonth;
-        while (!cursor.isAfter(endOfMonth)) {
-            calendarMap.put(cursor, new ArrayList<>());
-            cursor = cursor.plusDays(1);
+        for (LocalDate d = monthStart; !d.isAfter(monthEnd); d = d.plusDays(1)) {
+            calendarMap.put(d, new ArrayList<>());
         }
 
-        // 3) 각 축제를 날짜별로 쪼개서 넣기
-        for (FestivalEntity festival : festivals) {
-//            CalendarFestivalDto dto = CalendarFestivalDto.from(festival);
-            boolean isFavorite = favoriteIdSet.contains(festival.getFestivalNo());
-            CalendarFestivalDto dto = CalendarFestivalDto.from(festival, isFavorite);
+        // 3) 즐겨찾기 축제별 색상 매핑
+        String[] palette = {
+                "#93c5fd", // 파랑
+                "#f9a8d4", // 핑크
+                "#6ee7b7", // 민트
+                "#facc15", // 노랑
+                "#fda4af", // 살구
+                "#a5b4fc"  // 보라
+        };
+        Map<Long, String> colorByFestival = new HashMap<>();
+        int colorIdx = 0;
+        for (FestivalEntity fest : festivals) {
+            if (favoriteIdSet.contains(fest.getFestivalNo())) {
+                colorByFestival.put(fest.getFestivalNo(),
+                        palette[colorIdx % palette.length]);
+                colorIdx++;
+            }
+        }
 
-            // 즐겨찾기 표시
-            if (favoriteIdSet.contains(dto.getFestivalNo())) {
-                dto.setFavorite(true);
+        // 4) 즐겨찾기 축제들의 "이 달 기준 구간" 리스트
+        class FavInterval {
+            FestivalEntity fest;
+            LocalDate visibleStart;
+            LocalDate visibleEnd;
+        }
+
+        List<FavInterval> favIntervals = new ArrayList<>();
+
+        for (FestivalEntity fest : festivals) {
+            if (!favoriteIdSet.contains(fest.getFestivalNo())) continue;  // ★ 즐겨찾기만
+
+            LocalDate festStart = fest.getEventStartDate().toLocalDate();
+            LocalDate festEnd   = fest.getEventEndDate().toLocalDate();
+
+            if (festEnd.isBefore(monthStart) || festStart.isAfter(monthEnd)) continue;
+
+            LocalDate visibleStart = festStart.isBefore(monthStart) ? monthStart : festStart;
+            LocalDate visibleEnd   = festEnd.isAfter(monthEnd) ? monthEnd : festEnd;
+
+            FavInterval fi = new FavInterval();
+            fi.fest = fest;
+            fi.visibleStart = visibleStart;
+            fi.visibleEnd = visibleEnd;
+            favIntervals.add(fi);
+        }
+
+        // 5) 시작일 빠른 순 + 종료일이 늦게 끝나는 순으로 정렬
+        favIntervals.sort(
+                Comparator
+                        .comparing((FavInterval it) -> it.visibleStart)
+                        .thenComparing(it -> it.visibleEnd, Comparator.reverseOrder())
+        );
+
+        // 6) greedy하게 레인 번호 배정 (한 번만!)
+        List<LocalDate> laneEnd = new ArrayList<>();         // 각 레인별 마지막 날짜
+        Map<Long, Integer> laneByFestival = new HashMap<>(); // festivalNo -> lane
+
+        for (FavInterval interval : favIntervals) {
+            int lane = 0;
+            // 현재 축제 시작일과 겹치지 않는 가장 낮은 레인 찾기
+            while (lane < laneEnd.size()
+                    && !laneEnd.get(lane).isBefore(interval.visibleStart)) { // laneEnd >= start 이면 겹침
+                lane++;
+            }
+            if (lane == laneEnd.size()) {
+                laneEnd.add(interval.visibleEnd);
+            } else {
+                laneEnd.set(lane, interval.visibleEnd);
+            }
+            laneByFestival.put(interval.fest.getFestivalNo(), lane);
+        }
+
+        // 7) 이제 모든 축제를 날짜별로 쪼개서 넣기
+        for (FestivalEntity fest : festivals) {
+
+            boolean favorite = favoriteIdSet.contains(fest.getFestivalNo());
+
+            LocalDate festStart = fest.getEventStartDate().toLocalDate();
+            LocalDate festEnd   = fest.getEventEndDate().toLocalDate();
+            if (festEnd.isBefore(monthStart) || festStart.isAfter(monthEnd)) {
+                continue;
             }
 
-            System.out.println("=== getCalendar ===");
-            System.out.println("memberNo       = " + userNo);
-            System.out.println("festivals.size = " + festivals.size());
-            System.out.println("favoriteIdSet  = " + favoriteIdSet);
+            LocalDate visibleStart = festStart.isBefore(monthStart) ? monthStart : festStart;
+            LocalDate visibleEnd   = festEnd.isAfter(monthEnd) ? monthEnd : festEnd;
 
-            LocalDate festivalStart = festival.getEventStartDate().toLocalDate();
-            LocalDate festivalEnd = festival.getEventEndDate().toLocalDate();
+            Integer lane = favorite ? laneByFestival.getOrDefault(fest.getFestivalNo(), 999) : 999;
 
-            LocalDate applyStart = festivalStart.isBefore(startOfMonth) ? startOfMonth : festivalStart;
-            LocalDate applyEnd = festivalEnd.isAfter(endOfMonth) ? endOfMonth : festivalEnd;
+            for (LocalDate d = visibleStart; !d.isAfter(visibleEnd); d = d.plusDays(1)) {
+                CalendarFestivalDto dto = CalendarFestivalDto.from(fest, favorite);
+                dto.setStartDate(festStart);
+                dto.setEndDate(festEnd);
 
-            LocalDate day = applyStart;
-            while (!day.isAfter(applyEnd)) {
-                List<CalendarFestivalDto> list = calendarMap.get(day);
-                if (list != null) {
-                    list.add(dto);
+                if (favorite) {
+                    dto.setColorCode(colorByFestival.get(fest.getFestivalNo()));
+                    dto.setLane(lane);
+
+                    if (visibleStart.equals(visibleEnd)) {
+                        dto.setBarType("SINGLE");
+                        dto.setShowTitle(true);
+                    } else if (d.equals(visibleStart)) {
+                        dto.setBarType("START");
+                        dto.setShowTitle(true);
+                    } else if (d.equals(visibleEnd)) {
+                        dto.setBarType("END");
+                        dto.setShowTitle(false);
+                    } else {
+                        dto.setBarType("MIDDLE");
+                        dto.setShowTitle(false);
+                    }
+                } else {
+                    dto.setBarType(null);
+                    dto.setShowTitle(false);
+                    dto.setColorCode(null);
+                    dto.setLane(999);
                 }
-                day = day.plusDays(1);
+
+                calendarMap
+                        .computeIfAbsent(d, k -> new ArrayList<>())
+                        .add(dto);
             }
         }
 
-        // 각 날짜별로 "즐겨찾기 먼저" 정렬
+        // 8) 각 날짜별로 lane 기준 정렬
         for (List<CalendarFestivalDto> list : calendarMap.values()) {
-            list.sort(Comparator
-                    .comparing(CalendarFestivalDto::isFavorite).reversed()
-                    .thenComparing(CalendarFestivalDto::getStartDate));
+            list.sort(Comparator.comparingInt(dto -> dto.getLane() == null ? 999 : dto.getLane()));
         }
 
         return calendarMap;
-    }
+    }   // getCalendar
 
     public List<List<CalendarFestivalDto>> buildCalendar(int year, int month, String region,Long userNo) {
 
@@ -137,7 +223,7 @@ public class CalendarService {
         }
 
         return weeks;
-    }
+    }   // buildCalendar
 
     // 이 달 전체 기준 즐겨찾기된 축제 목록(중복 제거) – 켈린더 위에 표시용
     public List<CalendarFestivalDto> getMonthlyFavorites(int year, int month,
@@ -157,8 +243,8 @@ public class CalendarService {
         }
 
         List<CalendarFestivalDto> result = new ArrayList<>(unique.values());
-        result.sort(Comparator.comparing(CalendarFestivalDto::getStartDate));
+//        result.sort(Comparator.comparing(CalendarFestivalDto::getStartDate));
         return result;
-    }
+    }   // getMonthlyFavorites
 
 }

@@ -11,9 +11,46 @@
         <style>
             .calendar-day {
                 min-height: 120px;
+                border-left: 1px solid #e5e7eb;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+            /* 요일 헤더 아래 날짜 그리드는 gap 0으로 — 줄 끊김 최소화 */
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, minmax(0, 1fr));
+                gap: 0;
+            }
+
+            .festival-bar {
+                position: relative;
+                z-index: 1;
+                color: #111827;
+            }
+
+            /* barType 에 따른 모서리 처리 */
+            .festival-bar[data-bar-type="SINGLE"] {
+                border-radius: 9999px;
+                margin-left: -2px;
+                margin-right: -2px;
+            }
+
+            .festival-bar[data-bar-type="START"] {
+                border-top-left-radius: 9999px;
+                border-bottom-left-radius: 9999px;
+            }
+
+            .festival-bar[data-bar-type="MIDDLE"] {
+                border-radius: 0;
+            }
+
+            .festival-bar[data-bar-type="END"] {
+                border-top-right-radius: 9999px;
+                border-bottom-right-radius: 9999px;
             }
         </style>
     </th:block>
+
 </head>
 
 <body>
@@ -111,9 +148,9 @@
             </div>
 
             <!-- 날짜들 -->
-            <div class="grid grid-cols-7 bg-sub-blue bg-opacity-10 gap-px">
+            <div class="calendar-grid bg-sub-blue bg-opacity-10 gap-0">
                 <div class="contents" th:each="week : ${weeks}">
-                    <div class="calendar-day bg-white p-2 flex flex-col border border-gray-100
+                    <div class="calendar-day bg-white py-2 px-0 flex flex-col
                                 hover:bg-sub-blue hover:bg-opacity-10 transition"
                          th:each="day : ${week}"
                          th:classappend="${!day.inMonth} ? ' opacity-40 bg-gray-50 hover:bg-gray-50'">
@@ -124,29 +161,45 @@
                                   th:text="${day.date.dayOfMonth}">1</span>
                         </div>
 
-                        <!-- 날짜별 즐겨찾기 목록: day.festivals 중 favorite == true인 항목만 -->
-                        <div class="mt-1 flex flex-wrap gap-1"
+<!--                        &lt;!&ndash; 날짜별 즐겨찾기 목록: day.festivals 중 favorite == true인 항목만 &ndash;&gt;-->
+<!--                        <div class="mt-1 flex flex-wrap gap-1"-->
+<!--                             th:if="${#lists.size(day.festivals.?[favorite]) > 0}">-->
+
+<!--                            <div th:each="f : ${day.festivals}"-->
+<!--                                 class="h-5">-->
+
+<!--                                <a th:href="@{/festival/detail(festivalNo=${f.festivalNo})}"-->
+<!--                                   class="festival-bar flex items-center h-full text-[10px] px-1 truncate hover:opacity-90"-->
+<!--                                   th:classappend="${f.favorite} ? ' festival-bar-favorite' : ' festival-bar-normal'"-->
+<!--                                >-->
+<!--                                    &lt;!&ndash; 바 타입별로 모양 지정용 data 속성 (CSS에서도 쓸 수 있음) &ndash;&gt;-->
+<!--                                    <span th:attr="data-bar-type=${f.barType}"></span>-->
+
+<!--                                    &lt;!&ndash; 이 달에서 제목을 보여줄 날에만 텍스트 출력 &ndash;&gt;-->
+<!--                                    <span th:if="${f.showTitle}"-->
+<!--                                          class="truncate ml-1"-->
+<!--                                          th:text="${f.title}">-->
+<!--                                    </span>-->
+<!--                                </a>-->
+<!--                            </div>-->
+
+<!--                        </div>-->
+                        <!-- 즐겨찾기 축제 바 (구글 캘린더 스타일) -->
+                        <div class="mt-1 relative"
+                             style="height: 80px;"
                              th:if="${#lists.size(day.festivals.?[favorite]) > 0}">
 
-                            <div th:each="f : ${day.festivals}"
-                                 class="h-5">
+                            <div th:each="f : ${day.festivals.?[favorite]}"
+                                 class="absolute left-0 right-0 h-4"
+                                 th:attr="data-bar-type=${f.barType}"
+                                 th:style="|top: ${f.lane * 18}px; background-color: ${f.colorCode};|">
 
-                                <a th:href="@{/festival/detail(festivalNo=${f.festivalNo})}"
-                                   class="festival-bar flex items-center h-full text-[10px] px-1 truncate hover:opacity-90"
-                                   th:classappend="${f.favorite} ? ' festival-bar-favorite' : ' festival-bar-normal'"
-                                >
-                                    <!-- 바 타입별로 모양 지정용 data 속성 (CSS에서도 쓸 수 있음) -->
-                                    <span th:attr="data-bar-type=${f.barType}"></span>
-
-                                    <!-- 이 달에서 제목을 보여줄 날에만 텍스트 출력 -->
-                                    <span th:if="${f.showTitle}"
-                                          class="truncate ml-1"
-                                          th:text="${f.title}">
-                                    </span>
+                                <a class="festival-bar block h-full text-[10px] px-1 truncate">
+                                    <span th:if="${f.showTitle}" th:text="${f.title}"></span>
                                 </a>
                             </div>
-
                         </div>
+
 
                         <!-- 축제 개수 / 클릭 텍스트 : 날짜 칸 맨 아래 중앙 -->
                         <div class="mt-auto flex justify-center">
@@ -213,10 +266,6 @@
              class="w-full md:w-80 bg-white rounded-2xl shadow-md p-4 hidden md:block">
             <div class="flex items-center justify-between mb-3">
                 <div class="font-semibold text-main" id="detailDateText">선택한 날짜의 축제 목록</div>
-                <button type="button" id="detailCloseBtn"
-                        class="text-xs text-gray-400 hover:text-gray-600">
-                    닫기 ✕
-                </button>
             </div>
             <div id="detailContent" class="divide-y divide-gray-100">
                 <!-- JS로 각 날짜의 hidden 목록을 복사해서 여기에 넣음 -->

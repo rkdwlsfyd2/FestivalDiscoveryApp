@@ -23,6 +23,8 @@ public class CalendarFestivalDto {
     private LocalDate date;                         // 날짜 (yyyy-MM-dd)
     private boolean inMonth;                        // 이번 달에 속하는지 여부
     private List<CalendarFestivalDto> festivals;    // 이 날 진행되는 축제 리스트
+    private String colorCode; // 예: "#93c5fd"
+    private Integer lane;  // 즐겨찾기 바가 들어갈 줄 번호 (0,1,2,...)
 
     // 태그 이미지
     private List<String> tagImageUrls;
