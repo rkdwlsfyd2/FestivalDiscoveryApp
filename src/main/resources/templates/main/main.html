@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="ko"
+      layout:decorate="common/mylayout">
+
 <body>
+
+<section layout:fragment="content" class="relative z-50">   <!-- ★ 핵심: 배경보다 위로 -->
+
+    <div class="text-center mt-10 relative z-50">           <!-- ★ 필요할 때만 덮어씀 -->
+        <h2 class="text-h3 text-main font-bold">
+            오늘 어떤 축제를 추천받아보시겠어요?
+        </h2>
+    </div>
+
+    <div class="flex justify-center mt-10 relative z-50">
+        <a href="/festival/list"
+           class="bg-main text-white py-3 px-6 rounded-xl shadow-md hover:bg-blue-600 transition">
+            축제 둘러보기
+        </a>
+    </div>
+
+</section>
 
 </body>
 </html>

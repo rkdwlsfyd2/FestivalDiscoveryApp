@@ -28,4 +28,17 @@ public class FestivalController {
         // TODO: 캘린더 데이터 세팅
         return "festival/calendar";
     }
+    // 디자인 표본 페이지
+    // http://localhost:9898/festivals/designConfig
+    @GetMapping("/designConfig")
+    public String designConfigPage() {
+        return "review/designConfig";
+    }
+
+    // 리뷰 페이지
+    // http://localhost:9898/festivals/review
+    @GetMapping("/review")
+    public String reviewPage() {
+        return "review/review_integration";
+    }
 }
