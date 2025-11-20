@@ -1,12 +1,16 @@
 package com.example.ex02.festival.dto;
 
+import com.example.ex02.common.util.FestivalTagEmoji;
 import com.example.ex02.festival.entity.FestivalEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -45,9 +49,22 @@ public class CalendarFestivalDto {
         return startDate.getMonthValue() + "." + startDate.getDayOfMonth()
                 + " ~ " +
                 endDate.getMonthValue() + "." + endDate.getDayOfMonth();
+
     }
-    
+
     public static CalendarFestivalDto from(FestivalEntity entity, boolean favorite) {
+        return from(entity, favorite, Collections.emptyList());
+    }
+
+    public static CalendarFestivalDto from(FestivalEntity entity,
+                                           boolean favorite,
+                                           List<String> tagNames) {
+
+        List<String> tagEmojis = tagNames.stream()
+                .map(FestivalTagEmoji::getEmoji)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
         return CalendarFestivalDto.builder()
                 .festivalNo(entity.getFestivalNo())
                 .title(entity.getTitle())
@@ -59,6 +76,7 @@ public class CalendarFestivalDto {
                 .favorite(favorite)
                 .barType("SINGLE")
                 .showTitle(true)
+                .tagImageUrls(tagEmojis)
                 .build();
     }
 }

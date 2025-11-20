@@ -2,8 +2,10 @@ package com.example.ex02.festival.service;
 
 import com.example.ex02.festival.dto.CalendarFestivalDto;
 import com.example.ex02.festival.entity.FestivalEntity;
+import com.example.ex02.festival.entity.FestivalTagEntity;
 import com.example.ex02.festival.repository.FavoriteRepository;
 import com.example.ex02.festival.repository.FestivalRepository;
+import com.example.ex02.festival.repository.FestivalTagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +13,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CalendarService {
 
     private final FestivalRepository festivalRepository;
+    private final FestivalTagRepository festivalTagRepository;
     private final FavoriteRepository favoriteRepository;
 
     public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year, int month, String region, Long userNo) {
@@ -40,13 +44,28 @@ public class CalendarService {
                 startDateTime, endDateTime, region
         );
 
+        // 🔹 1) 이번 달 축제 번호들
+        List<Long> festNos = festivals.stream()
+                .map(FestivalEntity::getFestivalNo)
+                .toList();
+
+        // 🔹 2) 태그 전체 한 번에 조회
+        List<FestivalTagEntity> allTags = festivalTagRepository.findByFestival_FestivalNoIn(festNos);
+
+        // 🔹 3) festivalNo → List<tagName> 맵 만들기
+        Map<Long, List<String>> tagNamesByFestival = allTags.stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getFestival().getFestivalNo(),
+                        Collectors.mapping(FestivalTagEntity::getTag, Collectors.toList())
+                ));
+
         // 2) 월 전체 날짜를 미리 Map으로 생성
         Map<LocalDate, List<CalendarFestivalDto>> calendarMap = new LinkedHashMap<>();
         for (LocalDate d = monthStart; !d.isAfter(monthEnd); d = d.plusDays(1)) {
             calendarMap.put(d, new ArrayList<>());
         }
 
-        // 3) 즐겨찾기 축제별 색상 매핑
+        // todo 3) 즐겨찾기 축제별 색상 매핑
         String[] palette = {
                 "#93c5fd", // 파랑
                 "#f9a8d4", // 핑크

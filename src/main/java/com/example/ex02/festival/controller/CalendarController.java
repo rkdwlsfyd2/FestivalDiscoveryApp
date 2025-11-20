@@ -44,8 +44,8 @@ public class CalendarController {
 
 
         // 태그 이미지
-//        tagImages =
-//        model.addAttribute("tagImages",tagImages);
+//        FestivalTagEmoji =
+//        model.addAttribute("FestivalTagEmoji",FestivalTagEmoji);
 
         // 이전/다음달 계산해서 버튼에 사용
         LocalDate current = LocalDate.of(targetYear, targetMonth, 1);
