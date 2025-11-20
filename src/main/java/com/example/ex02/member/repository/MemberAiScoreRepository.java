@@ -13,4 +13,6 @@ public interface MemberAiScoreRepository extends JpaRepository<MemberAiScoreEnti
     List<MemberAiScoreEntity> findByMember(MemberEntity member);
 
     Optional<MemberAiScoreEntity> findByMemberAndFestival(MemberEntity member, FestivalEntity festival);
+    // 특정 회원의 기존 점수 전부 삭제
+    void deleteByMember(MemberEntity member);
 }

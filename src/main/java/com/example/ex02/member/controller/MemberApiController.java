@@ -41,17 +41,33 @@ public class MemberApiController {
         return Map.of("exists", exists);
     }
 
-    /** 이메일 인증 코드 발송 */
+    /** 이메일 인증 코드 발송 (가입된 이메일인지 확인 포함) */
     @GetMapping("/send-email-code")
-    public String sendEmailCode(@RequestParam String email) {
+    public String sendEmailCode(@RequestParam String email,
+                                @RequestParam(required = false) String type) {
 
         if (email == null || email.trim().isEmpty()) {
             return "EMPTY";
         }
 
-        emailService.sendVerificationCode(email);  // ✔ 반환 없음 → 실행만
+        // 🎯 default: 회원가입
+        if (type == null || type.equals("signup")) {
+            emailService.sendVerificationCode(email);
+            return "OK";
+        }
 
-        return "OK";  // ✔ 클라이언트가 인식할 값
+        // 🎯 아이디 찾기 전용
+        if (type.equals("findId")) {
+            // 가입된 이메일인지 먼저 확인
+            if (!memberRepository.existsByEmail(email)) {
+                return "NOT_FOUND";
+            }
+
+            emailService.sendVerificationCodeForFindId(email);
+            return "OK";
+        }
+
+        return "INVALID_TYPE";
     }
 
 

@@ -19,9 +19,9 @@ public class EmailService {
     // 이메일 인증 코드 저장
     private Map<String, String> verificationCodes = new HashMap<>();
 
-    // ================================
+    // =============================================================
     // ⭐ 회원가입 인증코드 (TEXT 메일)
-    // ================================
+    // =============================================================
     public String sendVerificationCode(String email) {
 
         String code = String.valueOf((int)(Math.random() * 900000) + 100000);
@@ -35,11 +35,36 @@ public class EmailService {
 
             mailSender.send(message);
 
-            System.out.println("📧 인증코드 발송 완료 → " + email);
+            System.out.println("📧 회원가입 인증코드 발송 완료 → " + email);
             return code;
 
         } catch (Exception e) {
             System.out.println("❌ 인증코드 발송 실패: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // =============================================================
+    // ⭐ 아이디 찾기 인증코드 (TEXT 메일) — 새로 추가
+    // =============================================================
+    public String sendVerificationCodeForFindId(String email) {
+
+        String code = String.valueOf((int)(Math.random() * 900000) + 100000);
+        verificationCodes.put(email, code);
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject("아이디 찾기 인증 코드");   // 제목 변경
+            message.setText("아이디 찾기 인증코드: " + code);
+
+            mailSender.send(message);
+
+            System.out.println("📧 아이디 찾기 인증코드 발송 완료 → " + email);
+            return code;
+
+        } catch (Exception e) {
+            System.out.println("❌ 아이디 찾기 인증코드 발송 실패: " + e.getMessage());
             return null;
         }
     }
@@ -49,9 +74,9 @@ public class EmailService {
         return code.equals(verificationCodes.get(email));
     }
 
-    // ================================
+    // =============================================================
     // ⭐ 비밀번호 재설정 HTML 메일
-    // ================================
+    // =============================================================
     public void sendHtmlMail(String to, String subject, String htmlContent) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -60,7 +85,7 @@ public class EmailService {
             helper.setTo(to);
             helper.setFrom("wjdendnjs1@gmail.com");
             helper.setSubject(subject);
-            helper.setText(htmlContent, true);  // ⭐ HTML 적용
+            helper.setText(htmlContent, true);
 
             mailSender.send(mimeMessage);
 
@@ -71,9 +96,9 @@ public class EmailService {
         }
     }
 
-    // ================================
-    // ⭐ 일반 TEXT 메일 (예비)
-    // ================================
+    // =============================================================
+    // ⭐ 일반 TEXT 메일
+    // =============================================================
     public void sendMail(String to, String subject, String text) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();

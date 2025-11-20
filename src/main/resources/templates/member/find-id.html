@@ -53,22 +53,52 @@
         const findIdBtn = document.getElementById("findIdBtn");
         const resultMsg = document.getElementById("resultMsg");
 
+        /* ----------------------------------------------------
+       📌 이메일 입력 중에는 메시지 초기화
+        ---------------------------------------------------- */
+        email.addEventListener("input", () => {
+            emailMsg.innerText = "";
+            verified = false;
+        });
+        /* ----------------------------------------------------
+           📌 1) 인증코드 발송 (가입된 이메일만 가능하게)
+        ---------------------------------------------------- */
         sendCodeBtn.addEventListener("click", () => {
             const emailValue = email.value.trim();
+
             if (emailValue === "") {
-                alert("이메일을 입력하세요.");
+                emailMsg.innerText = "이메일을 입력하세요.";
+                emailMsg.style.color = "red";
                 return;
             }
 
-            fetch(`/api/member/send-email-code?email=${emailValue}`)
+            fetch(`/api/member/send-email-code?email=${emailValue}&type=findId`)
                 .then(res => res.text())
                 .then(result => {
+
+                    if (result === "EMPTY") {
+                        emailMsg.innerText = "이메일을 입력하세요.";
+                        emailMsg.style.color = "red";
+                        return;
+                    }
+
+                    if (result === "NOT_FOUND") {
+                        emailMsg.innerText = "가입된 이메일이 아닙니다.";
+                        emailMsg.style.color = "red";
+                        return;
+                    }
+
                     if (result === "OK") {
+                        emailMsg.innerText = "인증코드가 이메일로 발송되었습니다.";
+                        emailMsg.style.color = "green";
                         alert("인증코드가 발송되었습니다.");
                     }
                 });
         });
 
+        /* ----------------------------------------------------
+           📌 2) 인증코드 검증
+        ---------------------------------------------------- */
         verifyCode.addEventListener("input", () => {
             const emailValue = email.value.trim();
             const code = verifyCode.value.trim();
@@ -94,7 +124,11 @@
                 });
         });
 
+        /* ----------------------------------------------------
+           📌 3) 아이디 찾기
+        ---------------------------------------------------- */
         findIdBtn.addEventListener("click", () => {
+
             if (!verified) {
                 alert("이메일 인증을 완료하세요.");
                 return;
