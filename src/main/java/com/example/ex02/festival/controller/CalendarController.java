@@ -2,6 +2,7 @@ package com.example.ex02.festival.controller;
 
 import com.example.ex02.festival.dto.CalendarFestivalDto;
 import com.example.ex02.festival.service.CalendarService;
+import com.example.ex02.member.entity.MemberEntity;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -24,7 +25,7 @@ public class CalendarController {
     public String calendar(@RequestParam(required = false) Integer year,
                            @RequestParam(required = false) Integer month,
                            @RequestParam(required = false) String region,
-                           HttpSession session, // todo
+                           HttpSession session,
                            Model model) {
 
         LocalDate today = LocalDate.now();
@@ -32,7 +33,12 @@ public class CalendarController {
         int targetMonth = (month != null) ? month : today.getMonthValue();
 
         // 세션에서 로그인한 회원 번호 가져오기 (로그인 안 했으면 null)
-        Long userNo = (Long) session.getAttribute("loginUserNo");
+        MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
+
+        Long userNo = null;
+        if(loginUser != null){
+            userNo = loginUser.getUserNo();
+        }
 
         Map<LocalDate, List<CalendarFestivalDto>> calendarMap =
                 calendarService.getCalendar(targetYear, targetMonth, region, userNo);
