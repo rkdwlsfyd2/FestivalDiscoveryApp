@@ -1,6 +1,7 @@
 package com.example.ex02.festival.controller;
 
 import com.example.ex02.festival.service.FavoriteService;
+import com.example.ex02.member.entity.MemberEntity;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,15 +22,17 @@ public class FavoriteController {
                                  HttpSession session) {
 
         // 세션에서 로그인한 회원 번호 꺼내기
-        Long memberNo = (Long) session.getAttribute("loginUserNo");
+//        Long memberNo = (Long) session.getAttribute("loginUser");
+//        Long userNo = getLoginUserNo(session);
+        MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
 
         // 로그인 안 되어 있으면 로그인 페이지로
-        if (memberNo == null) {
-            return "redirect:/test-login";   // todo 실제 로그인 URL에 맞게 수정
+        if (loginUser == null) {
+            return "redirect:/login";
         }
 
         // 즐겨찾기 토글
-        favoriteService.toggleFavorite(memberNo, festivalNo);
+        favoriteService.toggleFavorite(loginUser.getUserNo(), festivalNo);
 
         // 다시 달력(or 원래 페이지)으로 리다이렉트
         return "redirect:" + redirectUrl;
