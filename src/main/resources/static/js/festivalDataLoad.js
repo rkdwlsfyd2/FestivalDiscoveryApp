@@ -1,4 +1,5 @@
-// 해당 페이지 내용 : 로딩 오버레이 표시 및 제거,축제 목록 ajax 요청 및 마커 업데이트 함수 
+// 해당 페이지 내용 : 로딩 오버레이 표시 및 제거,축제 목록 ajax 요청 및 마커 업데이트 함수
+// 필터링 상태 감지도 여기서 함
 // "로딩 오버레이" 표시
 function showLoadingOverlay() {
     // 이미 존재하면 중복 생성 X
@@ -19,7 +20,7 @@ function removeLoadingOverlay() {
 }
 
 //축제 목록 데이터 비동기 요청
-function updateFestivalList(page = 0, keyword = "", ongoingOnly = false, updateMarkers = true) {
+function updateFestivalList(page = 0, keyword = "", ongoingOnly = false, updateMarkers = true, region = "", tag = "") {
     showLoadingOverlay();
 
     // 검색어 감지(null일때 처리)
@@ -30,10 +31,24 @@ function updateFestivalList(page = 0, keyword = "", ongoingOnly = false, updateM
     const ongoingOnlyCheckbox = document.querySelector("#ongoingOnlyCheckbox");
     const isOngoingOnly = ongoingOnly || (ongoingOnlyCheckbox?.checked || false);
     
+    // 지역 필터 감지
+    const regionFilter = document.querySelector("#regionFilter");
+    const selectedRegion = region || (regionFilter?.value || "");
+    
+    // 태그 필터 감지 (전역 변수로 관리)
+    const selectedTag = tag || (window.selectedTag || "");
+    
     // .festival-items인 요소에 데이터를 넣어준다.
     const items = document.querySelector(".festival-items");
 
-    const url = `/festivals/review/ajax?page=${page}&keyword=${encodeURIComponent(searchKeyword)}&ongoingOnly=${isOngoingOnly}&_=${new Date().getTime()}`;
+    let url = `/festivals/review/ajax?page=${page}&keyword=${encodeURIComponent(searchKeyword)}&ongoingOnly=${isOngoingOnly}`;
+    if (selectedRegion) {
+        url += `&region=${encodeURIComponent(selectedRegion)}`;
+    }
+    if (selectedTag) {
+        url += `&tag=${encodeURIComponent(selectedTag)}`;
+    }
+    url += `&_=${new Date().getTime()}`;
     fetch(url)
         .then(res => res.text())
         .then(html => {

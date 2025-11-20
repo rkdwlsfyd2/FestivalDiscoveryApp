@@ -29,6 +29,9 @@
     .bg-gradient {
         background: linear-gradient(to right, #6B96FC, #4A80FA);
     }
+    .bg-gradient2 {
+        background: linear-gradient(45deg, #5170ff, #ff66c4);
+    }
     .bg-sub-red {
         background-color: #FF6A6B;
     }

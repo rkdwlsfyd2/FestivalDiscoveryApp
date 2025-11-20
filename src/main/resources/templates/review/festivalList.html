@@ -19,7 +19,7 @@
                         <p>등록된 축제가 없습니다.</p>
                     </div>
                     <div th:each="festival : ${festivalList.content}"
-                        class="festival-card bg-white rounded-lg p-4 cursor-pointer border-l-4 border-main"
+                        class="festival-card bg-white rounded-lg p-4 cursor-pointer border-2 border-main"
                         th:data-lat="${festival.mapy}" th:data-lng="${festival.mapx}">
                         
                         <!-- 축제 이미지 표시 : 축제 이미지가 
@@ -30,7 +30,16 @@
                             : festival.festivalImages[0].imageUrl}" 
                             class="w-full h-36 object-cover rounded-lg mb-3" />
 
-                        <h3 class="text-lg font-bold text-gray-800 mb-2" th:text="${festival.title}">축제 제목</h3>
+                        <div class="mb-2">
+                            <h3 class="text-lg font-bold text-gray-800 inline" th:text="${festival.title}">축제 제목</h3>
+                            <!-- 태그 표시 -->
+                            <div class="inline-flex gap-1 ml-2 flex-wrap" th:if="${tagMap != null and tagMap[festival.festivalNo] != null}">
+                                <span th:each="tag : ${tagMap[festival.festivalNo]}" 
+                                      class="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded"
+                                      th:text="${tag.tag}">
+                                </span>
+                            </div>
+                        </div>
 
                         <p class="text-sm text-gray-600 mb-2" th:if="${festival.addr}">
                             <i class="fas fa-map-marker-alt"></i> <span th:text="${festival.addr}">주소</span>
@@ -50,7 +59,7 @@
             <!-- 현재 진행중인 축제만 보기 체크박스 -->
             <div class="flex items-center mt-4 mb-2">
                 <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" id="ongoingOnlyCheckbox" class="w-4 h-4 text-main border-gray-300 rounded focus:ring-main focus:ring-2 cursor-pointer">
+                    <input type="checkbox" id="ongoingOnlyCheckbox" class="w-4 h-4 text-main border-gray-300 rounded focus:ring-main focus:ring-2 cursor-pointer" checked>
                     <span class="ml-2 text-sm text-gray-700">현재 진행중인 축제만 보기</span>
                 </label>
             </div>

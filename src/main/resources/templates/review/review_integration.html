@@ -6,20 +6,8 @@
     <style>
         #naverMap {
             width: 100%;
-            height: 720px;
-            min-height: 720px;
-        }
-        
-        /* 지도 높이를 축제 목록 영역과 맞추기 */
-        @media (min-width: 1024px) {
-            #mapWrapper {
-                display: flex;
-                flex-direction: column;
-            }
-            #festivalListWrapper {
-                display: flex;
-                flex-direction: column;
-            }
+            height: 650px;
+            min-height: 650px;
         }
         #naverMap *,
         #naverMap canvas,
@@ -28,25 +16,14 @@
             box-shadow: none !important;
             filter: drop-shadow(none) !important;
         }
-        /* 반응형 디자인 */
-        @media (max-width: 1024px) {
-            #naverMap {
-                height: 500px;
-                min-height: 500px;
-            }
-        }
-        #festivalListContainer {
-            transform: translateZ(0);
-            will-change: transform, scroll-position;
-        }
     </style>
 </th:block>
 
 <div layout:fragment="content">
-    <div class="container mx-auto px-4 py-8 mb-16 min-h-screen">
+    <div class="container mx-auto px-6 py-8 mb-16 min-h-screen">
         <!-- 왼쪽 축제 목록, 오른쪽 지도 레이아웃 -->
         <div class="bg-[#E6E8F2] rounded-lg shadow-lg 
-                flex flex-col lg:flex-row gap-6 w-full max-w-[1600px] mx-auto items-start p-4">
+                flex flex-col lg:flex-row gap-6 w-full max-w-[1300px] mx-auto items-start p-4">
 
             <!-- 왼쪽: 축제 목록 -->
             <div class="w-full lg:w-1/3" id="festivalListWrapper">
@@ -62,7 +39,7 @@
             <!-- 오른쪽: 네이버 지도 -->
             <div class="w-full lg:w-2/3" id="mapWrapper">
                 <h2 class="text-h3 font-bold text-main mb-4 invisible">축제 목록</h2>
-                <div class="w-full rounded-lg overflow-hidden flex-1" style="min-height: 600px;">
+                <div class="w-full rounded-lg overflow-hidden flex-1 border-2 border-main">
                     <div th:replace="~{review/navermap::mapContent}"></div>
                 </div>
             </div>
@@ -86,44 +63,12 @@
     <!-- 축제 데이터 로드 및 마커 업데이트 스크립트 -->
     <script type="text/javascript" th:src="@{/js/festivalDataLoad.js}"></script>
     
-    <!-- 페이지네이션/검색색 처리 -->
+    <!-- 페이지네이션/축제명 검색/지역별 드롭다운 UI 조작 및 change 이벤트 처리 -->
+    <script type="text/javascript" th:src="@{/js/filterhandler.js}"></script>
+    
+    <!-- 전체 지도 크기 조정 -->
     <script type="text/javascript">
-        document.addEventListener("click", function (e) {
-            // 페이지네이션 버튼을 눌렀을 때
-            if (e.target.classList.contains("page-btn")) {
-                e.preventDefault();
-                const page = e.target.dataset.page;
-                updateFestivalList(page);
-            }
-            // 검색 버튼을 눌렀을 때 
-            if (e.target.id === "searchBtn" || e.target.closest("#searchBtn")) {
-                e.preventDefault();
-                updateFestivalList(0);
-            }
-        });
-        
-        // 검색창에서 Enter 키를 눌렀을 때 
         document.addEventListener("DOMContentLoaded", function () {
-            const keywordInput = document.querySelector("#keywordInput");
-            if (keywordInput) {
-                keywordInput.addEventListener("keypress", function (e) {
-                    if (e.key === "Enter") {
-                        e.preventDefault();
-                        updateFestivalList(0);
-                    }
-                });
-            }
-            
-            // 현재 진행중인 축제만 보기 체크박스 이벤트
-            const ongoingOnlyCheckbox = document.querySelector("#ongoingOnlyCheckbox");
-            if (ongoingOnlyCheckbox) {
-                ongoingOnlyCheckbox.addEventListener("change", function(e) {
-                    const isChecked = e.target.checked;
-                    // 체크박스 상태 변경 시 첫 페이지로 리셋하여 목록 업데이트
-                    updateFestivalList(0, "", isChecked);
-                });
-            }
-            
             // 지도 높이를 축제 목록 영역과 맞추기
             function adjustMapHeight() {
                 if (window.innerWidth >= 1024) {
