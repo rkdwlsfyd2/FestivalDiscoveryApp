@@ -7,6 +7,7 @@ import com.example.ex02.member.dto.MypageAccountDto;
 import com.example.ex02.member.dto.MypageFavoriteDto;
 import com.example.ex02.member.dto.MypageReviewDto;
 import com.example.ex02.member.entity.MemberEntity;
+import com.example.ex02.member.service.MemberService;
 import com.example.ex02.member.service.MyPageService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class MyPageController {
 
     private final MyPageService myPageService;
-
+    private final MemberService memberService;
     // ⭐ 공통 메서드: 세션에서 로그인된 user_no 가져오기
     private Long getLoginUserNo(HttpSession session) {
         MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");

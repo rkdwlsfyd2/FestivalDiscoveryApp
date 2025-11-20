@@ -10,7 +10,7 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
-<div layout:fragment="content" class="bg-gray-50 min-h-screen ">
+<div layout:fragment="content" class="bg-gray-50 min-h-screen">
 
     <div class="flex max-w-6xl mx-auto py-10">
 
@@ -61,16 +61,16 @@
                     <!-- 전화번호 / 비밀번호 -->
                     <div class="grid grid-cols-2 gap-12">
                         <div>
-                            <label class="block font-semibold mb-2">전화번호</label>
+                            <label class="block font-semibold mb-2">전화번호 (하이픈 없이)</label>
                             <input id="phone" type="text" name="phone" th:value="${member.phone}"
                                    class="w-full border rounded-md p-2">
                             <p id="phoneError" class="text-red-500 text-sm mt-1 hidden">
-                                전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)
+                                전화번호 형식이 올바르지 않습니다. (예: 01012345678)
                             </p>
                         </div>
 
                         <div>
-                            <label class="block font-semibold mb-2">새 비밀번호 (6자리 이상)</label>
+                            <label class="block font-semibold mb-2">새 비밀번호 (8~20자, 영문 + 숫자/특수문자)</label>
                             <input id="password" type="password" name="password" placeholder="변경 시 입력"
                                    class="w-full border rounded-md p-2">
                         </div>
@@ -85,24 +85,21 @@
                             <input id="passwordConfirm" type="password" placeholder="한번 더 입력"
                                    class="w-full border rounded-md p-2">
                             <p id="pwError" class="text-red-500 text-sm mt-1 hidden">
-                                비밀번호가 일치하지 않거나 6자리 미만입니다.
+                                비밀번호가 조건에 맞지 않거나 일치하지 않습니다.
                             </p>
                         </div>
                     </div>
 
-                    <!--  선호 태그 (1개) -->
+                    <!-- 선호 태그 -->
                     <div class="grid grid-cols-2 gap-12">
                         <div>
                             <label class="block font-semibold mb-2">선호 태그 (1개 선택)</label>
 
-                            <!-- 선택된 태그 칩 -->
                             <div id="tagContainer" class="flex flex-wrap gap-2 mb-3"></div>
 
-                            <!-- Hidden input -->
                             <input type="hidden" id="favoriteTag" name="favoriteTag"
                                    th:value="${member.favoriteTag}">
 
-                            <!-- 추천 태그 7개 -->
                             <div class="mt-4">
                                 <p class="text-gray-600 text-sm mb-2">추천 태그</p>
 
@@ -141,20 +138,18 @@
             </div>
         </main>
     </div>
-    <!-- 반드시 fragment 내부에 있어야 작동함 -->
+
+
+    <!-- SCRIPT -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            /* ------------------------------
-               1) 태그 선택 기능 (1개)
-            ------------------------------ */
+            /* ---------------- 태그 선택 ---------------- */
             const tagContainer = document.getElementById("tagContainer");
             const hiddenTagInput = document.getElementById("favoriteTag");
             let selectedTag = hiddenTagInput.value || "";
 
-            if (selectedTag) {
-                addTagChip(selectedTag);
-            }
+            if (selectedTag) addTagChip(selectedTag);
 
             function addTagChip(tag) {
                 tagContainer.innerHTML = "";
@@ -176,63 +171,49 @@
             }
 
             document.querySelectorAll(".tag-btn").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    addTagChip(btn.dataset.tag);
-                });
+                btn.addEventListener("click", () => addTagChip(btn.dataset.tag));
             });
 
-
-            /* ------------------------------
-               2) 폼 제출 시 전체 입력 검증
-            ------------------------------ */
+            /* ---------------- 폼 검증 ---------------- */
             document.getElementById("accountForm").addEventListener("submit", function(e) {
 
                 let valid = true;
 
-                /* ------------------------------
-                   이메일 검증
-                ------------------------------ */
+                /* 이메일 검증 */
                 const email = document.getElementById("email").value.trim();
                 const emailError = document.getElementById("emailError");
-
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
                 if (!emailRegex.test(email)) {
-                    valid = false;
                     emailError.classList.remove("hidden");
+                    valid = false;
                 } else {
                     emailError.classList.add("hidden");
                 }
 
-                /* ------------------------------
-                   전화번호 검증
-                ------------------------------ */
+                /* 전화번호 검증 (하이픈 없음) */
                 const phone = document.getElementById("phone").value.trim();
                 const phoneError = document.getElementById("phoneError");
-
-                const phoneRegex = /^010-\d{4}-\d{4}$/;
+                const phoneRegex = /^010\d{8}$/;
 
                 if (!phoneRegex.test(phone)) {
-                    valid = false;
                     phoneError.classList.remove("hidden");
+                    valid = false;
                 } else {
                     phoneError.classList.add("hidden");
                 }
 
-
-                /* ------------------------------
-                   비밀번호 검증
-                ------------------------------ */
+                /* 비밀번호 검증 (회원가입과 동일한 규칙) */
                 const pw = document.getElementById("password").value.trim();
                 const pwConfirm = document.getElementById("passwordConfirm").value.trim();
                 const pwError = document.getElementById("pwError");
 
-                if (pw.length > 0) {   // 비밀번호 수정할 때만 검사
+                const pwRegex = /^(?=.*[A-Za-z])(?=.*[\d!@#$%^&*]).{8,20}$/;
 
-                    // 6자리 미만 or 서로 불일치
-                    if (pw.length < 6 || pw !== pwConfirm) {
-                        valid = false;
+                if (pw.length > 0) {
+                    if (!pwRegex.test(pw) || pw !== pwConfirm) {
                         pwError.classList.remove("hidden");
+                        valid = false;
                     } else {
                         pwError.classList.add("hidden");
                     }
@@ -240,22 +221,11 @@
                     pwError.classList.add("hidden");
                 }
 
-
-                /* ------------------------------
-                   하나라도 오류 있으면 제출 막기
-                ------------------------------ */
-                if (!valid) {
-                    e.preventDefault();
-                }
-
+                if (!valid) e.preventDefault();
             });
-
         });
     </script>
 
-
-
 </div>
-
 
 </html>

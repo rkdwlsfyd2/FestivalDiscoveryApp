@@ -6,7 +6,9 @@ import com.example.ex02.member.entity.PasswordResetToken;
 import com.example.ex02.member.repository.MemberRepository;
 import com.example.ex02.member.repository.PasswordResetTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -150,11 +152,39 @@ public class MemberService {
 
         if (member == null) return false;
 
-        member.setPassword(encoder.encode(newPassword));
+        member.setPassword(encoder.encode(newPassword)); //해싱된 비번
+//        member.setPassword(newPassword);  // 암호화 제거 (임시!)
+
         memberRepository.save(member);
 
         return true;
     }
+
+    // ============================
+//  마이페이지 회원 정보 수정
+// ============================
+    public boolean updateAccount(Long userNo, String name, String email, String phone,
+                                 String favoriteTag, String newPassword) {
+
+        MemberEntity member = memberRepository.findById(userNo).orElse(null);
+        if (member == null) return false;
+
+        // 이름/이메일/전화번호/태그 업데이트
+        member.setName(name);
+        member.setEmail(email);
+        member.setPhone(phone);
+        member.setFavoriteTag(favoriteTag);
+
+        //  비밀번호 변경 시 반드시 암호화
+        if (newPassword != null && !newPassword.trim().isEmpty()) {
+            String encodedPw = encoder.encode(newPassword);
+            member.setPassword(encodedPw);   // 암호화된 비밀번호 저장
+        }
+
+        memberRepository.save(member);
+        return true;
+    }
+
 
 
 

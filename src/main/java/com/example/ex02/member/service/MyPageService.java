@@ -13,6 +13,7 @@ import com.example.ex02.member.dto.MypageProfileDto;
 import com.example.ex02.member.entity.MemberEntity;
 import com.example.ex02.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -24,7 +25,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MyPageService {
-
+    private final BCryptPasswordEncoder encoder;
     private final MemberRepository memberRepository;
     private final FavoriteRepository favoriteRepository;
     private final ReviewRepository reviewRepository;
@@ -122,17 +123,16 @@ public class MyPageService {
         m.setName(updated.getName());
         m.setEmail(updated.getEmail());
         m.setPhone(updated.getPhone());
-        // 선호 태그 업데이트 추가
         m.setFavoriteTag(updated.getFavoriteTag());
 
-        // 비밀번호 변경 시
+        // 🔥 비밀번호 변경 시 반드시 해싱해서 저장
         if (updated.getPassword() != null && !updated.getPassword().isEmpty()) {
-            m.setPassword(updated.getPassword());
+            String encodedPw = encoder.encode(updated.getPassword());
+            m.setPassword(encodedPw);
         }
 
-        //  gender null 방지 (제일 중요)
         if (m.getGender() == null || m.getGender().trim().isEmpty()) {
-            m.setGender("M");  // 기본 성별
+            m.setGender("M");
         }
 
         memberRepository.save(m);
