@@ -8,12 +8,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class FavoriteService {
-
     private final FavoriteRepository favoriteRepository;
     private final FestivalRepository festivalRepository;
     private final MemberRepository memberRepository;
@@ -29,6 +30,7 @@ public class FavoriteService {
             FavoriteEntity fav = new FavoriteEntity();
             fav.setMember(memberRepository.getReferenceById(memberNo));
             fav.setFestival(festivalRepository.getReferenceById(festivalNo));
+            fav.setFavoriteDate(LocalDateTime.now());
             favoriteRepository.save(fav);         // 즐겨찾기 추가
         }
     }

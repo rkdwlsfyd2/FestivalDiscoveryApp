@@ -25,7 +25,7 @@ public class FavoriteController {
 
         // 로그인 안 되어 있으면 로그인 페이지로
         if (memberNo == null) {
-            return "redirect:/test-login";   // 실제 로그인 URL에 맞게 수정
+            return "redirect:/test-login";   // todo 실제 로그인 URL에 맞게 수정
         }
 
         // 즐겨찾기 토글
