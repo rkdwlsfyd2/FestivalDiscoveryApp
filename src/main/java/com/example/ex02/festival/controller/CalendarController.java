@@ -41,11 +41,7 @@ public class CalendarController {
         model.addAttribute("year", targetYear);
         model.addAttribute("month", targetMonth);
         model.addAttribute("selectedRegion", region);
-
-
-        // 태그 이미지
-//        FestivalTagEmoji =
-//        model.addAttribute("FestivalTagEmoji",FestivalTagEmoji);
+        model.addAttribute("today", today);
 
         // 이전/다음달 계산해서 버튼에 사용
         LocalDate current = LocalDate.of(targetYear, targetMonth, 1);
@@ -64,14 +60,6 @@ public class CalendarController {
         // 주(week) 단위 달력 데이터
         List<List<CalendarFestivalDto>> weeks = calendarService.buildCalendar(targetYear, targetMonth, region, userNo);
         model.addAttribute("weeks", weeks);
-
-        List<CalendarFestivalDto> favoriteFestivals =
-                calendarService.getMonthlyFavorites(targetYear, targetMonth, region, userNo);
-        if(favoriteFestivals == null){
-            System.out.println("null favorites");
-            favoriteFestivals = Collections.emptyList();
-        }
-        model.addAttribute("favoriteFestivals", favoriteFestivals);
 
         return "festival/calendar";
     }

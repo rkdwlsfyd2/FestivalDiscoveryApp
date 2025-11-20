@@ -12,7 +12,7 @@ public final class FestivalTagEmoji {
             Map.entry("culture", "🎭"),
             Map.entry("food", "🍜"),
             Map.entry("activity", "🎨"),
-            Map.entry("children", "👨‍👩‍👧‍👦"),
+            Map.entry("children", "\uD83D\uDC66"),
             Map.entry("season", "❄️")
     );
 

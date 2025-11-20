@@ -23,8 +23,30 @@ public class CalendarService {
     private final FestivalTagRepository festivalTagRepository;
     private final FavoriteRepository favoriteRepository;
 
-    public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year, int month, String region, Long userNo) {
+    // todo 즐겨찾기 축제별 색상 매핑 (현재는 그냥 GPT 추천으로 맞춰놓음)
+    private static final String[] FAVORITE_PALETTE = {
+            "#93c5fd", // 파랑
+            "#f9a8d4", // 핑크
+            "#6ee7b7", // 민트
+            "#facc15", // 노랑
+            "#fda4af", // 살구
+            "#a5b4fc"  // 보라
+    };
 
+    // 즐겨찾기 막대 배치를 위한 내부 클래스
+    private static class FavInterval {
+        FestivalEntity fest;
+        LocalDate visibleStart;
+        LocalDate visibleEnd;
+    }
+
+    // 켈린더에 들어갈 데이터 가져오기
+    public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year,
+                                                                 int month,
+                                                                 String region,
+                                                                 Long userNo) {
+
+        // 1) 월 범위 계산
         YearMonth ym = YearMonth.of(year, month);
         LocalDate monthStart = ym.atDay(1);
         LocalDate monthEnd   = ym.atEndOfMonth();
@@ -32,69 +54,117 @@ public class CalendarService {
         LocalDateTime startDateTime = monthStart.atStartOfDay();
         LocalDateTime endDateTime   = monthEnd.atTime(23, 59, 59);
 
-        // 0) 즐겨찾기 id 셋
-        Set<Long> favoriteIdSet = Collections.emptySet();
-        if (userNo != null) {
-            List<Long> favIds = favoriteRepository.findFestivalNosByMember(userNo);
-            favoriteIdSet = new HashSet<>(favIds);
-        }
+        // 2) 즐겨찾기 축제 번호 조회
+        Set<Long> favoriteIdSet = findFavoriteFestivalIds(userNo);
 
-        // 1) 해당 월에 걸치는 축제 전체 조회
+        // 3) 월에 걸치는 축제 조회
         List<FestivalEntity> festivals = festivalRepository.findFestivalsForMonth(
                 startDateTime, endDateTime, region
         );
 
-        // 🔹 1) 이번 달 축제 번호들
+        // 4) 축제별 태그 맵 조회
+        Map<Long, List<String>> tagNamesByFestival = loadTagNamesByFestival(festivals);
+
+        // 5) 월 전체 날짜 Map 초기화
+        Map<LocalDate, List<CalendarFestivalDto>> calendarMap =
+                createEmptyCalendarMap(monthStart, monthEnd);
+
+        // 6) 즐겨찾기 색상 매핑
+        Map<Long, String> colorByFestival =
+                assignFavoriteColors(festivals, favoriteIdSet);
+
+        // 7) 즐겨찾기 축제의 월 기준 구간 + 레인 계산
+        List<FavInterval> favIntervals =
+                buildFavoriteIntervals(festivals, favoriteIdSet, monthStart, monthEnd);
+
+        Map<Long, Integer> laneByFestival =
+                assignFavoriteLanes(favIntervals);
+
+        // 8) 축제들을 날짜별로 쪼개서 캘린더에 채우기
+        fillCalendarWithFestivals(calendarMap,
+                festivals,
+                favoriteIdSet,
+                tagNamesByFestival,
+                colorByFestival,
+                laneByFestival,
+                monthStart,
+                monthEnd);
+
+        // 9) 날짜별 lane 기준 정렬
+        sortCalendarByLane(calendarMap);
+
+        return calendarMap;
+    }   // getCalendar
+
+    /* ===================== 헬퍼 메서드들 ===================== */
+
+    // 즐겨찾기한 축제 id(userNo) 가져오기
+    private Set<Long> findFavoriteFestivalIds(Long userNo) {
+        if (userNo == null) {
+            return Collections.emptySet();
+        }
+        List<Long> favIds = favoriteRepository.findFestivalNosByMember(userNo);
+        return new HashSet<>(favIds);
+    }
+
+    // 축제의 태그 명 가져오기
+    private Map<Long, List<String>> loadTagNamesByFestival(List<FestivalEntity> festivals) {
+        if (festivals.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
         List<Long> festNos = festivals.stream()
                 .map(FestivalEntity::getFestivalNo)
                 .toList();
 
-        // 🔹 2) 태그 전체 한 번에 조회
-        List<FestivalTagEntity> allTags = festivalTagRepository.findByFestival_FestivalNoIn(festNos);
+        List<FestivalTagEntity> allTags =
+                festivalTagRepository.findByFestival_FestivalNoIn(festNos);
 
-        // 🔹 3) festivalNo → List<tagName> 맵 만들기
-        Map<Long, List<String>> tagNamesByFestival = allTags.stream()
+        return allTags.stream()
                 .collect(Collectors.groupingBy(
                         tag -> tag.getFestival().getFestivalNo(),
                         Collectors.mapping(FestivalTagEntity::getTag, Collectors.toList())
                 ));
+    }
 
-        // 2) 월 전체 날짜를 미리 Map으로 생성
+    // 켈린더 날짜별 들어갈 데이터를 리스트 형태로 저장
+    private Map<LocalDate, List<CalendarFestivalDto>> createEmptyCalendarMap(LocalDate monthStart,
+                                                                             LocalDate monthEnd) {
         Map<LocalDate, List<CalendarFestivalDto>> calendarMap = new LinkedHashMap<>();
         for (LocalDate d = monthStart; !d.isAfter(monthEnd); d = d.plusDays(1)) {
             calendarMap.put(d, new ArrayList<>());
         }
+        return calendarMap;
+    }
 
-        // todo 3) 즐겨찾기 축제별 색상 매핑
-        String[] palette = {
-                "#93c5fd", // 파랑
-                "#f9a8d4", // 핑크
-                "#6ee7b7", // 민트
-                "#facc15", // 노랑
-                "#fda4af", // 살구
-                "#a5b4fc"  // 보라
-        };
+    // 즐찾 하이라이팅 색
+    private Map<Long, String> assignFavoriteColors(List<FestivalEntity> festivals,
+                                                   Set<Long> favoriteIdSet) {
         Map<Long, String> colorByFestival = new HashMap<>();
         int colorIdx = 0;
+
         for (FestivalEntity fest : festivals) {
-            if (favoriteIdSet.contains(fest.getFestivalNo())) {
-                colorByFestival.put(fest.getFestivalNo(),
-                        palette[colorIdx % palette.length]);
+            Long festNo = fest.getFestivalNo();
+            if (favoriteIdSet.contains(festNo)) {
+                colorByFestival.put(festNo,
+                        FAVORITE_PALETTE[colorIdx % FAVORITE_PALETTE.length]);
                 colorIdx++;
             }
         }
+        return colorByFestival;
+    }
 
-        // 4) 즐겨찾기 축제들의 "이 달 기준 구간" 리스트
-        class FavInterval {
-            FestivalEntity fest;
-            LocalDate visibleStart;
-            LocalDate visibleEnd;
-        }
+    // 즐겨찾기 축제의 시작일/종료일 저장하고 즐찾 목록들 정렬
+    private List<FavInterval> buildFavoriteIntervals(List<FestivalEntity> festivals,
+                                                     Set<Long> favoriteIdSet,
+                                                     LocalDate monthStart,
+                                                     LocalDate monthEnd) {
 
         List<FavInterval> favIntervals = new ArrayList<>();
 
         for (FestivalEntity fest : festivals) {
-            if (!favoriteIdSet.contains(fest.getFestivalNo())) continue;  // ★ 즐겨찾기만
+            Long festNo = fest.getFestivalNo();
+            if (!favoriteIdSet.contains(festNo)) continue;  // 즐겨찾기만
 
             LocalDate festStart = fest.getEventStartDate().toLocalDate();
             LocalDate festEnd   = fest.getEventEndDate().toLocalDate();
@@ -108,42 +178,65 @@ public class CalendarService {
             fi.fest = fest;
             fi.visibleStart = visibleStart;
             fi.visibleEnd = visibleEnd;
+
             favIntervals.add(fi);
         }
 
-        // 5) 시작일 빠른 순 + 종료일이 늦게 끝나는 순으로 정렬
+        // 시작일 오름차순 + 종료일 내림차순 정렬
         favIntervals.sort(
                 Comparator
                         .comparing((FavInterval it) -> it.visibleStart)
                         .thenComparing(it -> it.visibleEnd, Comparator.reverseOrder())
         );
 
-        // 6) greedy하게 레인 번호 배정 (한 번만!)
-        List<LocalDate> laneEnd = new ArrayList<>();         // 각 레인별 마지막 날짜
+        return favIntervals;
+    }
+
+    // 축제 하이라이팅 레인 배정 (계단식으로 깨지는 것 방지)
+    private Map<Long, Integer> assignFavoriteLanes(List<FavInterval> favIntervals) {
+        List<LocalDate> laneEnd = new ArrayList<>();         // 레인별 마지막 날짜
         Map<Long, Integer> laneByFestival = new HashMap<>(); // festivalNo -> lane
 
         for (FavInterval interval : favIntervals) {
             int lane = 0;
+
             // 현재 축제 시작일과 겹치지 않는 가장 낮은 레인 찾기
             while (lane < laneEnd.size()
-                    && !laneEnd.get(lane).isBefore(interval.visibleStart)) { // laneEnd >= start 이면 겹침
+                    && !laneEnd.get(lane).isBefore(interval.visibleStart)) {
                 lane++;
             }
+
             if (lane == laneEnd.size()) {
                 laneEnd.add(interval.visibleEnd);
             } else {
                 laneEnd.set(lane, interval.visibleEnd);
             }
+
             laneByFestival.put(interval.fest.getFestivalNo(), lane);
         }
 
-        // 7) 이제 모든 축제를 날짜별로 쪼개서 넣기
+        return laneByFestival;
+    }
+
+    // 즐겨찾기한 축제만 날짜 위에 출력 (여러 기간에 걸친 축제는 축제 명 한번만)
+    private void fillCalendarWithFestivals(
+            Map<LocalDate, List<CalendarFestivalDto>> calendarMap,
+            List<FestivalEntity> festivals,
+            Set<Long> favoriteIdSet,
+            Map<Long, List<String>> tagNamesByFestival,
+            Map<Long, String> colorByFestival,
+            Map<Long, Integer> laneByFestival,
+            LocalDate monthStart,
+            LocalDate monthEnd
+    ) {
         for (FestivalEntity fest : festivals) {
 
-            boolean favorite = favoriteIdSet.contains(fest.getFestivalNo());
+            Long festNo = fest.getFestivalNo();
+            boolean favorite = favoriteIdSet.contains(festNo);
 
             LocalDate festStart = fest.getEventStartDate().toLocalDate();
             LocalDate festEnd   = fest.getEventEndDate().toLocalDate();
+
             if (festEnd.isBefore(monthStart) || festStart.isAfter(monthEnd)) {
                 continue;
             }
@@ -151,15 +244,18 @@ public class CalendarService {
             LocalDate visibleStart = festStart.isBefore(monthStart) ? monthStart : festStart;
             LocalDate visibleEnd   = festEnd.isAfter(monthEnd) ? monthEnd : festEnd;
 
-            Integer lane = favorite ? laneByFestival.getOrDefault(fest.getFestivalNo(), 999) : 999;
+            Integer lane = favorite ? laneByFestival.getOrDefault(festNo, 999) : 999;
+
+            List<String> tagNames =
+                    tagNamesByFestival.getOrDefault(festNo, List.of());
 
             for (LocalDate d = visibleStart; !d.isAfter(visibleEnd); d = d.plusDays(1)) {
-                CalendarFestivalDto dto = CalendarFestivalDto.from(fest, favorite);
+                CalendarFestivalDto dto = CalendarFestivalDto.from(fest, favorite, tagNames);
                 dto.setStartDate(festStart);
                 dto.setEndDate(festEnd);
 
                 if (favorite) {
-                    dto.setColorCode(colorByFestival.get(fest.getFestivalNo()));
+                    dto.setColorCode(colorByFestival.get(festNo));
                     dto.setLane(lane);
 
                     if (visibleStart.equals(visibleEnd)) {
@@ -187,15 +283,19 @@ public class CalendarService {
                         .add(dto);
             }
         }
+    }
 
-        // 8) 각 날짜별로 lane 기준 정렬
+    // 즐겨찾기 하이라이팅을 위한 sorting
+    private void sortCalendarByLane(Map<LocalDate, List<CalendarFestivalDto>> calendarMap) {
         for (List<CalendarFestivalDto> list : calendarMap.values()) {
-            list.sort(Comparator.comparingInt(dto -> dto.getLane() == null ? 999 : dto.getLane()));
+            list.sort(Comparator.comparingInt(
+                    dto -> dto.getLane() == null ? 999 : dto.getLane()
+            ));
         }
+    }
+    //=============================================================//
 
-        return calendarMap;
-    }   // getCalendar
-
+    // 켈린더 그리드 생성 및 getCalendar를 바탕으로 데이터 채워넣기 (실질적인 켈린더 빌더)
     public List<List<CalendarFestivalDto>> buildCalendar(int year, int month, String region,Long userNo) {
 
         Map<LocalDate, List<CalendarFestivalDto>> calendarMap = getCalendar(year, month, region,userNo);
@@ -235,7 +335,6 @@ public class CalendarService {
                         .build();
 
                 week.add(dayDto);
-//                System.out.println("day added" + dayDto);
                 current = current.plusDays(1);
             }
             weeks.add(week);
@@ -243,27 +342,5 @@ public class CalendarService {
 
         return weeks;
     }   // buildCalendar
-
-    // 이 달 전체 기준 즐겨찾기된 축제 목록(중복 제거) – 켈린더 위에 표시용
-    public List<CalendarFestivalDto> getMonthlyFavorites(int year, int month,
-                                                         String region,
-                                                         Long userNo) {
-        Map<LocalDate, List<CalendarFestivalDto>> map =
-                getCalendar(year, month, region, userNo);
-
-        // flatten + 중복 제거
-        Map<Long, CalendarFestivalDto> unique = new LinkedHashMap<>();
-        for (List<CalendarFestivalDto> list : map.values()) {
-            for (CalendarFestivalDto dto : list) {
-                if (dto.isFavorite()) {
-                    unique.putIfAbsent(dto.getFestivalNo(), dto);
-                }
-            }
-        }
-
-        List<CalendarFestivalDto> result = new ArrayList<>(unique.values());
-//        result.sort(Comparator.comparing(CalendarFestivalDto::getStartDate));
-        return result;
-    }   // getMonthlyFavorites
 
 }

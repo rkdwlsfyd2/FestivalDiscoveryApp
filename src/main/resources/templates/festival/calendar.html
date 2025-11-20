@@ -61,7 +61,13 @@
         <div>
             <h1 class="text-h1 font-bold">축제 캘린더</h1>
             <p class="text-subtext text-gray-500 mt-1">
-                달력을 넘기며 원하는 달의 축제를 한눈에 확인해보세요.
+                <span>🌿 자연</span>
+                <span>🌙 야간</span>
+                <span>🎨 액티비티</span>
+                <span>🍜 먹거리</span>
+                <span>🎭 문화</span>
+                <span>👦 아동</span>
+                <span>❄️ 계절</span>
             </p>
         </div>
 
@@ -102,35 +108,6 @@
         </div>
     </div>
 
-    <!-- 2. 이 달의 즐겨찾기 요약 박스 -->
-<!--    <div th:if="${#lists.size(favoriteFestivals) > 0}"-->
-<!--         class="mt-6 bg-white rounded-2xl shadow-md p-4">-->
-
-<!--        &lt;!&ndash; 전체 즐겨찾기 리스트 (숨김 → 토글로 표시) &ndash;&gt;-->
-<!--        <div id="favFullList" class="mt-3 hidden divide-y divide-gray-100">-->
-<!--            <div th:each="f : ${favoriteFestivals}"-->
-<!--                 class="py-2 flex items-center justify-between">-->
-
-<!--                <div>-->
-<!--                    <div class="text-sm font-medium" th:text="${f.title}"></div>-->
-<!--                    <div class="text-[11px] text-gray-500" th:text="${f.periodText}"></div>-->
-<!--                </div>-->
-
-<!--                &lt;!&ndash; 즐겨찾기 해제 버튼 &ndash;&gt;-->
-<!--                <form method="post" th:action="@{/favorite/toggle}">-->
-<!--                    <input type="hidden" name="festivalNo" th:value="${f.festivalNo}">-->
-<!--                    <input type="hidden" name="redirectUrl"-->
-<!--                           th:value="@{/calendar(year=${year}, month=${month}, region=${selectedRegion})}">-->
-<!--                    <button type="submit"-->
-<!--                            class="text-xs px-2 py-1 border rounded-lg text-red-500 border-red-300">-->
-<!--                        즐겨찾기 해제-->
-<!--                    </button>-->
-<!--                </form>-->
-<!--            </div>-->
-<!--        </div>-->
-
-<!--    </div>-->
-
     <!-- 달력 + 우측 상세 패널 컨테이너 -->
     <div class="mt-6 flex flex-col md:flex-row gap-4 items-start">
 
@@ -153,7 +130,8 @@
                     <div class="calendar-day bg-white py-2 px-0 flex flex-col
                                 hover:bg-sub-blue hover:bg-opacity-10 transition"
                          th:each="day : ${week}"
-                         th:classappend="${!day.inMonth} ? ' opacity-40 bg-gray-50 hover:bg-gray-50'">
+                         th:classappend="${!day.inMonth ? ' opacity-40 bg-gray-50 hover:bg-gray-50' :
+                                         (day.date.equals(today) ? ' bg-sub-blue bg-opacity-30' : '')}">
 
                         <!-- 날짜 숫자 -->
                         <div class="flex items-center justify-between">
@@ -161,29 +139,6 @@
                                   th:text="${day.date.dayOfMonth}">1</span>
                         </div>
 
-<!--                        &lt;!&ndash; 날짜별 즐겨찾기 목록: day.festivals 중 favorite == true인 항목만 &ndash;&gt;-->
-<!--                        <div class="mt-1 flex flex-wrap gap-1"-->
-<!--                             th:if="${#lists.size(day.festivals.?[favorite]) > 0}">-->
-
-<!--                            <div th:each="f : ${day.festivals}"-->
-<!--                                 class="h-5">-->
-
-<!--                                <a th:href="@{/festival/detail(festivalNo=${f.festivalNo})}"-->
-<!--                                   class="festival-bar flex items-center h-full text-[10px] px-1 truncate hover:opacity-90"-->
-<!--                                   th:classappend="${f.favorite} ? ' festival-bar-favorite' : ' festival-bar-normal'"-->
-<!--                                >-->
-<!--                                    &lt;!&ndash; 바 타입별로 모양 지정용 data 속성 (CSS에서도 쓸 수 있음) &ndash;&gt;-->
-<!--                                    <span th:attr="data-bar-type=${f.barType}"></span>-->
-
-<!--                                    &lt;!&ndash; 이 달에서 제목을 보여줄 날에만 텍스트 출력 &ndash;&gt;-->
-<!--                                    <span th:if="${f.showTitle}"-->
-<!--                                          class="truncate ml-1"-->
-<!--                                          th:text="${f.title}">-->
-<!--                                    </span>-->
-<!--                                </a>-->
-<!--                            </div>-->
-
-<!--                        </div>-->
                         <!-- 즐겨찾기 축제 바 (구글 캘린더 스타일) -->
                         <div class="mt-1 relative"
                              style="height: 80px;"
@@ -199,7 +154,6 @@
                                 </a>
                             </div>
                         </div>
-
 
                         <!-- 축제 개수 / 클릭 텍스트 : 날짜 칸 맨 아래 중앙 -->
                         <div class="mt-auto flex justify-center">
@@ -234,9 +188,9 @@
                                 <div class="flex items-center gap-2">
                                     <!-- 태그 이미지 -->
                                     <div class="flex gap-1">
-                                        <img th:each="tagImg : ${festival.tagImageUrls}"
+                                        <span th:each="tagImg : ${festival.tagImageUrls}"
                                              th:text="${tagImg}"
-                                             class="w-5 h-5 rounded-full border border-gray-300 object-cover">
+                                              class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 border"></span>
                                     </div>
 
                                     <!-- 즐겨찾기 토글 버튼 -->
