@@ -42,6 +42,11 @@ public class CalendarController {
         model.addAttribute("month", targetMonth);
         model.addAttribute("selectedRegion", region);
 
+
+        // 태그 이미지
+//        tagImages =
+//        model.addAttribute("tagImages",tagImages);
+
         // 이전/다음달 계산해서 버튼에 사용
         LocalDate current = LocalDate.of(targetYear, targetMonth, 1);
         LocalDate prev = current.minusMonths(1);
