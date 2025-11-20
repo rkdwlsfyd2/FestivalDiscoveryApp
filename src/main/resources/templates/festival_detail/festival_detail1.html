@@ -161,11 +161,6 @@
 				color: #fbbf24; /* 노란색 */
 			}
 
-			/* 완전히 빈 별은 기본 색 유지 (추가 코드 필요 없음) */
-			.star-empty::before {
-				/* 그대로 회색 사용 */
-			}
-
 			/* 반 별: 회색 전체 + 노란색 50% 덮기 */
 			.star-half::before {
 				color: #e5e7eb; /* 바닥은 회색 */
@@ -569,12 +564,10 @@
 
 							var markerPosition = new kakao.maps.LatLng([[${festival.mapy}]], [[${festival.mapx}]]);
 
-// 마커를 생성합니다
 							var marker = new kakao.maps.Marker({
 								position: markerPosition
 							});
 
-// 마커가 지도 위에 표시되도록 설정합니다
 							marker.setMap(map);
 						});
 					</script>
