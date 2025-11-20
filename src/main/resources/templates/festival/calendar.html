@@ -31,11 +31,12 @@
             /* barType 에 따른 모서리 처리 */
             .festival-bar[data-bar-type="SINGLE"] {
                 border-radius: 9999px;
-                margin-left: -2px;
-                margin-right: -2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
 
             .festival-bar[data-bar-type="START"] {
+                margin-left: 10px;
                 border-top-left-radius: 9999px;
                 border-bottom-left-radius: 9999px;
             }
@@ -45,6 +46,7 @@
             }
 
             .festival-bar[data-bar-type="END"] {
+                margin-right: 10px;
                 border-top-right-radius: 9999px;
                 border-bottom-right-radius: 9999px;
             }
@@ -145,11 +147,13 @@
                              th:if="${#lists.size(day.festivals.?[favorite]) > 0}">
 
                             <div th:each="f : ${day.festivals.?[favorite]}"
-                                 class="absolute left-0 right-0 h-4"
-                                 th:attr="data-bar-type=${f.barType}"
-                                 th:style="|top: ${f.lane * 18}px; background-color: ${f.colorCode};|">
+                                 class="absolute left-0 right-0"
+                                 th:style="|top: ${f.lane * 18}px;|">
 
-                                <a class="festival-bar block h-full text-[10px] px-1 truncate">
+                                <a class="festival-bar block h-4 text-[10px] px-1 truncate"
+                                   th:attr="data-bar-type=${f.barType}"
+                                   th:style="|background-color: ${f.colorCode};|">
+
                                     <span th:if="${f.showTitle}" th:text="${f.title}"></span>
                                 </a>
                             </div>

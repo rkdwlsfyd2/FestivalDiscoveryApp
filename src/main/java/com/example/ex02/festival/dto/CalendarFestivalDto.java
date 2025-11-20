@@ -30,7 +30,7 @@ public class CalendarFestivalDto {
     private String colorCode; // 예: "#93c5fd"
     private Integer lane;  // 즐겨찾기 바가 들어갈 줄 번호 (0,1,2,...)
 
-    // 태그 이미지
+    // 태그 이미지 (사실 url아니고 그냥 유니코드 텍스트임)
     private List<String> tagImageUrls;
 
     // 즐겨찾기 여부 (현재 로그인 사용자 기준)
@@ -74,8 +74,8 @@ public class CalendarFestivalDto {
                 .playtime(entity.getPlaytime())
                 .state(entity.getState())
                 .favorite(favorite)
-                .barType("SINGLE")
-                .showTitle(true)
+//                .barType()
+//                .showTitle(true)
                 .tagImageUrls(tagEmojis)
                 .build();
     }
