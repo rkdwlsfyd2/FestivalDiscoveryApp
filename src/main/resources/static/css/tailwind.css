@@ -27,7 +27,7 @@
         background-color: #E6E8F2;
     }
     .bg-gradient {
-        background: linear-gradient(to right, #6B96FC, #4A80FA);
+        background: linear-gradient(45deg, #6B96FC, #4A80FA);
     }
     .bg-gradient2 {
         background: linear-gradient(45deg, #5170ff, #ff66c4);
@@ -41,6 +41,35 @@
     .text-foregroundSub {
         color: #6B96FC;
     }
+    .font-heavy {
+        font-weight: 800;
+    }
+    .text-gradient {
+        background: linear-gradient(45deg, #5170ff, #ff66c4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+    }
+}
+
+.hover\:bg-gradient:hover {
+    background: linear-gradient(45deg, #6B96FC, #4A80FA) !important;
+}
+.hover\:bg-gradient2:hover {
+    background: linear-gradient(45deg, #5170ff, #ff66c4) !important;
+}
+
+/* 축제 목록 스크롤바 커스터마이징 */
+#festivalListContainer::-webkit-scrollbar {
+    width: 6px;
+}
+#festivalListContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+#festivalListContainer::-webkit-scrollbar-thumb {
+    background: #4A80FA;
+    border-radius: 4px;
 }
 
 /* 기존 커스텀 스타일 */

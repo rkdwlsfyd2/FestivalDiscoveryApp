@@ -19,7 +19,7 @@
                         <p>등록된 축제가 없습니다.</p>
                     </div>
                     <div th:each="festival : ${festivalList.content}"
-                        class="festival-card bg-white rounded-lg p-4 cursor-pointer border-2 border-main"
+                        class="festival-card bg-white rounded-lg p-4 cursor-pointer border-2 border-sub-red"
                         th:data-lat="${festival.mapy}" th:data-lng="${festival.mapx}">
                         
                         <!-- 축제 이미지 표시 : 축제 이미지가 
@@ -31,7 +31,7 @@
                             class="w-full h-36 object-cover rounded-lg mb-3" />
 
                         <div class="mb-2">
-                            <h3 class="text-lg font-bold text-gray-800 inline" th:text="${festival.title}">축제 제목</h3>
+                            <h3 class="text-lg font-suit font-bold text-gray-800 inline" th:text="${festival.title}">축제 제목</h3>
                             <!-- 태그 표시 -->
                             <div class="inline-flex gap-1 ml-2 flex-wrap" th:if="${tagMap != null and tagMap[festival.festivalNo] != null}">
                                 <span th:each="tag : ${tagMap[festival.festivalNo]}" 
