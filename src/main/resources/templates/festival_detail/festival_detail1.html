@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  lang="ko"
-	  layout:decorate="common/mylayout"> <!-- 506690 -->
+	  layout:decorate="common/mylayout"> <!-- 506690, 2557842, 3379778 -->
 	<head>
 		<meta charset="UTF-8">
 		<title>축제 상세 보기</title>
@@ -130,15 +130,14 @@
 				margin-top: 4px;
 			}
 
-			/* 별점 표시 */
-			/* 별점 래퍼 */
+			/* 별점 표시 ===================== */
+			/* 공통: 별 컨테이너 */
 			.star-rating {
 				display: inline-flex;
-				font-size: 13px;
 				line-height: 1;
 			}
 
-			/* 공통 별 컨테이너 */
+			/* 공통: 별 한 개 */
 			.star {
 				position: relative;
 				display: inline-block;
@@ -153,30 +152,60 @@
 				position: absolute;
 				left: 0;
 				top: 0;
-				color: #e5e7eb; /* 연한 회색 */
+				color: #e5e7eb;
 			}
 
-			/* 꽉 찬 별: 전부 노란색 */
+			/* 꽉 찬 별 */
 			.star-full::before {
-				color: #fbbf24; /* 노란색 */
+				color: #fbbf24;
 			}
 
-			/* 반 별: 회색 전체 + 노란색 50% 덮기 */
+			/* 반 별: 회색 + 노란색 절반 */
 			.star-half::before {
-				color: #e5e7eb; /* 바닥은 회색 */
+				color: #e5e7eb;
 			}
-
-			/* 노란색 절반만 덮는 레이어 */
 			.star-half::after {
 				content: '★';
 				position: absolute;
 				left: 0;
 				top: 0;
 				color: #fbbf24;
-				width: 70%;                  /* ↔ 50% → 60% */
+				width: 70%;
 				overflow: hidden;
-				clip-path: inset(0 30% 0 0); /* ↔ 오른쪽 40%만 잘라냄 */
+				clip-path: inset(0 30% 0 0);
 			}
+
+			/* 목록(이미 작성된 리뷰)에서 쓰는 별 크기 */
+			.star-rating--list {
+				font-size: 18px;
+			}
+
+			/* 리뷰 작성 폼에서 쓰는 별 크기 (좀 더 크게) */
+			.star-rating--input {
+				font-size: 22px;
+			}
+
+			/* 리뷰 상단(이름 · 별점 · 날짜) 한 줄 정렬 */
+			.fd-review-header {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+			}
+
+			/* 메타 텍스트는 살짝 작게 */
+			.fd-review-header .fd-review-meta {
+				margin-bottom: 0;
+				font-size: 13px;
+				color: #777777;
+			}
+
+
+			/* 점수 텍스트 */
+			.rating-value {
+				font-size: 14px;
+				color: #555555;
+			}
+
 
 			/* 축제 소개/내용 2단 레이아웃 */
 			.fd-intro-layout {
@@ -190,12 +219,65 @@
 				flex: 1;
 			}
 
-			/* 화면이 좁으면 위/아래로 쌓기 (선택) */
+			/* 화면이 좁으면 위/아래로 쌓기 */
 			@media (max-width: 768px) {
 				.fd-intro-layout {
 					flex-direction: column;
 				}
 			}
+
+			/* 기본 정보 리스트 */
+			.fd-info-list {
+				list-style: none;
+				padding: 0;
+				margin: 8px 0 0;
+				font-size: 13px;
+			}
+
+			/* 한 줄 전체를 가로 정렬 */
+			.fd-info-list li {
+				display: flex;
+				align-items: flex-start;
+				margin-bottom: 6px;
+			}
+
+			/* 왼쪽 라벨(기간/장소/주최/문의/홈페이지) */
+			.fd-info-list strong {
+				flex: 0 0 60px;
+				color: #555555;
+			}
+
+			/* 오른쪽 값(텍스트)만 폭 채우기 */
+			.fd-info-list span {
+				flex: 1;
+			}
+
+			/* 버튼은 내용 길이만큼만 나오도록 */
+			.fd-info-list a {
+				flex: 0 0 auto;
+				display: inline-block;
+				white-space: nowrap; /* 줄바꿈 방지(선택) */
+			}
+
+			#ratingBox .star {
+				cursor: pointer;
+			}
+
+			/* 이미 작성된 리뷰 한 줄 (이름 · 별점 · 날짜) */
+			.fd-review-header {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+			}
+
+			/* 목록용 별은 텍스트랑 baseline 살짝 맞춰주기 */
+			.fd-review-header .star-rating {
+				font-size: 18px;      /* 이미 있으니 중복이면 하나로 합쳐도 됨 */
+				line-height: 1;
+				position: relative;
+				top: 1px;             /* 1~2px 사이에서 취향껏 조절 */
+			}
+
 		</style>
 
 		<script>
@@ -291,6 +373,89 @@
 						showImage(currentIndex);
 					});
 				}
+
+				/* ===== 리뷰 별점 입력 (hover + 0.5 단위) ===== */
+				const ratingBox       = document.getElementById('ratingBox');       // 별 5개 컨테이너
+				const ratingInput     = document.getElementById('ratingInput');     // hidden input
+				const ratingValueText = document.getElementById('ratingValueText'); // "4.5점" 표시용
+
+				if (ratingBox && ratingInput) {
+					const stars = ratingBox.querySelectorAll('.star');
+					// 현재 확정된 점수 (기본 0)
+					let currentRating = parseFloat(ratingInput.value || '0') || 0;
+
+					// 별 칠하기 (꽉찬/반/빈)
+					function paintStars(rating) {
+						stars.forEach(star => {
+							const i = Number(star.getAttribute('data-index')); // 1~5
+							star.classList.remove('star-full', 'star-half', 'star-empty');
+
+							if (rating >= i) {
+								// i 이상 → 꽉 찬 별
+								star.classList.add('star-full');
+							} else if (rating >= i - 0.5) {
+								// i-0.5 이상, i 미만 → 반 별
+								star.classList.add('star-half');
+							} else {
+								// 그 외 → 빈 별
+								star.classList.add('star-empty');
+							}
+						});
+
+						if (ratingValueText) {
+							ratingValueText.textContent = rating > 0 ? rating.toFixed(1) + '점' : '';
+						}
+					}
+
+					// 이벤트 기준으로 점수 계산 (0.5 단위)
+					function calcRatingFromEvent(star, event) {
+						const index = Number(star.getAttribute('data-index')); // 1~5
+						const rect  = star.getBoundingClientRect();
+						const x     = event.clientX - rect.left;
+						const half  = rect.width / 2;
+
+						// 왼쪽 절반 → index-0.5, 오른쪽 절반 → index
+						return (x <= half) ? (index - 0.5) : index;
+					}
+
+					// 초기 표시
+					paintStars(currentRating);
+
+					// 각 별에 hover / click 이벤트
+					stars.forEach(star => {
+						// 마우스 움직이면 미리보기
+						star.addEventListener('mousemove', e => {
+							const hoverRating = calcRatingFromEvent(star, e);
+							paintStars(hoverRating);
+						});
+
+						// 클릭하면 값 확정
+						star.addEventListener('click', e => {
+							const newRating = calcRatingFromEvent(star, e);
+							currentRating   = newRating;
+							ratingInput.value = newRating;
+							paintStars(newRating);
+						});
+					});
+
+					// 영역에서 마우스가 빠져나가면 마지막 확정 값으로 되돌리기
+					ratingBox.addEventListener('mouseleave', () => {
+						paintStars(currentRating);
+					});
+				}
+
+				// ===== 축제 내용 줄바꿈 처리 (1. 2. 3. …) =====
+				const contentEl = document.getElementById('festivalContent');
+				if (contentEl) {
+					const raw = contentEl.textContent || '';
+
+					// " 2.", " 3.", " 4.", " 5." 앞에 <br><br> 삽입
+					const formatted = raw.replace(/\s([2-9]\.\s)/g, '<br>$1');
+
+					// HTML로 넣어서 줄바꿈 반영
+					contentEl.innerHTML = formatted;
+				}
+
 			});
 		</script>
 	</head>
@@ -308,7 +473,7 @@
 
 							<!-- 태그 -->
 							<div>
-								<span class="fd-tag-chip bg-sub-blue" th:each="tag : ${festival.tags}" th:text="|${tag.tag}|"></span>
+								<span class="fd-tag-chip bg-sub-blue" th:each="tag : ${festival.tags}" th:text="${tag.tag}"></span>
 							</div>
 						</div>
 
@@ -491,38 +656,83 @@
 					</p>
 
 					<div class="fd-review-item" th:each="review : ${festival.reviews}">
-						<!-- 이름 -->
-						<span class="fd-review-meta" th:text="${review.member.name}"></span>
+						<!-- 한 줄에 이름 · 별점 · 날짜 -->
+						<div class="fd-review-header">
+							<span class="fd-review-meta" th:text="${review.member.name}"></span>
+							<span class="fd-review-meta">·</span>
 
-						<!-- 구분점 -->
-						<span class="fd-review-meta"> · </span>
+							<!-- 목록용 별점 -->
+							<span class="star-rating star-rating--list">
+								<span th:each="i : ${#numbers.sequence(1,5)}">
+									<!-- 꽉 찬 별 -->
+									<span class="star star-full"
+										  th:if="${review.rating >= i}"></span>
 
-						<!-- 별점 -->
-						<span class="fd-review-meta star-rating">
-							<span th:each="i : ${#numbers.sequence(1,5)}">
-								<!-- 꽉 찬 별 -->
-								<span class="star star-full"
-									  th:if="${review.rating >= i}"></span>
+									<!-- 반 별: (i-0.5) 이상, i 미만 -->
+									<span class="star star-half"
+										  th:if="${review.rating < i and review.rating >= i - 0.5}"></span>
 
-								<!-- 반 별: (i-0.5) 이상, i 미만 -->
-								<span class="star star-half"
-									  th:if="${review.rating < i and review.rating >= i - 0.5}"></span>
-
-								<!-- 빈 별 -->
-								<span class="star star-empty"
-									  th:if="${review.rating < i - 0.5}"></span>
+									<!-- 빈 별 -->
+									<span class="star star-empty"
+										  th:if="${review.rating < i - 0.5}"></span>
+								</span>
 							</span>
-						</span>
+							<span class="fd-review-meta">·</span>
+							<span class="fd-review-meta" th:text="${#temporals.format(review.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+						</div>
 
-
-						<!-- 구분점 -->
-						<span class="fd-review-meta"> · </span>
-
-						<!-- 날짜 -->
-						<span class="fd-review-meta" th:text="${#temporals.format(review.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
-
+						<!-- 내용 -->
 						<div class="fd-review-text text-body" th:text="${review.content}"></div>
 					</div>
+
+					<!-- 구분선 -->
+					<hr style="margin: 16px 0; border: none; border-top: 1px solid #eeeeee;">
+
+					<!-- 리뷰 작성 폼 -->
+					<h3 class="text-h3 font-semibold mb-2">리뷰 작성</h3>
+					<form th:action="@{/festivals/reviews(festivalNo=${festival.festivalNo})}" method="post" class="space-y-3">
+						<!-- 별점 선택 (.5 단위) -->
+						<div class="text-body" style="margin-bottom: 8px;">
+							<!-- ★ 별점 입력 영역 -->
+							<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+								<label class="text-subtext">별점</label>
+								<div id="ratingBox" class="star-rating star-rating--input">
+								<span class="star" data-index="1"></span>
+									<span class="star" data-index="2"></span>
+									<span class="star" data-index="3"></span>
+									<span class="star" data-index="4"></span>
+									<span class="star" data-index="5"></span>
+								</div>
+
+								<!-- 현재 선택된 점수 표시 -->
+								<span id="ratingValueText" class="text-subtext"></span>
+
+								<!-- 실제 서버로 보내는 값 -->
+								<input type="hidden" id="ratingInput" name="rating" value="0">
+							</div>
+
+							<!-- 선택된 점수 텍스트 -->
+							<span class="text-subtext" id="ratingLabel"></span>
+						</div>
+
+
+						<!-- 내용 입력 -->
+						<div class="text-body">
+							<label class="text-subtext block mb-1">내용</label>
+							<textarea name="content"
+									  rows="2"
+									  class="w-full border rounded px-3 py-2 text-body"
+									  placeholder="축제에 대한 후기를 자유롭게 남겨 주세요."></textarea>
+						</div>
+
+						<!-- 제출 버튼 -->
+						<div>
+							<button type="submit"
+									class="bg-main text-foreground text-subtext px-4 py-2 rounded">
+								리뷰 등록
+							</button>
+						</div>
+					</form>
 				</div>
 
 				<!-- C. 축제 소개 -->
@@ -538,8 +748,10 @@
 						<section class="fd-intro-col"
 								 th:if="${festival.detail.infotext2 != null and !#strings.isEmpty(festival.detail.infotext2)}">
 							<h2 class="text-h3 font-semibold mb-3">축제 내용</h2>
-							<p class="text-body" th:text="${festival.detail.infotext2}"></p>
+							<p id="festivalContent" class="text-body"
+							   th:text="${festival.detail.infotext2}"></p>
 						</section>
+
 					</div>
 				</div>
 
