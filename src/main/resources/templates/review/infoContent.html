@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- 정보창 내용 템플릿 fragment -->
+    <!-- 축제 정보창 템플릿 -->
+    <div th:fragment="festivalInfo(festival)">
+        <div style="padding:15px; min-width:200px;">
+            <h3 style="margin:0 0 10px 0; font-size:18px; font-weight:bold; color:#333;">
+                <span th:text="${festival.name}">축제명</span>
+            </h3>
+            <p style="margin:5px 0; color:#666; font-size:14px;">
+                <strong>주소:</strong> <span th:text="${festival.address}">주소</span>
+            </p>
+            <p style="margin:5px 0; color:#666; font-size:14px;" th:if="${festival.period}">
+                <strong>기간:</strong> <span th:text="${festival.period}">기간</span>
+            </p>
+            <p style="margin:10px 0 0 0; color:#888; font-size:12px;" th:if="${festival.description}">
+                <span th:text="${festival.description}">설명</span>
+            </p>
+        </div>
+    </div>
+    
+    <!-- 기본 정보창 템플릿 (데이터 없이 사용) -->
+    <div th:fragment="defaultInfo(title, address)">
+        <div style="padding:15px; min-width:200px;">
+            <h3 style="margin:0 0 10px 0; font-size:18px; font-weight:bold; color:#333;">
+                <span th:text="${title}">제목</span>
+            </h3>
+            <p style="margin:5px 0; color:#666; font-size:14px;">
+                <span th:text="${address}">주소</span>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

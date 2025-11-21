@@ -136,7 +136,7 @@
                 <!-- 생년월일 -->
                 <div>
                     <label class="block text-gray-700 mb-1">생년월일</label>
-                    <input type="date" th:field="*{birthDate}"
+                    <input type="date" th:field="*{birthDate}" id="birthDate"
                            class="w-full border px-3 py-2 rounded" required>
                 </div>
 
@@ -231,9 +231,19 @@
             const checkEmailBtn = document.getElementById("checkEmailBtn");
             const emailMsgTag = document.getElementById("emailMsg");
             const emailSendBtn = document.getElementById("emailSendBtn");
+            const emailPattern = /^[0-9a-zA-Z._%+-]+@[0-9a-zA-Z.-]+\.[a-zA-Z]{2,}$/;
 
             checkEmailBtn.addEventListener("click", () => {
                 const email = emailInput.value.trim();
+
+                if (!emailPattern.test(email)) {
+                    emailMsgTag.innerText = "올바른 이메일 형식이 아닙니다.";
+                    emailMsgTag.style.color = "red";
+                    emailSendBtn.disabled = true;
+                    emailSendBtn.classList.remove("bg-main");
+                    emailSendBtn.classList.add("bg-gray-400");
+                    return;
+                }
 
                 fetch(`/api/member/check-email?email=${email}`)
                     .then(res => res.json())
@@ -321,6 +331,14 @@
                     phoneMsg.style.color = "red";
                 }
             });
+
+
+            /* ------------------- 생년월일: 오늘 이후 선택 불가 ------------------- */
+            const birthInput = document.getElementById("birthDate");
+            if (birthInput) {
+                const today = new Date().toISOString().split("T")[0];
+                birthInput.setAttribute("max", today);
+            }
 
 
             /* ------------------- 최종 가입 검증 ------------------- */

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<div layout:fragment="content">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-h1 font-bold text-main mb-4">축제 정보 맵</h1>
+        <div class="w-full rounded-lg overflow-hidden shadow-lg">
+            <div th:replace="~{review/navermap::mapContent}"></div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="css">
+    <style>
+        #naverMap {
+            width: 100%;
+            height: 500px;
+            min-height: 500px;
+        }
+    </style>
+</th:block>
+
+<th:block layout:fragment="script">
+    <th:block th:replace="~{review/navermap::mapScript}"></th:block>
+</th:block>
+
+
+
+
+
+
