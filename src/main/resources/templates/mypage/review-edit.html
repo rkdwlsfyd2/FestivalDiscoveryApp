@@ -15,23 +15,26 @@
             const stars = document.querySelectorAll(".star");
             const ratingInput = document.getElementById("ratingInput");
 
-            ratingInput.value = score; // 선택된 값 저장
+            ratingInput.value = score;
 
             stars.forEach((star, index) => {
-                if (index < score) {
-                    star.classList.add("text-yellow-400", "fas");
-                    star.classList.remove("text-gray-300", "far");
+                const value = (index + 1) * 0.5; // 0.5 단위 점수
+
+                if (value <= score) {
+                    star.classList.add("fas", "text-yellow-400");
+                    star.classList.remove("far", "text-gray-300");
                 } else {
-                    star.classList.add("text-gray-300", "far");
-                    star.classList.remove("text-yellow-400", "fas");
+                    star.classList.add("far", "text-gray-300");
+                    star.classList.remove("fas", "text-yellow-400");
                 }
             });
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            const currentRating = document.getElementById("ratingInput").value;
-            setRating(currentRating);
+            const current = parseFloat(document.getElementById("ratingInput").value);
+            setRating(current);
         });
+
     </script>
 
 </head>
@@ -78,19 +81,20 @@
                         <!-- 숨겨진 인풋 -->
                         <input type="hidden" id="ratingInput" name="rating" th:value="${review.rating}">
 
-                        <div class="flex gap-2 text-3xl cursor-pointer">
-                            <i class="star far fa-star text-gray-300"
-                               onclick="setRating(1)"></i>
-                            <i class="star far fa-star text-gray-300"
-                               onclick="setRating(2)"></i>
-                            <i class="star far fa-star text-gray-300"
-                               onclick="setRating(3)"></i>
-                            <i class="star far fa-star text-gray-300"
-                               onclick="setRating(4)"></i>
-                            <i class="star far fa-star text-gray-300"
-                               onclick="setRating(5)"></i>
+                        <div class="flex gap-1 text-3xl cursor-pointer">
+                            <i class="star far fa-star" onclick="setRating(0.5)"></i>
+                            <i class="star far fa-star" onclick="setRating(1.0)"></i>
+                            <i class="star far fa-star" onclick="setRating(1.5)"></i>
+                            <i class="star far fa-star" onclick="setRating(2.0)"></i>
+                            <i class="star far fa-star" onclick="setRating(2.5)"></i>
+                            <i class="star far fa-star" onclick="setRating(3.0)"></i>
+                            <i class="star far fa-star" onclick="setRating(3.5)"></i>
+                            <i class="star far fa-star" onclick="setRating(4.0)"></i>
+                            <i class="star far fa-star" onclick="setRating(4.5)"></i>
+                            <i class="star far fa-star" onclick="setRating(5.0)"></i>
                         </div>
                     </div>
+
 
                     <!-- 리뷰 내용 -->
                     <div>
