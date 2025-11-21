@@ -115,7 +115,7 @@ public class AiScoreAppService {
 
         int age = Period.between(birthDate, LocalDate.now()).getYears();
 
-        if (age <= 12) return "아동";
+        if (age <= 9) return "아동";
         else if (age <= 19) return "10대";
         else if (age <= 29) return "20대";
         else if (age <= 39) return "30대";
