@@ -180,16 +180,38 @@
             const pwCheckMsg = document.getElementById("pwCheckMsg");
 
             function checkPwMatch() {
-                if (password.value === "" || passwordConfirm.value === "") {
+
+                const pw = password.value;
+                const pwc = passwordConfirm.value;
+
+                // ⭐ 비밀번호 정규식: 영문 + 숫자 또는 특수문자, 8~20자
+                const pwPattern =
+                    /^(?=.*[A-Za-z])(?=.*(\d|[!@#$%^&*?_~]))[A-Za-z\d!@#$%^&*?_~]{8,20}$/;
+
+                // 둘 다 비었으면 리셋
+                if (pw === "" && pwc === "") {
                     pwCheckMsg.innerText = "";
                     return;
                 }
-                if (password.value === passwordConfirm.value) {
-                    pwCheckMsg.innerText = "비밀번호가 일치합니다.";
-                    pwCheckMsg.style.color = "green";
-                } else {
-                    pwCheckMsg.innerText = "비밀번호가 일치하지 않습니다.";
+
+                // ⭐ 먼저 형식 검증
+                if (!pwPattern.test(pw)) {
+                    pwCheckMsg.innerText = "비밀번호 형식이 올바르지 않습니다. (영문 + 숫자/특수기호, 8~20자)";
                     pwCheckMsg.style.color = "red";
+                    return;
+                }
+
+                // ⭐ 정규식 통과 → 이제 일치 여부 검사
+                if (pw !== "" && pwc !== "") {
+                    if (pw === pwc) {
+                        pwCheckMsg.innerText = "비밀번호가 일치합니다.";
+                        pwCheckMsg.style.color = "green";
+                    } else {
+                        pwCheckMsg.innerText = "비밀번호가 일치하지 않습니다.";
+                        pwCheckMsg.style.color = "red";
+                    }
+                } else {
+                    pwCheckMsg.innerText = "";
                 }
             }
 
@@ -240,8 +262,8 @@
                     emailMsgTag.innerText = "올바른 이메일 형식이 아닙니다.";
                     emailMsgTag.style.color = "red";
                     emailSendBtn.disabled = true;
-                    emailSendBtn.classList.add("bg-gray-400");
                     emailSendBtn.classList.remove("bg-main");
+                    emailSendBtn.classList.add("bg-gray-400");
                     return;
                 }
 
@@ -345,16 +367,6 @@
             const signupForm = document.getElementById("signupForm");
 
             signupForm.addEventListener("submit", (e) => {
-
-                // ⭐ 비밀번호 정규식 검사 추가 (요청한 부분)
-                const pwPattern =
-                    /^(?=.*[A-Za-z])(?=.*(\d|[!@#$%^&*?_~]))[A-Za-z\d!@#$%^&*?_~]{8,20}$/;
-
-                if (!pwPattern.test(password.value)) {
-                    alert("비밀번호 형식이 올바르지 않습니다.\n영문 + 숫자 또는 특수기호 조합으로 8~20자로 입력하세요.");
-                    e.preventDefault();
-                    return;
-                }
 
                 if (!emailVerified) {
                     e.preventDefault();
