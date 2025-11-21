@@ -342,7 +342,7 @@
                 phoneRest.value = v;
 
                 if (v.length === 8) {
-                    const formatted = `010-${v.slice(0,4)}-${v.slice(4,8)}`;
+                    const formatted = `010${v.slice(0,4)}${v.slice(4,8)}`;
                     phoneFull.value = formatted;
 
                     phoneMsg.innerText = "올바른 전화번호입니다.";

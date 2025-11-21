@@ -43,23 +43,31 @@
                         </div>
                         <div>
                             <label class="block font-semibold mb-2">이름</label>
-                            <input type="text" name="name" th:value="${member.name}" maxlength="20"
-                                   class="w-full border rounded-md p-2">
+                            <input type="text" th:value="${member.name}" class="w-full border rounded-md p-2 bg-gray-100" disabled>
+                            <input type="hidden" name="name" th:value="${member.name}">
+
                         </div>
                     </div>
 <!--                    성별,생년월일 ai_score 계산시 필요해서 추가-->
                     <div>
                         <label class="block font-semibold mb-2">성별</label>
-                        <select name="gender" class="w-full border rounded-md p-2">
+                        <select class="w-full border rounded-md p-2 bg-gray-100 text-gray-500" disabled>
                             <option value="M" th:selected="${member.gender == 'M'}">남성</option>
                             <option value="F" th:selected="${member.gender == 'F'}">여성</option>
                         </select>
+                        <input type="hidden" name="gender" th:value="${member.gender}">
+
                     </div>
                     <div>
                         <label class="block font-semibold mb-2">생년월일</label>
-                        <input type="date" name="birthDate"
-                               th:value="${#temporals.format(member.birthDate, 'yyyy-MM-dd')}"
-                               class="w-full border rounded-md p-2">
+                        <input type="date"
+                               th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}"
+                               class="w-full border rounded-md p-2 bg-gray-100 text-gray-500"
+                               disabled>
+
+                        <input type="hidden" name="birthDate"
+                               th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}">
+
                     </div>
 
                     <!-- 이메일 -->
@@ -158,12 +166,14 @@
 
                 <!-- 회원탈퇴 -->
                 <div class="mt-10">
-                    <form action="/mypage/withdraw" method="post">
+                    <form id="withdrawForm" action="/mypage/withdraw" method="post"
+                          onsubmit="return confirm('정말 탈퇴하시겠습니까?');">
                         <button type="submit"
                                 class="bg-red-500 text-white px-6 py-3 rounded-md shadow hover:bg-red-600 transition">
                             회원 탈퇴
                         </button>
                     </form>
+
                 </div>
 
             </div>
