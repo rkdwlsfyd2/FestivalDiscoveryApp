@@ -60,7 +60,7 @@
 <div layout:fragment="content" class="qwert font-suit">
 
     <!-- 상단 타이틀 / 월 이동 / 지역 필터 -->
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
             <h1 class="text-h1 font-bold">축제 캘린더</h1>
             <p class="text-subtext text-gray-500 mt-1 bg-gray-200">
@@ -112,10 +112,10 @@
     </div>
 
     <!-- 달력 + 우측 상세 패널 컨테이너 -->
-    <div class="mt-6 flex flex-col md:flex-row gap-4 items-start">
+    <div class="mt-6 flex flex-col md:flex-row md:items-stretch">
 
         <!-- 달력 그리드 (좌측) -->
-        <div class="flex-1 bg-white rounded-2xl shadow-md overflow-hidden">
+        <div id="calendarBox" class="flex-1 bg-white rounded-2xl shadow-md overflow-hidden">
             <!-- 요일 헤더 -->
             <div class="grid grid-cols-7 bg-sub-blue text-foreground text-center text-subtext py-2 font-medium">
                 <div class="text-red-500">일</div>
@@ -130,7 +130,7 @@
             <!-- 날짜들 -->
             <div class="calendar-grid bg-sub-blue bg-opacity-10 gap-0">
                 <div class="contents" th:each="week : ${weeks}">
-                    <div class="calendar-day bg-white py-2 px-0 flex flex-col
+                    <div class="calendar-day cursor-pointer festival-toggle bg-white py-2 px-0 flex flex-col
                                 hover:bg-sub-blue hover:bg-opacity-10 transition"
                          th:each="day : ${week}"
                          th:classappend="${!day.inMonth ? ' opacity-40 bg-gray-50 hover:bg-gray-50' :
@@ -163,7 +163,7 @@
                         <!-- 축제 개수 / 클릭 텍스트 : 날짜 칸 맨 아래 중앙 -->
                         <div class="mt-auto flex justify-center">
                             <span th:if="${#lists.size(day.festivals) > 0}"
-                                  class="text-[11px] text-gray-400 cursor-pointer festival-toggle"
+                                  class="text-[11px] cursor-pointer festival-toggle text-gradient"
                                   th:data-date="${day.date}"
                                   th:data-day-id="'day-' + ${day.date}">
                                 <span th:text="${#lists.size(day.festivals)}">0</span>개의 축제
@@ -171,7 +171,7 @@
 
                             <span th:if="${#lists.size(day.festivals) == 0}"
                                   class="text-[11px] text-gray-300">
-                                <!-- 축제가 없는 날은 아무 텍스트도 표시하지 않거나, '축제 없음' 등으로 대체 가능 -->
+<!--                                축제 없는 영역; 축제 없는 칸에 "축제 없음" 과 같은 텍스트 추가 가능-->
                             </span>
                         </div>
 
@@ -222,20 +222,15 @@
 
         <!-- 우측: 선택된 날짜의 축제 목록 표시 영역 -->
         <div id="festivalDetail"
-             class="w-full md:w-80 bg-white rounded-2xl shadow-md p-4 hidden md:block">
-            <div class="flex items-center justify-between mb-3">
+             class="w-full md:w-80 bg-white rounded-2xl shadow-md p-4 hidden md:block overflow-y-auto">
+            <div class="flex items-center justify-between mb-3 sticky top-0 bg-white z-10">
                 <div class="font-semibold text-main" id="detailDateText">선택한 날짜의 축제 목록</div>
             </div>
-            <div id="detailContent" class="divide-y divide-gray-100">
+            <div id="detailContent" class="divide-y divide-gray-100 mt-2">
                 <!-- JS로 각 날짜의 hidden 목록을 복사해서 여기에 넣음 -->
             </div>
         </div>
 
-    </div>
-
-    <div class="mt-4 text-subtext text-gray-500">
-        날짜 아래의 "<b>n개의 축제</b>" 텍스트를 클릭하면, 해당 날짜의 축제 목록과 태그를
-        <b>우측 패널</b>에서 확인할 수 있습니다.
     </div>
 
 </div>
@@ -244,6 +239,17 @@
 <th:block layout:fragment="script">
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+        // 우측 패널 높이 조정
+            function syncDetailHeight() {
+                const calendarBox = document.getElementById('calendarBox');
+                const detailPanel = document.getElementById('festivalDetail');
+                if (!calendarBox || !detailPanel) return;
+
+                // 패널이 안 보이면 높이 맞출 필요 없음
+                if (detailPanel.classList.contains('hidden')) return;
+
+                detailPanel.style.height = calendarBox.offsetHeight + 'px';
+            }
 
             // ▶ 날짜 클릭 시 우측 상세 패널에 목록 출력
             document.querySelectorAll('.festival-toggle').forEach(btn => {
@@ -257,6 +263,8 @@
                         this.dataset.date + ' 진행 축제 목록';
 
                     document.getElementById('festivalDetail').classList.remove('hidden');
+
+                    syncDetailHeight();
                 });
             });
 
