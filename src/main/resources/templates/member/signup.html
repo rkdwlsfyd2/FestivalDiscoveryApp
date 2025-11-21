@@ -32,7 +32,7 @@
                         <input th:field="*{userId}" id="userId"
                                class="w-full border px-3 py-2 rounded" required>
                         <button type="button" id="checkIdBtn"
-                                class="bg-main text-white px-4 py-2 rounded">
+                                class="bg-main text-white px-3 py-2 rounded whitespace-nowrap">
                             중복 확인
                         </button>
                     </div>
@@ -64,7 +64,7 @@
                         <input th:field="*{email}" id="email"
                                class="w-full border px-3 py-2 rounded" required>
                         <button type="button" id="checkEmailBtn"
-                                class="bg-main text-white px-4 py-2 rounded">
+                                class="bg-main text-white px-3 py-2 rounded whitespace-nowrap">
                             중복 확인
                         </button>
                     </div>
@@ -240,8 +240,8 @@
                     emailMsgTag.innerText = "올바른 이메일 형식이 아닙니다.";
                     emailMsgTag.style.color = "red";
                     emailSendBtn.disabled = true;
-                    emailSendBtn.classList.remove("bg-main");
                     emailSendBtn.classList.add("bg-gray-400");
+                    emailSendBtn.classList.remove("bg-main");
                     return;
                 }
 
@@ -345,6 +345,16 @@
             const signupForm = document.getElementById("signupForm");
 
             signupForm.addEventListener("submit", (e) => {
+
+                // ⭐ 비밀번호 정규식 검사 추가 (요청한 부분)
+                const pwPattern =
+                    /^(?=.*[A-Za-z])(?=.*(\d|[!@#$%^&*?_~]))[A-Za-z\d!@#$%^&*?_~]{8,20}$/;
+
+                if (!pwPattern.test(password.value)) {
+                    alert("비밀번호 형식이 올바르지 않습니다.\n영문 + 숫자 또는 특수기호 조합으로 8~20자로 입력하세요.");
+                    e.preventDefault();
+                    return;
+                }
 
                 if (!emailVerified) {
                     e.preventDefault();
