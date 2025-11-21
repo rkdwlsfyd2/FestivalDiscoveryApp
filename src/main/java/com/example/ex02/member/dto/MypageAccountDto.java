@@ -4,6 +4,7 @@ package com.example.ex02.member.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -16,4 +17,6 @@ public class MypageAccountDto {
     private String phone;
     private String password; // 수정할 때만
     private String favoriteTag;
+    private String gender;       // ai_score 추가
+    private LocalDate birthDate; // ai_score 추가
 }

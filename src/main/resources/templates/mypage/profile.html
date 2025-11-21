@@ -51,7 +51,7 @@
 
                     <div class="flex">
                         <span class="font-semibold w-32">성별</span>
-                        <span th:text="${member.gender}"></span>
+                        <span th:text="${member.gender == 'M' ? '남성' : '여성'}"></span>
                     </div>
 
                     <div class="flex">

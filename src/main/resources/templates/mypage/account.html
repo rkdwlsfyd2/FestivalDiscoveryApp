@@ -47,6 +47,20 @@
                                    class="w-full border rounded-md p-2">
                         </div>
                     </div>
+<!--                    성별,생년월일 ai_score 계산시 필요해서 추가-->
+                    <div>
+                        <label class="block font-semibold mb-2">성별</label>
+                        <select name="gender" class="w-full border rounded-md p-2">
+                            <option value="M" th:selected="${member.gender == 'M'}">남성</option>
+                            <option value="F" th:selected="${member.gender == 'F'}">여성</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-2">생년월일</label>
+                        <input type="date" name="birthDate"
+                               th:value="${#temporals.format(member.birthDate, 'yyyy-MM-dd')}"
+                               class="w-full border rounded-md p-2">
+                    </div>
 
                     <!-- 이메일 -->
                     <div class="grid grid-cols-2 gap-12">

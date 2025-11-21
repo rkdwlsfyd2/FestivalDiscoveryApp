@@ -96,8 +96,9 @@ public class AiScoreAppService {
                     + ", aiScore=" + s.getAiScore());
         }
 
-        System.out.println("\n🔥 기존 AI Score 삭제 수행");
-        memberAiScoreRepository.deleteByMember(member);
+//        System.out.println("\n🔥 기존 AI Score 삭제 수행");
+        memberAiScoreRepository.deleteByUserNo(userNo); /*태그 수정시 aiscore 계산을 위해수정*/
+
 
         System.out.println("🔥 새 AI Score 저장");
         memberAiScoreRepository.saveAll(scores);
