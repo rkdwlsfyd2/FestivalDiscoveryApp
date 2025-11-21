@@ -10,6 +10,16 @@ public class HomeController {
     public String mainPage() {
         return "main/main";
     }
+
+    @GetMapping("/company")
+    public String companyInfo() {
+        return "main/companyinfo";
+    }
+
+    @GetMapping("/terms")
+    public String terms() {
+        return "main/terms";
+    }
 }
 
 
