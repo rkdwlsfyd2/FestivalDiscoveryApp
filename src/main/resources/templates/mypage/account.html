@@ -48,27 +48,33 @@
 
                         </div>
                     </div>
-<!--                    성별,생년월일 ai_score 계산시 필요해서 추가-->
-                    <div>
-                        <label class="block font-semibold mb-2">성별</label>
-                        <select class="w-full border rounded-md p-2 bg-gray-100 text-gray-500" disabled>
-                            <option value="M" th:selected="${member.gender == 'M'}">남성</option>
-                            <option value="F" th:selected="${member.gender == 'F'}">여성</option>
-                        </select>
-                        <input type="hidden" name="gender" th:value="${member.gender}">
+<!--                    성별 / 생년월일 -->
+                    <div class="grid grid-cols-2 gap-12">
+
+                        <!-- 성별 -->
+                        <div>
+                            <label class="block font-semibold mb-2">성별</label>
+                            <input type="text"
+                                   class="w-full border rounded-md p-2 bg-gray-100 text-gray-500"
+                                   th:value="${member.gender == 'M' ? '남성' : '여성'}"
+                                   disabled>
+                            <input type="hidden" name="gender" th:value="${member.gender}">
+                        </div>
+
+
+                        <!-- 생년월일 -->
+                        <div>
+                            <label class="block font-semibold mb-2">생년월일</label>
+                            <input type="date"
+                                   th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}"
+                                   class="w-full border rounded-md p-2 bg-gray-100 text-gray-500"
+                                   disabled>
+                            <input type="hidden" name="birthDate"
+                                   th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}">
+                        </div>
 
                     </div>
-                    <div>
-                        <label class="block font-semibold mb-2">생년월일</label>
-                        <input type="date"
-                               th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}"
-                               class="w-full border rounded-md p-2 bg-gray-100 text-gray-500"
-                               disabled>
 
-                        <input type="hidden" name="birthDate"
-                               th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}">
-
-                    </div>
 
                     <!-- 이메일 -->
                     <div class="grid grid-cols-2 gap-12">

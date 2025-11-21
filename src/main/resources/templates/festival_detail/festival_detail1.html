@@ -278,6 +278,21 @@
 				top: 1px;             /* 1~2px 사이에서 취향껏 조절 */
 			}
 
+			.fd-review-edit-btn {
+				margin-left: auto;              /* 오른쪽 끝으로 밀기 */
+				padding: 2px 8px;
+				font-size: 12px;
+				border: 1px solid #d1d5db;
+				border-radius: 4px;
+				background: #ffffff;
+				color: #4A80FA;
+				cursor: pointer;
+			}
+
+			.fd-review-edit-btn:hover {
+				background: #eff6ff;
+			}
+
 		</style>
 
 		<script>
@@ -449,13 +464,59 @@
 				if (contentEl) {
 					const raw = contentEl.textContent || '';
 
-					// " 2.", " 3.", " 4.", " 5." 앞에 <br><br> 삽입
+					// " 2.", " 3.", " 4.", " 5." 앞에 <br>
 					const formatted = raw.replace(/\s([2-9]\.\s)/g, '<br>$1');
 
 					// HTML로 넣어서 줄바꿈 반영
 					contentEl.innerHTML = formatted;
 				}
 
+				// ===== 리뷰 페이징 AJAX 처리 =====
+				const reviewListWrapper = document.getElementById('reviewListWrapper');
+
+				if (reviewListWrapper) {
+					// 이벤트 위임(event delegation)
+					reviewListWrapper.addEventListener('click', function (e) {
+						const link = e.target.closest('.review-page-link');
+						if (!link) return;  // 페이징 링크가 아니면 무시
+
+						e.preventDefault();
+
+						let url = link.getAttribute('href');
+						if (!url) return;
+
+						// ajax=1 파라미터 추가 (이미 있으면 중복 추가 방지)
+						if (url.indexOf('ajax=1') === -1) {
+							url += (url.indexOf('?') === -1 ? '?ajax=1' : '&ajax=1');
+						}
+
+						fetch(url, {
+							method: 'GET',
+							headers: {
+								'X-Requested-With': 'XMLHttpRequest'
+							}
+						})
+								.then(function (res) {
+									if (!res.ok) {
+										throw new Error('HTTP ' + res.status);
+									}
+									return res.text();
+								})
+								.then(function (html) {
+									// 프래그먼트 HTML로 리뷰 영역 갈아끼우기
+									reviewListWrapper.innerHTML = html;
+
+									// 스크롤을 리뷰 카드 위로 살짝 올려주기 (선택)
+									const reviewSection = document.getElementById('reviewSection');
+									if (reviewSection) {
+										reviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+									}
+								})
+								.catch(function (err) {
+									console.error('리뷰 페이지 로딩 실패', err);
+								});
+					});
+				}
 			});
 		</script>
 	</head>
@@ -628,7 +689,7 @@
 										<strong>문의</strong>
 										<span th:text="${festival.detail.hostTel}"></span>
 									</li>
-									<li>
+									<li th:if="${festival.detail.homepage != null}">
 										<strong>홈페이지</strong>
 										<a th:href="${festival.detail.homepage}"
 										   target="_blank"
@@ -650,90 +711,164 @@
 				<!-- B. 리뷰 -->
 				<div class="card" id="reviewSection">
 					<h2 class="text-h3 font-semibold mb-3">리뷰</h2>
-					<p class="text-body" style="margin-bottom: 8px;">
-						평균 평점
-						<strong th:text="|⭐ ${#numbers.formatDecimal(festival.avgRating, 1, 1)} / 5.0 · 리뷰 ${festival.reviews.size()}개|"></strong>
-					</p>
 
-					<div class="fd-review-item" th:each="review : ${festival.reviews}">
-						<!-- 한 줄에 이름 · 별점 · 날짜 -->
-						<div class="fd-review-header">
-							<span class="fd-review-meta" th:text="${review.member.name}"></span>
-							<span class="fd-review-meta">·</span>
+					<!-- AJAX -->
+					<div id="reviewListWrapper">
+						<!-- 프래그먼트 정의 -->
+						<th:block th:fragment="reviewListFragment">
 
-							<!-- 목록용 별점 -->
-							<span class="star-rating star-rating--list">
-								<span th:each="i : ${#numbers.sequence(1,5)}">
-									<!-- 꽉 찬 별 -->
-									<span class="star star-full"
-										  th:if="${review.rating >= i}"></span>
+							<!-- 평균 평점/리뷰 개수 -->
+							<p class="text-body" style="margin-bottom: 8px;">
+								평균 평점
+								<strong th:text="|⭐ ${#numbers.formatDecimal(festival.avgRating, 1, 1)} / 5.0 · 리뷰 ${totalReviews}개|"></strong>
+							</p>
 
-									<!-- 반 별: (i-0.5) 이상, i 미만 -->
-									<span class="star star-half"
-										  th:if="${review.rating < i and review.rating >= i - 0.5}"></span>
+							<!-- 페이징된 리뷰 목록 -->
+							<div class="fd-review-item" th:each="review : ${reviewPage.content}">
+								<div class="fd-review-header">
+									<span class="fd-review-meta" th:text="${review.member.name}"></span>
+									<span class="fd-review-meta">·</span>
 
-									<!-- 빈 별 -->
-									<span class="star star-empty"
-										  th:if="${review.rating < i - 0.5}"></span>
+									<!-- 별점 -->
+									<span class="star-rating star-rating--list">
+										<span th:each="i : ${#numbers.sequence(1,5)}">
+											<span class="star star-full"
+												  th:if="${review.rating >= i}"></span>
+											<span class="star star-half"
+												  th:if="${review.rating < i and review.rating >= i - 0.5}"></span>
+											<span class="star star-empty"
+												  th:if="${review.rating < i - 0.5}"></span>
+										</span>
+									</span>
+
+									<span class="fd-review-meta">·</span>
+									<span class="fd-review-meta"
+										  th:if="${review.updatedAt == null}"
+										  th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+									<span class="fd-review-meta"
+										  th:if="${review.updatedAt != null}"
+										  th:text="${#temporals.format(review.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+
+									<!-- 수정 버튼 -->
+									<button type="button"
+											th:if="${loginUser != null and loginUser.userNo == review.member.userNo}"
+											th:onclick="|location.href='@{/mypage/reviews(reviewNo=${review.reviewNo})}'|"
+											class="fd-review-edit-btn">
+										수정하기
+									</button>
+								</div>
+								<div class="fd-review-text text-body" th:text="${review.content}"></div>
+							</div>
+
+							<!-- 리뷰 페이징 버튼 -->
+							<div class="pagination" th:if="${totalPages > 1}"
+								 style="margin-top:16px; text-align:center; font-size:13px;">
+
+								<!-- 이전 버튼 -->
+								<a th:if="${currentPage > 0}"
+								   th:href="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage - 1}|}"
+								   class="review-page-link"
+								   style="display:inline-block;
+										  margin:0 4px;
+										  padding:4px 8px;
+										  border:1px solid #e5e7eb;
+										  border-radius:4px;
+										  text-decoration:none;">
+													이전
+								</a>
+
+								<!-- 페이지 번호 -->
+								<span th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+									  style="display:inline-block; margin:0 2px;">
+									<a th:if="${p != currentPage}"
+									   th:href="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${p}|}"
+									   th:text="${p + 1}"
+									   class="review-page-link"
+									   style="display:inline-block; padding:4px 8px;
+											  border:1px solid #e5e7eb; border-radius:4px;
+											  text-decoration:none;">
+									</a>
+									<span th:if="${p == currentPage}"
+										  th:text="${p + 1}"
+										  style="display:inline-block; padding:4px 8px;
+												 border:1px solid #4A80FA; border-radius:4px;
+												 background:#4A80FA; color:#ffffff;">
+									</span>
 								</span>
-							</span>
-							<span class="fd-review-meta">·</span>
-							<span class="fd-review-meta" th:text="${#temporals.format(review.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
-						</div>
 
-						<!-- 내용 -->
-						<div class="fd-review-text text-body" th:text="${review.content}"></div>
+								<!-- 다음 버튼 -->
+								<a th:if="${currentPage < totalPages - 1}"
+								   th:href="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage + 1}|}"
+								   class="review-page-link"
+								   style="display:inline-block;
+										  margin:0 4px;
+										  padding:4px 8px;
+										  border:1px solid #e5e7eb;
+										  border-radius:4px;
+										  text-decoration:none;">
+													다음
+								</a>
+							</div>
+						</th:block>
 					</div>
+					<!-- AJAX 영역 끝 -->
 
 					<!-- 구분선 -->
 					<hr style="margin: 16px 0; border: none; border-top: 1px solid #eeeeee;">
 
 					<!-- 리뷰 작성 폼 -->
-					<h3 class="text-h3 font-semibold mb-2">리뷰 작성</h3>
-					<form th:action="@{/festivals/reviews(festivalNo=${festival.festivalNo})}" method="post" class="space-y-3">
+					<h3 th:if="${loginUser != null and !hasMyReview}" class="text-h3 font-semibold mb-2">
+						리뷰 작성
+					</h3>
+
+					<!-- 리뷰 작성 폼 -->
+					<form th:if="${loginUser != null and !hasMyReview}" th:action="@{/festivals/review(festivalNo=${festival.festivalNo}, memberNo=${loginUser.userNo})}" method="post" class="space-y-3">
 						<!-- 별점 선택 (.5 단위) -->
 						<div class="text-body" style="margin-bottom: 8px;">
-							<!-- ★ 별점 입력 영역 -->
+							<!-- 별점 입력 영역 -->
 							<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
 								<label class="text-subtext">별점</label>
 								<div id="ratingBox" class="star-rating star-rating--input">
-								<span class="star" data-index="1"></span>
+									<span class="star" data-index="1"></span>
 									<span class="star" data-index="2"></span>
 									<span class="star" data-index="3"></span>
 									<span class="star" data-index="4"></span>
 									<span class="star" data-index="5"></span>
 								</div>
-
 								<!-- 현재 선택된 점수 표시 -->
 								<span id="ratingValueText" class="text-subtext"></span>
-
 								<!-- 실제 서버로 보내는 값 -->
 								<input type="hidden" id="ratingInput" name="rating" value="0">
 							</div>
-
 							<!-- 선택된 점수 텍스트 -->
 							<span class="text-subtext" id="ratingLabel"></span>
 						</div>
-
-
 						<!-- 내용 입력 -->
 						<div class="text-body">
 							<label class="text-subtext block mb-1">내용</label>
-							<textarea name="content"
-									  rows="2"
-									  class="w-full border rounded px-3 py-2 text-body"
-									  placeholder="축제에 대한 후기를 자유롭게 남겨 주세요."></textarea>
+							<textarea name="content" rows="2" class="w-full border rounded px-3 py-2 text-body" placeholder="축제에 대한 후기를 자유롭게 남겨 주세요."></textarea>
 						</div>
-
 						<!-- 제출 버튼 -->
 						<div>
-							<button type="submit"
-									class="bg-main text-foreground text-subtext px-4 py-2 rounded">
-								리뷰 등록
-							</button>
+							<button type="submit" class="bg-main text-foreground text-subtext px-4 py-2 rounded"> 리뷰 등록 </button>
 						</div>
 					</form>
+
+					<!-- 이미 리뷰가 있는 경우 -->
+					<div th:if="${loginUser != null and hasMyReview}"
+						 class="text-subtext"
+						 style="margin-top: 8px;">
+						이미 이 축제에 대한 리뷰를 작성하셨어요.
+						마이페이지에서 수정하실 수 있습니다.
+					</div>
+					<!-- 로그인이 안된경우 -->
+					<div th:if="${loginUser == null}"
+						 class="text-subtext"
+						 style="margin-top: 8px;">
+						리뷰 작성을 위해 로그인하세요
+					</div>
 				</div>
+
 
 				<!-- C. 축제 소개 -->
 				<div class="card">

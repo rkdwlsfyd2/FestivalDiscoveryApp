@@ -33,7 +33,7 @@
                          class="bg-white rounded-xl shadow hover:shadow-lg transition p-4">
 
                         <!-- 상세 페이지 링크 감싸기 -->
-                        <a th:href="@{'/festival/detail/' + ${f.festivalNo}}"
+                        <a th:href="@{'/festivals/detail?festivalNo=' + ${f.festivalNo}}"
                            class="block">
 
                             <img th:src="${f.imageUrl != null ? f.imageUrl : '/img/default.jpg'}"

@@ -4,6 +4,7 @@ package com.example.ex02.festival.entity;
 import com.example.ex02.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -34,14 +35,15 @@ public class ReviewEntity {
     @JoinColumn(name = "FESTIVAL_NO", nullable = false)
     private FestivalEntity festival;
 
-    @Column(name = "RATING", precision = 1)
-    private Double rating;  // 1~5
+	@Column(name = "RATING")
+	private Double rating;  // 0.0 ~ 5.0 (0.5 단위)
 
     @Column(name = "CONTENT", length = 1000)
     private String content;
 
-    @Column(name = "CREATED_AT")
-    private LocalDateTime createdAt;
+	@CreationTimestamp
+	@Column(name = "CREATED_AT", updatable = false)
+	private LocalDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;

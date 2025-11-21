@@ -20,14 +20,12 @@
                     </div>
                     <div th:each="festival : ${festivalList.content}"
                         class="festival-card bg-white rounded-lg p-4 cursor-pointer border-2 border-sub-red"
-                        th:data-lat="${festival.mapy}" th:data-lng="${festival.mapx}">
+                        th:data-lat="${festival.mapy}" th:data-lng="${festival.mapx}" th:onclick="|window.open('/festivals/detail?festivalNo=${festival.festivalNo}')|">
                         
                         <!-- 축제 이미지 표시 : 축제 이미지가 
                          3장있으면 두번째 이미지(포스터)를 표시.
                          없으면 첫번째 이미지를 표시. -->
-                        <img th:src="${festival.images.size() > 1
-                            ? festival.images[1].imageUrl
-                            : festival.images[0].imageUrl}"
+                        <img th:src="${festival.images[0].imageUrl}"
                             class="w-full h-36 object-cover rounded-lg mb-3" />
 
                         <div class="mb-2">
