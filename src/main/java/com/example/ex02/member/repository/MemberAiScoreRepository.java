@@ -8,8 +8,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface MemberAiScoreRepository extends JpaRepository<MemberAiScoreEntity, Long> {
 
@@ -22,4 +24,16 @@ public interface MemberAiScoreRepository extends JpaRepository<MemberAiScoreEnti
     @Modifying
     @Query("DELETE FROM MemberAiScoreEntity s WHERE s.member.userNo = :userNo")
     void deleteByUserNo(@Param("userNo") Long userNo);
+
+    @Query("""
+	       SELECT s
+	         FROM MemberAiScoreEntity s
+	        WHERE s.member = :member
+	          AND s.festival.festivalNo IN :festivalNos
+	        ORDER BY s.aiScore DESC, s.scoredAt DESC
+	       """)
+    List<MemberAiScoreEntity> findByMemberAndFestivalNosOrderByScoreDesc(
+            @Param("member") MemberEntity member,
+            @Param("festivalNos") Collection<Long> festivalNos
+    );
 }

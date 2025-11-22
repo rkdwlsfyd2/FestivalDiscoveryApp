@@ -19,78 +19,79 @@ function removeLoadingOverlay() {
     if (overlay) overlay.remove();
 }
 
-//축제 목록 데이터 비동기 요청
-function updateFestivalList(page = 0, keyword = "", ongoingOnly = false, updateMarkers = true, region = "", tag = "") {
+// 축제 목록 데이터 비동기 요청
+function updateFestivalList(page = 0,
+                            keyword = "",
+                            ongoingOnly = false,
+                            updateMarkers = true,
+                            region = "",
+                            tag = "") {
     showLoadingOverlay();
 
-    // 검색어 감지(null일때 처리)
+    // 검색어 감지(null일 때 처리)
     const keywordInput = document.querySelector("#keywordInput");
     const searchKeyword = keyword || (keywordInput?.value || "");
-    
+
     // 체크박스 상태 감지
     const ongoingOnlyCheckbox = document.querySelector("#ongoingOnlyCheckbox");
     const isOngoingOnly = ongoingOnly || (ongoingOnlyCheckbox?.checked || false);
-    
+
     // 지역 필터 감지
     const regionFilter = document.querySelector("#regionFilter");
     const selectedRegion = region || (regionFilter?.value || "");
-    
+
     // 태그 필터 감지 (전역 변수로 관리)
     const selectedTag = tag || (window.selectedTag || "");
-    
-    // .festival-items인 요소에 데이터를 넣어준다.
-    const items = document.querySelector(".festival-items");
 
-    let url = `/festivals/review/ajax?page=${page}&keyword=${encodeURIComponent(searchKeyword)}&ongoingOnly=${isOngoingOnly}`;
+    // 현재 DOM 요소들
+    const items = document.querySelector(".festival-items");
+    const pagination = document.querySelector("#pagination");
+    const markers = document.querySelector("#allFestivalMarkers");
+
+    // 요청 URL 구성
+    let url = `/festivals/festivalMap/ajax?page=${page}` +
+        `&keyword=${encodeURIComponent(searchKeyword)}` +
+        `&ongoingOnly=${isOngoingOnly}`;
     if (selectedRegion) {
         url += `&region=${encodeURIComponent(selectedRegion)}`;
     }
     if (selectedTag) {
         url += `&tag=${encodeURIComponent(selectedTag)}`;
     }
+    // 캐시 방지용
     url += `&_=${new Date().getTime()}`;
+
     fetch(url)
         .then(res => res.text())
         .then(html => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
 
-            const newItems = doc.querySelector(".festival-items");
+            // 새 DOM 조각에서 필요한 부분 꺼내기
+            const newItems      = doc.querySelector(".festival-items");
             const newPagination = doc.querySelector("#pagination");
+            const newMarkers    = doc.querySelector("#allFestivalMarkers");
 
-            const pagination = document.querySelector("#pagination");
+            // 1) 리스트 카드 교체
+            if (items && newItems) {
+                items.replaceWith(newItems);
+            }
 
-            if (items && newItems) items.replaceChildren(...newItems.children);
-            if (pagination && newPagination) pagination.replaceChildren(...newPagination.children);
-            
-            // 마커 업데이트는 검색/필터링 시에만 수행 (페이지네이션 제외)
-            if (updateMarkers) {
-                // script 태그를 실행하여 축제 JSON 데이터 javascript 변수 설정
-                const jsonScripts = doc.querySelectorAll('script');
-                jsonScripts.forEach(function(script) {
-                    if (script.textContent && script.textContent.includes('ajaxFestivalsJson')) {
-                        try {
-                            // script 내용 실행
-                            eval(script.textContent);
-                        } catch (e) {
-                            console.warn('[AJAX] Script 실행 중 오류:', e);
-                        }
-                    }
-                });
-                
-                // window.ajaxFestivalsJson(축제 JSON 데이터) 데이터 가져와서 파싱
-                if (typeof window.ajaxFestivalsJson !== 'undefined') {
-                    try {
-                        const festivalsJson = typeof window.ajaxFestivalsJson === 'string' 
-                            ? JSON.parse(window.ajaxFestivalsJson) 
-                            : window.ajaxFestivalsJson;
-                        updateMapMarkers(festivalsJson);
-                    } catch (e) {
-                        console.error('[AJAX] JSON 파싱 실패:', e);
-                    }
-                } else {
-                    console.warn('[AJAX] ajaxFestivalsJson을 찾을 수 없습니다.');
-                }
+            // 2) 페이지네이션 교체
+            if (pagination && newPagination) {
+                pagination.replaceWith(newPagination);
+            }
+
+            // 3) 지도용 마커 카드들 교체 (전체 축제 필터링 반영)
+            if (markers && newMarkers) {
+                markers.replaceWith(newMarkers);
+            }
+
+            // 4) 지도 마커 다시 그리기
+            //    - updateMarkers=true 인 경우(검색/필터 변경 시)에만
+            if (updateMarkers && typeof window.updateKakaoMarkersFromDom === "function") {
+                // keepBounds 옵션은 취향에 맞게 true/false 조정 가능
+                window.updateKakaoMarkersFromDom({ keepBounds: true });
             }
         })
         .finally(() => {
@@ -98,7 +99,8 @@ function updateFestivalList(page = 0, keyword = "", ongoingOnly = false, updateM
         });
 }
 
-// 네이버맵 마커 업데이트 함수(여기서 마커 찍어줌)
+
+// 안쓰는 함수 -하요한- 네이버맵 마커 업데이트 함수(여기서 마커 찍어줌)
 function updateMapMarkers(festivalsJson) {
     // 네이버맵 SDK 초기화, 지도 인스턴스, maps 객체 확인
     if (!window.naverMapInstance || typeof naver === 'undefined' || !naver.maps) {

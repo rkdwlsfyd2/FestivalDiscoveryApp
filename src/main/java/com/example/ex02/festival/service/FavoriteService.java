@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,5 +36,19 @@ public class FavoriteService {
             favoriteRepository.save(fav);         // 즐겨찾기 추가
         }
     }
-}
 
+    // 해당 유저가 특정 축제를 즐겨찾기 했는지 여부
+    public boolean isFavorite(Long userNo, Long festivalNo) {
+        if (userNo == null || festivalNo == null) {
+            return false;
+        }
+        return favoriteRepository.existsByMemberUserNoAndFestivalFestivalNo(userNo, festivalNo);
+    }
+
+    // 해당 유저의 모든 즐겨찾기 축제 번호 Set
+    public Set<Long> getFavoriteFestivalNos(Long userNo) {
+        return favoriteRepository.findByMember_UserNo(userNo).stream()
+                .map(fav -> fav.getFestival().getFestivalNo())
+                .collect(Collectors.toSet());
+    }
+}

@@ -23,12 +23,13 @@ public class MemberController {
     // ================================
     @GetMapping("/login")
     public String loginForm(@RequestParam(required = false) String signupSuccess,
+                            @RequestParam(required = false) String redirectUrl,
                             Model model) {
 
         if ("true".equals(signupSuccess)) {
             model.addAttribute("signupSuccess", true);
         }
-
+        model.addAttribute("redirectUrl", redirectUrl);
         return "member/login";
     }
 
@@ -38,6 +39,7 @@ public class MemberController {
     @PostMapping("/login")
     public String login(@RequestParam String userId,
                         @RequestParam String password,
+                        @RequestParam(required = false) String redirectUrl,
                         HttpSession session,
                         Model model) {
 
@@ -49,6 +51,9 @@ public class MemberController {
         }
 
         session.setAttribute("loginUser", member);
+        if (redirectUrl != null && !redirectUrl.isBlank()) {
+            return "redirect:" + redirectUrl;
+        }
         return "redirect:/";
     }
 

@@ -28,6 +28,8 @@
 
             <!-- 로그인 폼 -->
             <form action="/login" method="post" class="space-y-4">
+                <!-- 이전 url -->
+                <input type="hidden" name="redirectUrl" th:value="${redirectUrl}">
 
                 <!-- 아이디 -->
                 <div>

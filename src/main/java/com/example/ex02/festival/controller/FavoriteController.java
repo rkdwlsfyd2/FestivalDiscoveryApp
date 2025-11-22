@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/favorite")
@@ -21,20 +24,19 @@ public class FavoriteController {
                                  @RequestParam String redirectUrl,
                                  HttpSession session) {
 
-        // 세션에서 로그인한 회원 번호 꺼내기
-//        Long memberNo = (Long) session.getAttribute("loginUser");
-//        Long userNo = getLoginUserNo(session);
         MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
 
         // 로그인 안 되어 있으면 로그인 페이지로
         if (loginUser == null) {
-            return "redirect:/login";
+            // 로그인 후 원래 페이지로 돌아감
+            String encoded = URLEncoder.encode(redirectUrl, StandardCharsets.UTF_8);
+            return "redirect:/login?redirectUrl=" + encoded;
         }
 
         // 즐겨찾기 토글
         favoriteService.toggleFavorite(loginUser.getUserNo(), festivalNo);
 
-        // 다시 달력(or 원래 페이지)으로 리다이렉트
+        // 원래 페이지으로 리다이렉트
         return "redirect:" + redirectUrl;
     }
 }

@@ -68,13 +68,16 @@
 			}
 
 			/* 제목 옆 태그 칩: 모양만, 색은 bg-sub-blue / text-main 으로 처리 */
-			.fd-tag-chip {
-				display: inline-block;
-				font-size: 12px;
-				padding: 3px 8px;
-				border-radius: 999px;
-				margin-right: 4px;
-			}
+            .fd-tag-chip {
+                display: inline-flex;
+                align-items: center;
+                font-size: 12px;
+                padding: 3px 8px;
+                border-radius: 999px;
+                margin-right: 4px;
+                background: #eff6ff;
+                color: #1f2933;
+            }
 
 			/* 상단 좌/우 레이아웃 */
 			.fd-top-layout {
@@ -95,22 +98,37 @@
 			}
 
 			/* 기본 정보 리스트 */
-			.fd-info-list {
-				list-style: none;
-				padding: 0;
-				margin: 8px 0 0;
-				font-size: 13px;
-			}
+            .fd-info-list {
+                list-style: none;
+                padding: 0;
+                margin: 8px 0 0;
+                font-size: 13px;
+            }
 
-			.fd-info-list li {
-				margin-bottom: 6px;
-			}
+            /* 한 줄 전체를 가로 정렬 */
+            .fd-info-list li {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 6px;
+            }
 
-			.fd-info-list strong {
-				display: inline-block;
-				width: 60px;
-				color: #555555;
-			}
+            /* 왼쪽 라벨(기간/장소/주최/문의/홈페이지) */
+            .fd-info-list strong {
+                flex: 0 0 60px;
+                color: #555555;
+            }
+
+            /* 오른쪽 값(텍스트)만 폭 채우기 */
+            .fd-info-list span {
+                flex: 1;
+            }
+
+            /* 버튼은 내용 길이만큼만 나오도록 */
+            .fd-info-list a {
+                flex: 0 0 auto;
+                display: inline-block;
+                white-space: nowrap; /* 줄바꿈 방지(선택) */
+            }
 
 			/* 리뷰 카드 내부 */
 			.fd-review-item {
@@ -226,49 +244,10 @@
 				}
 			}
 
-			/* 기본 정보 리스트 */
-			.fd-info-list {
-				list-style: none;
-				padding: 0;
-				margin: 8px 0 0;
-				font-size: 13px;
-			}
-
-			/* 한 줄 전체를 가로 정렬 */
-			.fd-info-list li {
-				display: flex;
-				align-items: flex-start;
-				margin-bottom: 6px;
-			}
-
-			/* 왼쪽 라벨(기간/장소/주최/문의/홈페이지) */
-			.fd-info-list strong {
-				flex: 0 0 60px;
-				color: #555555;
-			}
-
-			/* 오른쪽 값(텍스트)만 폭 채우기 */
-			.fd-info-list span {
-				flex: 1;
-			}
-
-			/* 버튼은 내용 길이만큼만 나오도록 */
-			.fd-info-list a {
-				flex: 0 0 auto;
-				display: inline-block;
-				white-space: nowrap; /* 줄바꿈 방지(선택) */
-			}
-
 			#ratingBox .star {
 				cursor: pointer;
 			}
 
-			/* 이미 작성된 리뷰 한 줄 (이름 · 별점 · 날짜) */
-			.fd-review-header {
-				display: flex;
-				align-items: center;
-				gap: 4px;
-			}
 
 			/* 목록용 별은 텍스트랑 baseline 살짝 맞춰주기 */
 			.fd-review-header .star-rating {
@@ -293,173 +272,212 @@
 				background: #eff6ff;
 			}
 
-		</style>
+            /* 태그 아이콘 리스트 */
+            .fd-tag-icon-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            /* 주소 클릭 안내 토스트 */
+            .addr-copy-toast {
+                position: fixed;
+                left: 50%;
+                bottom: 24px;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: #ffffff;
+                padding: 8px 14px;
+                border-radius: 999px;
+                font-size: 13px;
+                z-index: 99999;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+            }
+
+            .fd-tag-chip:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+            }
+
+            .addr-copy-toast--show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        </style>
 
 		<script>
-			document.addEventListener('DOMContentLoaded', function () {
-				const container = document.getElementById('imageSliderContainer');
-				const prevBtn = document.getElementById('prevImageBtn');
-				const nextBtn = document.getElementById('nextImageBtn');
-				const info = document.getElementById('imageSliderInfo');
+            document.addEventListener('DOMContentLoaded', function () {
+                const container = document.getElementById('imageSliderContainer');
+                const prevBtn = document.getElementById('prevImageBtn');
+                const nextBtn = document.getElementById('nextImageBtn');
+                const info = document.getElementById('imageSliderInfo');
 
-				const modal = document.getElementById('imageModal');
-				const modalImg = document.getElementById('modalImage');
-				const modalClose = document.getElementById('modalCloseBtn');
-				const modalPrev = document.getElementById('modalPrevBtn');
-				const modalNext = document.getElementById('modalNextBtn');
+                const modal = document.getElementById('imageModal');
+                const modalImg = document.getElementById('modalImage');
+                const modalClose = document.getElementById('modalCloseBtn');
+                const modalPrev = document.getElementById('modalPrevBtn');
+                const modalNext = document.getElementById('modalNextBtn');
 
-				if (!container) return;
-				const images = container.querySelectorAll('img');
-				if (!images || images.length === 0) return;
+                /* ===== 이미지 슬라이더 & 모달 ===== */
+                if (container) {
+                    const images = container.querySelectorAll('img');
+                    if (images && images.length > 0) {
 
-				let currentIndex = 0;
+                        let currentIndex = 0;
 
-				function showImage(index) {
-					for (let i = 0; i < images.length; i++) {
-						images[i].style.display = (i === index) ? '' : 'none';
-					}
-					if (info) {
-						info.textContent = (index + 1) + ' / ' + images.length;
-					}
-					if (modal && modal.style.display === 'flex') {
-						modalImg.src = images[index].src;
-					}
-				}
+                        function showImage(index) {
+                            for (let i = 0; i < images.length; i++) {
+                                images[i].style.display = (i === index) ? '' : 'none';
+                            }
+                            if (info) {
+                                info.textContent = (index + 1) + ' / ' + images.length;
+                            }
+                            if (modal && modal.style.display === 'flex') {
+                                modalImg.src = images[index].src;
+                            }
+                        }
 
-				function openModal(index) {
-					if (!modal) return;
-					modal.style.display = 'flex';
-					modalImg.src = images[index].src;
-				}
+                        function openModal(index) {
+                            if (!modal) return;
+                            modal.style.display = 'flex';
+                            modalImg.src = images[index].src;
+                        }
 
-				function closeModal() {
-					if (!modal) return;
-					modal.style.display = 'none';
-				}
+                        function closeModal() {
+                            if (!modal) return;
+                            modal.style.display = 'none';
+                        }
 
-				showImage(currentIndex);
+                        showImage(currentIndex);
 
-				if (prevBtn) {
-					prevBtn.addEventListener('click', function () {
-						currentIndex = (currentIndex - 1 + images.length) % images.length;
-						showImage(currentIndex);
-					});
-				}
+                        if (prevBtn) {
+                            prevBtn.addEventListener('click', function () {
+                                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
 
-				if (nextBtn) {
-					nextBtn.addEventListener('click', function () {
-						currentIndex = (currentIndex + 1) % images.length;
-						showImage(currentIndex);
-					});
-				}
+                        if (nextBtn) {
+                            nextBtn.addEventListener('click', function () {
+                                currentIndex = (currentIndex + 1) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
 
-				if (container) {
-					container.addEventListener('click', function () {
-						openModal(currentIndex);
-					});
-				}
+                        if (container) {
+                            container.addEventListener('click', function () {
+                                openModal(currentIndex);
+                            });
+                        }
 
-				if (modalClose) {
-					modalClose.addEventListener('click', function () {
-						closeModal();
-					});
-				}
+                        if (modalClose) {
+                            modalClose.addEventListener('click', function () {
+                                closeModal();
+                            });
+                        }
 
-				if (modal) {
-					modal.addEventListener('click', function (e) {
-						if (e.target === modal) {
-							closeModal();
-						}
-					});
-				}
+                        if (modal) {
+                            modal.addEventListener('click', function (e) {
+                                if (e.target === modal) {
+                                    closeModal();
+                                }
+                            });
+                        }
 
-				if (modalPrev) {
-					modalPrev.addEventListener('click', function (e) {
-						e.stopPropagation();
-						currentIndex = (currentIndex - 1 + images.length) % images.length;
-						showImage(currentIndex);
-					});
-				}
+                        if (modalPrev) {
+                            modalPrev.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
 
-				if (modalNext) {
-					modalNext.addEventListener('click', function (e) {
-						e.stopPropagation();
-						currentIndex = (currentIndex + 1) % images.length;
-						showImage(currentIndex);
-					});
-				}
+                        if (modalNext) {
+                            modalNext.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                currentIndex = (currentIndex + 1) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
+                    }
+                }
 
 				/* ===== 리뷰 별점 입력 (hover + 0.5 단위) ===== */
 				const ratingBox       = document.getElementById('ratingBox');       // 별 5개 컨테이너
 				const ratingInput     = document.getElementById('ratingInput');     // hidden input
 				const ratingValueText = document.getElementById('ratingValueText'); // "4.5점" 표시용
 
-				if (ratingBox && ratingInput) {
-					const stars = ratingBox.querySelectorAll('.star');
-					// 현재 확정된 점수 (기본 0)
-					let currentRating = parseFloat(ratingInput.value || '0') || 0;
+                if (ratingBox && ratingInput) {
+                    const stars = ratingBox.querySelectorAll('.star');
+                    let currentRating = parseFloat(ratingInput.value || '0') || 0;
 
-					// 별 칠하기 (꽉찬/반/빈)
-					function paintStars(rating) {
-						stars.forEach(star => {
-							const i = Number(star.getAttribute('data-index')); // 1~5
-							star.classList.remove('star-full', 'star-half', 'star-empty');
+                    function paintStars(rating) {
+                        stars.forEach(star => {
+                            const i = Number(star.getAttribute('data-index')); // 1~5
+                            star.classList.remove('star-full', 'star-half', 'star-empty');
 
-							if (rating >= i) {
-								// i 이상 → 꽉 찬 별
-								star.classList.add('star-full');
-							} else if (rating >= i - 0.5) {
-								// i-0.5 이상, i 미만 → 반 별
-								star.classList.add('star-half');
-							} else {
-								// 그 외 → 빈 별
-								star.classList.add('star-empty');
-							}
-						});
+                            if (rating >= i) {
+                                star.classList.add('star-full');
+                            } else if (rating >= i - 0.5) {
+                                star.classList.add('star-half');
+                            } else {
+                                star.classList.add('star-empty');
+                            }
+                        });
 
-						if (ratingValueText) {
-							ratingValueText.textContent = rating > 0 ? rating.toFixed(1) + '점' : '';
-						}
-					}
+                        if (ratingValueText) {
+                            if (rating <= 0) {
+                                ratingValueText.textContent = '';
+                                return;
+                            }
 
-					// 이벤트 기준으로 점수 계산 (0.5 단위)
-					function calcRatingFromEvent(star, event) {
-						const index = Number(star.getAttribute('data-index')); // 1~5
-						const rect  = star.getBoundingClientRect();
-						const x     = event.clientX - rect.left;
-						const half  = rect.width / 2;
+                            let msg = '';
+                            if (rating >= 4.5)      msg = '아주 좋아요 👍';
+                            else if (rating >= 3.5) msg = '좋아요 🙂';
+                            else if (rating >= 2.5) msg = '보통이에요 😐';
+                            else                    msg = '조금 아쉬워요 😢';
 
-						// 왼쪽 절반 → index-0.5, 오른쪽 절반 → index
-						return (x <= half) ? (index - 0.5) : index;
-					}
+                            ratingValueText.textContent = `${msg} (${rating.toFixed(1)}점)`;
+                        }
+                    }
 
-					// 초기 표시
-					paintStars(currentRating);
+                    function calcRatingFromEvent(star, event) {
+                        const index = Number(star.getAttribute('data-index'));
+                        const rect  = star.getBoundingClientRect();
+                        const x     = event.clientX - rect.left;
+                        const half  = rect.width / 2;
 
-					// 각 별에 hover / click 이벤트
-					stars.forEach(star => {
-						// 마우스 움직이면 미리보기
-						star.addEventListener('mousemove', e => {
-							const hoverRating = calcRatingFromEvent(star, e);
-							paintStars(hoverRating);
-						});
+                        return (x <= half) ? (index - 0.5) : index;
+                    }
 
-						// 클릭하면 값 확정
-						star.addEventListener('click', e => {
-							const newRating = calcRatingFromEvent(star, e);
-							currentRating   = newRating;
-							ratingInput.value = newRating;
-							paintStars(newRating);
-						});
-					});
+                    // 초기 표시
+                    paintStars(currentRating);
 
-					// 영역에서 마우스가 빠져나가면 마지막 확정 값으로 되돌리기
-					ratingBox.addEventListener('mouseleave', () => {
-						paintStars(currentRating);
-					});
-				}
+                    stars.forEach(star => {
+                        star.addEventListener('mousemove', e => {
+                            const hoverRating = calcRatingFromEvent(star, e);
+                            paintStars(hoverRating);
+                        });
 
-				// ===== 축제 내용 줄바꿈 처리 (1. 2. 3. …) =====
+                        star.addEventListener('click', e => {
+                            const newRating = calcRatingFromEvent(star, e);
+                            currentRating   = newRating;
+                            ratingInput.value = newRating;
+                            paintStars(newRating);
+                        });
+                    });
+
+                    ratingBox.addEventListener('mouseleave', () => {
+                        paintStars(currentRating);
+                    });
+                }
+
+
+
+
+                // ===== 축제 내용 줄바꿈 처리 (1. 2. 3. …) =====
 				const contentEl = document.getElementById('festivalContent');
 				if (contentEl) {
 					const raw = contentEl.textContent || '';
@@ -517,6 +535,72 @@
 								});
 					});
 				}
+
+                // ===== 주소 클릭 -> 복사 + 토스트 알림 =====
+                const addrEl   = document.getElementById('festivalAddrText');
+                const toastEl  = document.getElementById('addrCopyToast');
+                let toastTimer = null;
+
+                if (addrEl) {
+                    addrEl.addEventListener('click', function () {
+                        const text = (addrEl.textContent || '').trim();
+                        if (!text) return;
+
+                        // Clipboard API 우선 시도
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text)
+                                .then(function () {
+                                    showAddrToast();
+                                })
+                                .catch(function (err) {
+                                    console.error('Clipboard API 실패', err);
+                                    fallbackCopy(text);
+                                });
+                        } else {
+                            // 구형 브라우저 fallback
+                            fallbackCopy(text);
+                        }
+                    });
+                }
+
+                function fallbackCopy(text) {
+                    const temp = document.createElement('textarea');
+                    temp.value = text;
+                    temp.style.position = 'fixed';
+                    temp.style.top = '-9999px';
+                    document.body.appendChild(temp);
+                    temp.select();
+
+                    try {
+                        document.execCommand('copy');
+                        showAddrToast();
+                    } catch (e) {
+                        console.error('execCommand copy 실패', e);
+                        alert('복사에 실패했습니다. 직접 복사해 주세요.');
+                    } finally {
+                        document.body.removeChild(temp);
+                    }
+                }
+
+                function showAddrToast() {
+                    if (!toastEl) {
+                        alert('주소가 복사되었습니다.');
+                        return;
+                    }
+
+                    // 이미 떠 있는 상태면 타이머 리셋
+                    if (toastTimer) {
+                        clearTimeout(toastTimer);
+                        toastTimer = null;
+                    }
+
+                    toastEl.classList.add('addr-copy-toast--show');
+
+                    // 1.2초 뒤에 자연스럽게 사라지게
+                    toastTimer = setTimeout(function () {
+                        toastEl.classList.remove('addr-copy-toast--show');
+                    }, 1200);
+                }
 			});
 		</script>
 	</head>
@@ -527,15 +611,50 @@
 				<!-- A. 상단: 제목 + 태그 + 상태 + (왼)이미지 / (오른쪽)기본정보 -->
 				<div class="card">
 					<header>
-						<!-- 1. 축제명, 태그 -->
+						<!-- 1. 축제명, 태그, 즐겨찾기 -->
 						<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
 							<!-- 축제명 -->
 							<h1 class="text-h1 font-bold" th:text="${festival.title}"></h1>
 
-							<!-- 태그 -->
-							<div>
-								<span class="fd-tag-chip bg-sub-blue" th:each="tag : ${festival.tags}" th:text="${tag.tag}"></span>
-							</div>
+                            <!-- 태그 -->
+                            <div class="fd-tag-icon-list">
+                                <span class="fd-tag-chip bg-sub-blue"
+                                      th:each="tag : ${festival.tags}">
+                                    <span th:switch="${tag.tag}">
+
+                                        <!-- 🌿 자연 -->
+                                        <span th:case="'자연'">🌿 자연</span>
+
+                                        <!-- 🌙 야간 -->
+                                        <span th:case="'야간'">🌙 야간</span>
+
+                                        <!-- 🎨 체험 -->
+                                        <span th:case="'체험'">🎨 체험</span>
+
+                                        <!-- 🍜 먹거리 -->
+                                        <span th:case="'먹거리'">🍜 먹거리</span>
+
+                                        <!-- 🎭 문화 -->
+                                        <span th:case="'문화'">🎭 문화</span>
+
+                                        <!-- 👦 아동 -->
+                                        <span th:case="'아동'">👦 아동</span>
+
+                                        <!-- ❄️ 계절 -->
+                                        <span th:case="'계절'">❄️ 계절</span>
+                                    </span>
+                                </span>
+                            </div>
+
+                            <!-- 즐겨찾기 토글 버튼 -->
+                            <form method="post" th:action="@{/favorite/toggle}">
+                                <input type="hidden" name="festivalNo" th:value="${festival.festivalNo}">
+
+                                <!-- 현재 상세 페이지로 다시 돌아오도록 redirectUrl 설정 -->
+                                <input type="hidden" name="redirectUrl" th:value="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage}|}">
+
+                                <button type="submit" class="text-[12px] px-2 py-1 rounded-lg border" th:classappend="${isFavorite} ? ' bg-yellow-300 border-yellow-400' : ' border-gray-300'" th:text="${isFavorite} ? '★' : '☆'"></button>
+                            </form>
 						</div>
 
 						<!-- 2. 진행 상태, 리뷰 요약 -->
@@ -575,18 +694,22 @@
 											display: flex;
 											align-items: center;
 											justify-content: center;">
-									<button type="button" id="prevImageBtn" style="margin-right: 8px;">◀</button>
+									<button th:if="${festival.images != null and #lists.size(festival.images) > 1}" type="button" id="prevImageBtn" style="margin-right: 8px;">◀</button>
 
-									<div id="imageSliderContainer"
-										 style="width: 100%;
-												height: 260px;
-												display: flex;
-												align-items: center;
-												justify-content: center;
-												overflow: hidden;
-												cursor: pointer;
-												background: #000000;">
-										<img th:each="image : ${festival.images}"
+                                    <div id="imageSliderContainer"
+                                         style="width: 100%;
+                                                height: 260px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                overflow: hidden;
+                                                cursor: pointer;"
+                                         th:styleappend="${festival.images == null or #lists.isEmpty(festival.images)} ? 'background:#e5e7eb;' : 'background:#000000;'">
+                                        <th:block th:if="${festival.images == null or #lists.isEmpty(festival.images)}">
+                                            <span class="text-xs text-gray-600">이미지 없음</span>
+                                        </th:block>
+                                        <img th:if="${festival.images != null}"
+                                             th:each="image : ${festival.images}"
 											 th:src="${image.imageUrl}"
 											 th:alt="${image.imageUrl}"
 											 style="max-width: 100%;
@@ -595,7 +718,7 @@
 													height: auto;">
 									</div>
 
-									<button type="button" id="nextImageBtn" style="margin-left: 8px;">▶</button>
+									<button th:if="${festival.images != null and #lists.size(festival.images) > 1}" type="button" id="nextImageBtn" style="margin-left: 8px;">▶</button>
 								</div>
 
 								<p id="imageSliderInfo"
@@ -840,8 +963,6 @@
 								<!-- 실제 서버로 보내는 값 -->
 								<input type="hidden" id="ratingInput" name="rating" value="0">
 							</div>
-							<!-- 선택된 점수 텍스트 -->
-							<span class="text-subtext" id="ratingLabel"></span>
 						</div>
 						<!-- 내용 입력 -->
 						<div class="text-body">
@@ -859,13 +980,13 @@
 						 class="text-subtext"
 						 style="margin-top: 8px;">
 						이미 이 축제에 대한 리뷰를 작성하셨어요.
-						마이페이지에서 수정하실 수 있습니다.
+						<a th:href="@{/mypage/reviews}" style="color: cornflowerblue">마이페이지</a>에서 수정하실 수 있습니다.
 					</div>
 					<!-- 로그인이 안된경우 -->
 					<div th:if="${loginUser == null}"
 						 class="text-subtext"
 						 style="margin-top: 8px;">
-						리뷰 작성을 위해 로그인하세요
+						리뷰 작성을 위해 <a th:href="@{/login}" style="color: cornflowerblue">로그인</a>하세요
 					</div>
 				</div>
 
@@ -895,8 +1016,8 @@
 				<div class="card">
 					<h2 class="text-h3 font-semibold mb-3">위치 안내</h2>
 					<div id="map" style="width:100%; height:260px;"></div>
-					<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=022dfc0274bfeb04bf381c2437e71f95"></script>
-					<script th:inline="javascript">
+                    <script th:src="@{|https://dapi.kakao.com/v2/maps/sdk.js?appkey=${@environment.getProperty('kakao.javascript-key')}|}"></script>
+                    <script th:inline="javascript">
 						document.addEventListener('DOMContentLoaded', function () {
 							var container = document.getElementById('map');
 							if (!container) return;
@@ -918,11 +1039,24 @@
 							marker.setMap(map);
 						});
 					</script>
-					<p class="text-subtext"
-					   style="margin-top: 8px;
-							  color: #555555;"
-					   th:text="${festival.addr}">
-					</p>
+
+                    <!-- 주소, 복사-->
+                    <p id="festivalAddrText"
+                       class="text-subtext"
+                       style="margin-top: 8px; color: #555555; cursor: pointer;"
+                       title="주소를 클릭하면 복사됩니다."
+                       th:text="${festival.addr}">
+                    </p>
+                    <p class="text-subtext"
+                       style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
+                        주소를 클릭하면 클립보드에 복사됩니다.
+                    </p>
+
+                    <!-- 토스트 알림 -->
+                    <div id="addrCopyToast" class="addr-copy-toast">
+                        주소가 복사되었습니다.
+                    </div>
+
 				</div>
 			</div>
 		</section>

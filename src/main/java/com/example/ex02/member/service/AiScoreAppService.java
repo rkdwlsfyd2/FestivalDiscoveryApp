@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -314,4 +315,42 @@ public class AiScoreAppService {
         System.out.println("[AI SCORE 계산 완료]");
         return result;
     }
+
+    @Transactional(readOnly = true)
+    public Set<Long> getTop3FestivalNosForFilteredFestivals(
+            MemberEntity member,
+            List<FestivalEntity> candidateFestivals
+    ) {
+        // 로그인 X 또는 후보 없음 → 빈 Set
+        if (member == null || candidateFestivals == null || candidateFestivals.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        // 후보 축제번호 Set 만들기
+        Set<Long> candidateIds = candidateFestivals.stream()
+                .map(FestivalEntity::getFestivalNo)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (candidateIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        // 후보 축제들에 한정해서 점수 조회 (내림차순 + 최신 scoredAt 순)
+        List<MemberAiScoreEntity> filteredScores =
+                memberAiScoreRepository.findByMemberAndFestivalNosOrderByScoreDesc(member, candidateIds);
+
+        if (filteredScores.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        // 상위 3개 festivalNo 추출 (순서 유지)
+        return filteredScores.stream()
+                .limit(3)
+                .map(s -> s.getFestival().getFestivalNo())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+
 }
