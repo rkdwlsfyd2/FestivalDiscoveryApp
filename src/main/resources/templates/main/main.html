@@ -7,21 +7,50 @@
 <body>
 
 <section layout:fragment="content" class="relative z-50">   <!-- ★ 핵심: 배경보다 위로 -->
+    <main class="flex flex-col items-center justify-center">
+        <img th:src="@{/img/mainpage/main1.png}" class="w-[1730px]"/>
 
-    <div class="text-center mt-10 relative z-50">           <!-- ★ 필요할 때만 덮어씀 -->
-        <h2 class="text-h3 text-main font-bold">
-            오늘 어떤 축제를 추천받아보시겠어요?
-        </h2>
-    </div>
+        <div class="relative w-full flex justify-center">
+            <img th:src="@{/img/mainpage/main2.png}" class="w-[1400px]"/>
 
-    <div class="flex justify-center mt-10 relative z-50">
-        <a href="/festivals/festivalMap"
-           class="bg-main text-white py-3 px-6 rounded-xl shadow-md hover:bg-blue-600 transition">
-            축제 둘러보기
-        </a>
+            <div
+                    class="absolute top-0 left-0 w-full h-10 pointer-events-none
+                   bg-gradient-to-b from-black/10 to-transparent">
+            </div>
+        </div>
+
+        <div class="bg-gray-200 w-full flex justify-center py-10">
+            <img th:src="@{/img/mainpage/main3.png}" class="w-[1400px]"/>
+        </div>
+    </main>
+
+    <div class="relative w-full flex flex-col items-center justify-center py-20 h-[600px]">
+        <!-- 배경 이미지 -->
+        <div class="absolute inset-0">
+            <img th:src="@{/img/mainpage/지도맵.png}"
+                 class="w-full h-full object-cover opacity-30" /> <!-- opacity로 투명도 조절 -->
+        </div>
+
+        <!-- 문구 -->
+        <div class="text-center mt-20 mb-10 relative z-50">
+            <h2 class="text-4xl font-extrabold text-gradient">
+                오늘은 어떤 축제를 추천받아보시겠어요?
+            </h2>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="flex justify-center mt-4 relative z-50">
+            <a href="/festivals/festivalMap"
+               class="bg-gradient text-white text-2xl py-4 px-10 rounded-xl shadow-md
+              transition-all duration-300 ease-in-out
+              hover:bg-gradient2 hover:scale-95">
+                축제 둘러보기
+            </a>
+        </div>
     </div>
 
 </section>
 
 </body>
 </html>
+

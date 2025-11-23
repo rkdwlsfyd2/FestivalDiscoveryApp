@@ -5,7 +5,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{common/mylayout}">
 
-<div layout:fragment="content" class="bg-gray-50 min-h-screen">
+<div layout:fragment="content" class="bg-gray-50">
 
     <div class="flex max-w-6xl mx-auto py-10">
 
@@ -14,10 +14,10 @@
             <h2 class="text-xl font-bold mb-6">마이페이지</h2>
 
             <nav class="flex flex-col space-y-3">
-                <a href="/mypage/profile" class="px-3 py-2 rounded-md bg-gray-200 font-semibold">프로필 확인</a>
-                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gray-100">회원수정 및 회원탈퇴</a>
-                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gray-100">축제 즐겨찾기</a>
-                <a href="/mypage/reviews" class="px-3 py-2 rounded-md hover:bg-gray-100">내 리뷰 관리</a>
+                <a href="/mypage/profile" class="px-3 py-2 rounded-md bg-gray-200 hover:bg-gradient2 hover:text-white">프로필 확인</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">회원수정 및 회원탈퇴</a>
+                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">축제 즐겨찾기</a>
+                <a href="/mypage/reviews" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">내 리뷰 관리</a>
             </nav>
         </aside>
 
@@ -25,47 +25,49 @@
         <main class="flex-1">
 
             <div class="bg-white shadow-md rounded-2xl p-10">
-                <h2 class="text-2xl font-bold mb-10">프로필 정보</h2>
+                <h2 class="text-h1 font-black text-gradient mb-3">프로필 정보</h2>
+
+                <div class="h-px bg-gray-300 my-2 mb-10"></div>
 
                 <div class="space-y-5">
 
                     <div class="flex">
-                        <span class="font-semibold w-32">이름</span>
+                        <span class="text-h3 text-main font-bold w-32">이름</span>
                         <span th:text="${member.name}"></span>
                     </div>
 
                     <div class="flex">
-                        <span class="font-semibold w-32">아이디</span>
+                        <span class="text-h3 text-main font-bold w-32">아이디</span>
                         <span th:text="${member.userId}"></span>
                     </div>
 
                     <div class="flex">
-                        <span class="font-semibold w-32">이메일</span>
+                        <span class="text-h3 text-main font-bold w-32">이메일</span>
                         <span th:text="${member.email}"></span>
                     </div>
 
                     <div class="flex">
-                        <span class="font-semibold w-32">전화번호</span>
+                        <span class="text-h3 text-main font-bold w-32">전화번호</span>
                         <span th:text="${member.phone}"></span>
                     </div>
 
                     <div class="flex">
-                        <span class="font-semibold w-32">성별</span>
+                        <span class="text-h3 text-main font-bold w-32">성별</span>
                         <span th:text="${member.gender == 'M' ? '남성' : '여성'}"></span>
                     </div>
 
                     <div class="flex">
-                        <span class="font-semibold w-32">생년월일</span>
+                        <span class="text-h3 text-main font-bold w-32">생년월일</span>
                         <span th:text="${#temporals.format(member.birthDate,'yyyy-MM-dd')}"></span>
                     </div>
 
                     <div class="flex">
-                        <span class="font-semibold w-32">가입일</span>
+                        <span class="text-h3 text-main font-bold w-32">가입일</span>
                         <span th:text="${#temporals.format(member.joinDate,'yyyy-MM-dd')}"></span>
                     </div>
 
                     <div class="flex">
-                        <span class="font-semibold w-32">선호 태그</span>
+                        <span class="text-h3 text-main font-bold w-32">선호 태그</span>
                         <span th:text="${member.favoriteTag}"></span>
                     </div>
 

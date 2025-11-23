@@ -23,14 +23,17 @@
     .text-main {
         color: #4A80FA;
     }
+    .text-sub-red {
+        color: #FF6A6B;
+    }
     .bg-sub-blue {
         background-color: #E6E8F2;
     }
     .bg-gradient {
-        background: linear-gradient(45deg, #6B96FC, #4A80FA);
+        background: linear-gradient(45deg, #6B96FC 0%, #4A80FA 100%);
     }
     .bg-gradient2 {
-        background: linear-gradient(45deg, #5170ff, #ff66c4);
+        background: linear-gradient(45deg, #5170ff 0%, #ff66c4 100%);
     }
     .bg-sub-red {
         background-color: #FF6A6B;
@@ -42,7 +45,7 @@
         color: #6B96FC;
     }
     .font-heavy {
-        font-weight: 800;
+        font-weight: 1200;
     }
     .text-gradient {
         background: linear-gradient(45deg, #5170ff, #ff66c4);
