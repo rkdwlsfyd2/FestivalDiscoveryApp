@@ -6,7 +6,7 @@ import lombok.Data;
 public class MypageReviewDto {
     private Long reviewNo;
     private String festivalTitle;
-    private int rating;
+    private Double rating;
     private String content;
     private String createdAt;
     private String updatedAt;

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<head>
+    <title>회원 관리</title>
+</head>
+
+<div layout:fragment="content" class="bg-gray-50 min-h-screen">
+
+    <div class="flex max-w-6xl mx-auto py-10">
+
+        <!-- 사이드바 (대시보드와 동일하게) -->
+        <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8">
+            <h2 class="text-xl font-bold mb-6">관리자 페이지</h2>
+
+            <nav class="flex flex-col space-y-3">
+                <a href="/admin"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'dashboard' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    대시보드
+                </a>
+
+                <a href="/admin/members"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'members' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    회원 관리
+                </a>
+
+                <a href="/admin/festivals"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'festivals' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    축제 관리
+                </a>
+
+                <a href="/admin/reviews"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'reviews' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    리뷰 관리
+                </a>
+            </nav>
+        </aside>
+
+        <!-- 본문 -->
+        <main class="flex-1">
+            <div class="bg-white shadow-md rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6">회원 관리</h2>
+
+                <!-- 검색 / 필터 영역 -->
+                <form th:action="@{/admin/members}" method="get"
+                      class="flex flex-wrap gap-3 items-center mb-6 text-sm">
+
+                    <input type="text" name="keyword"
+                           class="border rounded-md px-3 py-2 w-48"
+                           placeholder="아이디 / 이름 / 이메일"
+                           th:value="${keyword}">
+
+                    <select name="role"
+                            class="border rounded-md px-3 py-2">
+                        <option value=""
+                                th:selected="${role} == null or role == ''">전체</option>
+                        <option th:value="'user'"
+                                th:selected="${role} == 'user'">일반 사용자</option>
+                        <option th:value="'admin'"
+                                th:selected="${role} == 'admin'">관리자</option>
+                    </select>
+
+                    <select name="isActive"
+                            class="border rounded-md px-3 py-2">
+                        <option value=""
+                                th:selected="${isActive} == null or isActive == ''">전체</option>
+                        <option th:value="'Y'"
+                                th:selected="${isActive} == 'Y'">활성</option>
+                        <option th:value="'N'"
+                                th:selected="${isActive} == 'N'">비활성</option>
+                    </select>
+
+                    <button type="submit"
+                            class="px-4 py-2 bg-main text-white rounded-md">
+                        검색
+                    </button>
+                </form>
+
+                <!-- 회원 리스트 테이블 -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-t">
+                        <thead class="bg-gray-50">
+                        <tr class="border-b text-gray-600">
+                            <th class="py-2 px-2 text-left">번호</th>
+                            <th class="py-2 px-2 text-left">아이디</th>
+                            <th class="py-2 px-2 text-left">이름</th>
+                            <th class="py-2 px-2 text-left">이메일</th>
+                            <th class="py-2 px-2 text-left">전화번호</th>
+                            <th class="py-2 px-2 text-left">성별</th>
+                            <th class="py-2 px-2 text-left">가입일</th>
+                            <th class="py-2 px-2 text-left">권한</th>
+                            <th class="py-2 px-2 text-left">상태</th>
+                            <th class="py-2 px-2 text-center">관리</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="m : ${members}" class="border-b">
+                            <td class="px-4 py-3 text-center">
+                                <a th:href="@{|/admin/members/${m.userNo}|}"
+                                   class="text-main font-semibold hover:underline">
+                                    <span th:text="${m.userNo}">1</span>
+                                </a>
+                            </td>
+                            <td class="py-2 px-2" th:text="${m.userId}">user01</td>
+                            <td class="py-2 px-2" th:text="${m.name}">홍길동</td>
+                            <td class="py-2 px-2" th:text="${m.email}">test@example.com</td>
+                            <td class="py-2 px-2" th:text="${m.phone}">010-0000-0000</td>
+                            <td class="py-2 px-2" th:text="${m.gender}">M</td>
+                            <td class="py-2 px-2"
+                                th:text="${m.joinDate != null} ? ${#temporals.format(m.joinDate, 'yyyy-MM-dd')} : '-'">
+                                2025-11-01
+                            </td>
+                            <td class="py-2 px-2">
+                                <span th:text="${m.role}">user</span>
+                            </td>
+                            <td class="py-2 px-2">
+                                <span th:text="${m.isActive == 'Y'} ? '활성' : '비활성'">활성</span>
+                            </td>
+                            <td class="py-2 px-2 text-center">
+
+                                <!-- 권한 변경 -->
+                                <form th:action="@{'/admin/members/' + ${m.userNo} + '/role'}"
+                                      method="post" class="inline-block">
+                                    <input type="hidden" name="keyword" th:value="${keyword}">
+                                    <input type="hidden" name="filterRole" th:value="${role}">
+                                    <input type="hidden" name="isActive" th:value="${isActive}">
+                                    <input type="hidden" name="role"
+                                           th:value="${m.role == 'admin'} ? 'user' : 'admin'">
+                                    <button type="submit"
+                                            class="px-2 py-1 border rounded-md text-xs mr-1"
+                                            th:classappend="${m.role == 'admin'} ? '' : 'text-blue-600'">
+                                        <span th:text="${m.role == 'admin'} ? 'toUser' : 'toAdmin'">toAdmin</span>
+                                    </button>
+                                </form>
+
+                                <!-- 활성/비활성 토글 -->
+                                <form th:action="@{'/admin/members/' + ${m.userNo} + '/active'}"
+                                      method="post" class="inline-block">
+                                    <input type="hidden" name="keyword" th:value="${keyword}">
+                                    <input type="hidden" name="role" th:value="${role}">
+                                    <input type="hidden" name="filterActive" th:value="${isActive}">
+                                    <input type="hidden" name="isActive"
+                                           th:value="${m.isActive == 'Y'} ? 'N' : 'Y'">
+                                    <button type="submit"
+                                            class="px-2 py-1 border rounded-md text-xs mr-1"
+                                            th:classappend="${m.isActive == 'Y'} ? ' text-red-600' : ' text-green-600'">
+                                        <span th:text="${m.isActive == 'Y'} ? '비활성' : '활성화'">비활성</span>
+                                    </button>
+                                </form>
+
+                                <!-- 강제 탈퇴 (선택) -->
+                                <form th:action="@{'/admin/members/' + ${m.userNo} + '/withdraw'}"
+                                      method="post" class="inline-block"
+                                      onsubmit="return confirm('정말 강제 탈퇴 처리하시겠습니까?');">
+                                    <input type="hidden" name="keyword" th:value="${keyword}">
+                                    <input type="hidden" name="role" th:value="${role}">
+                                    <input type="hidden" name="isActive" th:value="${isActive}">
+                                    <button type="submit"
+                                            class="px-2 py-1 border rounded-md text-xs text-red-700">
+                                        강제 탈퇴
+                                    </button>
+                                </form>
+
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(members)}">
+                            <td colspan="10" class="py-6 text-center text-gray-500">
+                                조회된 회원이 없습니다.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+</html>
