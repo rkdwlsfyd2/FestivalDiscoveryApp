@@ -2,9 +2,13 @@ package com.example.ex02.admin.controller;
 
 import com.example.ex02.admin.dto.MemberDetailDto;
 import com.example.ex02.admin.service.AdminService;
+import com.example.ex02.member.dto.MemberDto;
 import com.example.ex02.member.entity.MemberEntity;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +32,11 @@ public class AdminController {
     public String memberList(@RequestParam(required = false) String keyword,
                              @RequestParam(required = false) String role,
                              @RequestParam(required = false) String isActive,
+                             @PageableDefault(size = 20) Pageable pageable,
                              Model model) {
 
-        List<MemberEntity> members = adminService.getMemberList(keyword, role, isActive);
+        Page<MemberDto> members =
+                adminService.getMemberPage(keyword, role, isActive, pageable);
 
         model.addAttribute("members", members);
         model.addAttribute("keyword", keyword);
@@ -49,10 +55,10 @@ public class AdminController {
                                Model model) {
 
         // 관리자 권한 체크 (인터셉터 쓴다면 생략 가능)
-        MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
-        if (loginUser == null || !"admin".equals(loginUser.getRole())) {
-            return "redirect:/member/login";
-        }
+//        MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
+//        if (loginUser == null || !"admin".equals(loginUser.getRole())) {
+//            return "redirect:/member/login";
+//        }
 
         MemberDetailDto detail = adminService.getMemberDetail(userNo);
         model.addAttribute("detail", detail);
@@ -73,25 +79,6 @@ public class AdminController {
 
         adminService.deleteReviewByAdmin(reviewId);
         return "redirect:/admin/members/" + userNo;
-    }
-
-    // 리뷰 수정 페이지로 이동 (기존 review-edit.html 재사용할 거면 거기로 리다이렉트)
-    @GetMapping("/reviews/{reviewId}/edit")
-    public String editReviewByAdmin(@PathVariable Long reviewId,
-                                    @RequestParam Long userNo,
-                                    Model model,
-                                    HttpSession session) {
-
-        MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
-        if (loginUser == null || !"admin".equals(loginUser.getRole())) {
-            return "redirect:/member/login";
-        }
-
-        // 기존 리뷰 상세 조회 로직 사용 (ReviewService 등)
-        // model.addAttribute("review", reviewDto);
-        // model.addAttribute("backToAdminMemberDetailUserNo", userNo);
-
-        return "review/review-edit"; // 네가 쓰는 경로에 맞춰 수정
     }
 
     // 활성/비활성 변경
@@ -123,19 +110,6 @@ public class AdminController {
                 + buildQuery(keyword, filterRole, isActive);
     }
 
-    // 강제 탈퇴 버튼용 (현재 그냥 isActive만 N 으로 바꿈)
-    @PostMapping("/members/{userNo}/withdraw")
-    public String withdraw(@PathVariable Long userNo,
-                           @RequestParam(required = false) String keyword,
-                           @RequestParam(required = false) String role,
-                           @RequestParam(required = false) String isActive) {
-
-        adminService.withdrawMember(userNo);
-
-        return "redirect:/admin/members"
-                + buildQuery(keyword, role, isActive);
-    }
-
     private String buildQuery(String keyword, String role, String isActive) {
         StringBuilder sb = new StringBuilder("?");
         boolean first = true;
@@ -156,5 +130,49 @@ public class AdminController {
 
         // 아무 검색조건도 없으면 그냥 빈 문자열
         return sb.length() == 1 ? "" : sb.toString();
+    }
+
+    // 축제 관리
+    @GetMapping("festivals")
+    public String festivalList(@RequestParam(required = false) String keyword,
+                             @RequestParam(required = false) String role,
+                             @RequestParam(required = false) String isActive,
+                             @PageableDefault(size = 20) Pageable pageable,
+                             Model model) {
+
+        Page<MemberDto> members =
+                adminService.getMemberPage(keyword, role, isActive, pageable);
+
+        model.addAttribute("members", members);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("role", role);
+        model.addAttribute("isActive", isActive);
+
+        // 사이드바 active 상태
+        model.addAttribute("activeMenu", "festivals");
+
+        return "admin/festival-list";
+    }
+
+    // 리뷰 관리
+    @GetMapping("/reviews")
+    public String reviewList(@RequestParam(required = false) String keyword,
+                             @RequestParam(required = false) String role,
+                             @RequestParam(required = false) String isActive,
+                             @PageableDefault(size = 20) Pageable pageable,
+                             Model model) {
+
+        Page<MemberDto> members =
+                adminService.getMemberPage(keyword, role, isActive, pageable);
+
+        model.addAttribute("members", members);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("role", role);
+        model.addAttribute("isActive", isActive);
+
+        // 사이드바 active 상태
+        model.addAttribute("activeMenu", "reviews");
+
+        return "admin/review-list";
     }
 }

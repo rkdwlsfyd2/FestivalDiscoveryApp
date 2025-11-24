@@ -459,7 +459,7 @@
                         <div class="text-[0.75rem] text-gray-500 mt-1">
                             즐겨찾기
                             <span class="font-semibold"
-                                  th:text="${stats.topFavoriteFestival.favoriteCount}">124</span>회
+                                  th:text="${stats.topFavoriteFestival != null ? stats.topFavoriteFestival.favoriteCount : 0}">124</span>회
                         </div>
                     </div>
                     <div class="text-[0.7rem] text-gray-400 mt-2">

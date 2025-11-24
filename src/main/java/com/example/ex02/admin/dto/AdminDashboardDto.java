@@ -16,6 +16,9 @@ public class AdminDashboardDto {
 
     // 공통
     private LocalDateTime lastUpdated;
+    private long festivalNo;
+    private String title;
+    private Long favoriteCount;
 
     // 상단 4개 카드
     private long totalMembers;

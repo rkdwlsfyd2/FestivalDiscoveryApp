@@ -25,7 +25,7 @@ public class MemberSummaryDto {
                 .userNo(entity.getUserNo())
                 .name(entity.getName())
                 .email(entity.getEmail())
-                .joinDate(entity.getJoinDate()) // LocalDate 타입이라고 가정
+                .joinDate(entity.getJoinDate())
                 .build();
     }
 }

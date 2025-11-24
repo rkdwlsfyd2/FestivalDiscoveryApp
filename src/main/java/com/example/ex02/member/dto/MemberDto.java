@@ -54,4 +54,15 @@ public class MemberDto {
     // ⭐ 선호 태그 필수
     @NotBlank(message = "선호 태그는 필수 선택입니다.")
     private String favoriteTag;
+
+    public String getFormattedPhone() {
+        if (phone == null) return "";
+        // 숫자만 추출
+        String digits = phone.replaceAll("\\D", "");
+        if (digits.length() == 11) {
+            return digits.replaceFirst("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3");
+        }
+        return phone; // 예상치 못한 케이스는 원본 출력
+    }
+
 }

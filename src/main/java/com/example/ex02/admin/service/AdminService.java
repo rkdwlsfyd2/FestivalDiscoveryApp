@@ -5,15 +5,19 @@ import com.example.ex02.festival.entity.FestivalEntity;
 import com.example.ex02.festival.repository.FavoriteRepository;
 import com.example.ex02.festival.repository.FestivalRepository;
 import com.example.ex02.festival.repository.ReviewRepository;
+import com.example.ex02.member.dto.MemberDto;
 import com.example.ex02.member.entity.MemberEntity;
 import com.example.ex02.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +52,28 @@ public class AdminService {
                 .map(FestivalSummaryDto::from)
                 .toList();
 
-        // 대시보드 DTO 조립
+        // ★ 가장 많이 즐겨찾기된 축제 조회
+        AdminDashboardDto topFavoriteFestival;
+
+        List<FavoriteRepository.TopFavoriteFestivalProjection> topList =
+                favoriteRepository.findTopFavoriteFestival(PageRequest.of(0, 5));
+
+        if (!topList.isEmpty()) {
+            FavoriteRepository.TopFavoriteFestivalProjection p = topList.get(0);
+            topFavoriteFestival = AdminDashboardDto.builder()
+                    .festivalNo(p.getFestivalNo())
+                    .title(p.getTitle())
+                    .favoriteCount(p.getFavoriteCount())
+                    .build();
+        }else {
+            // ⭐ 기본값 (null 방지)
+            topFavoriteFestival = AdminDashboardDto.builder()
+                    .festivalNo(0L)
+                    .title("데이터 없음")
+                    .favoriteCount(0L)
+                    .build();
+        }
+
         return AdminDashboardDto.builder()
                 .totalMembers(totalMembers)
                 .todayJoined(todayJoined)
@@ -56,13 +81,43 @@ public class AdminService {
                 .totalReviews(totalReviews)
                 .recentMembers(recentMembers)
                 .recentFestivals(recentFestivals)
+                .topFavoriteFestival(topFavoriteFestival.getTopFavoriteFestival())
                 .build();
     }
 
-    // 회원 목록 조회 (검색/필터 포함)
-    public List<MemberEntity> getMemberList(String keyword, String role, String isActive) {
-        return memberRepository.searchMembers(keyword, role, isActive);
+//    // 회원 목록 조회 (검색/필터 포함)
+//    public List<MemberEntity> getMemberList(String keyword, String role, String isActive) {
+//        return memberRepository.searchMembers(keyword, role, isActive );
+//    }
+
+    // 회원 목록 dto로 변환 (formattedphone 포함)
+    public Page<MemberDto> getMemberPage(String keyword,
+                                         String role,
+                                         String isActive,
+                                         Pageable pageable) {
+
+        Page<MemberEntity> page = memberRepository.searchMembers(keyword, role, isActive, pageable);
+
+        return page.map(this::toMemberDto);
     }
+
+    private MemberDto toMemberDto(MemberEntity m) {
+        return MemberDto.builder()
+                .userNo(m.getUserNo())
+                .userId(m.getUserId())
+                .name(m.getName())
+                .email(m.getEmail())
+                .phone(m.getPhone())
+                .gender(m.getGender())
+                .birthDate(m.getBirthDate())
+                .joinDate(m.getJoinDate())
+                .role(m.getRole())
+                .isActive(m.getIsActive())
+                .withdrawDate(m.getWithdrawDate())
+                .favoriteTag(m.getFavoriteTag())
+                .build();
+    }
+
 
     // 단일 회원 조회 (상세 보기 필요하면 사용)
     public MemberEntity getMember(Long userNo) {
