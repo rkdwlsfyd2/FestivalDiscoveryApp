@@ -1,4 +1,5 @@
-<!--review.html-->
+<!-- mypage/reviews.html -->
+
 <!DOCTYPE html>
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
@@ -6,10 +7,67 @@
       layout:decorate="~{common/mylayout}">
 
 <head>
-    <!--  FontAwesome 추가 (별 아이콘) -->
+    <!-- FontAwesome (아이콘용) -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        /* 빈 별 */
+        .star-empty::before {
+            content: '★';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #e5e7eb;
+        }
+
+        .star-rating {
+            display: inline-flex;
+            line-height: 1;
+            font-size: 20px;
+        }
+
+        .star {
+            position: relative;
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            margin-right: 2px;
+            font-size: inherit;
+        }
+
+        /* 기본 회색 */
+        .star::before {
+            content: '★';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #e5e7eb;
+        }
+
+        /* 가득 찬 별 */
+        .star-full::before {
+            color: #fbbf24;
+        }
+
+        /* 반별 */
+        .star-half::before {
+            color: #e5e7eb;
+        }
+
+        .star-half::after {
+            content: '★';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #fbbf24;
+            width: 70%;
+            overflow: hidden;
+            clip-path: inset(0 30% 0 0);
+        }
+    </style>
 </head>
+
 
 <div layout:fragment="content" class="bg-gray-50">
 
@@ -21,7 +79,7 @@
 
             <nav class="flex flex-col space-y-3">
                 <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">프로필 확인</a>
-                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">회원수정 및 회원탈퇴</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">회원수정 및 탈퇴</a>
                 <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">축제 즐겨찾기</a>
                 <a href="/mypage/reviews" class="px-3 py-2 rounded-md bg-gray-200 hover:bg-gradient2 hover:text-white">내 리뷰 관리</a>
             </nav>
@@ -37,15 +95,16 @@
 
                 <div class="space-y-6">
 
+                    <!-- 반복문 시작 -->
                     <div th:each="r : ${reviews}" class="border border-gray-300 rounded-xl p-6">
 
+                        <!-- 상단: 제목 + 버튼 -->
                         <div class="flex justify-between items-center mb-3">
                             <div class="text-2xl font-bold text-main" th:text="${r.festival.title}">축제명</div>
 
                             <div class="flex gap-3">
-                                <button class="px-4 py-2 text-white rounded-md transition
-                                               bg-gradient-to-br from-[#6B96FC] to-[#4A80FA]
-                                               hover:from-[#5170ff] hover:to-[#ff66c4]">
+                                <button class="px-4 py-2 text-white rounded-md bg-gradient-to-br from-[#6B96FC] to-[#4A80FA]"
+                                        th:onclick="'location.href=\'/mypage/reviews/edit/' + ${r.reviewNo} + '\';'">
                                     수정
                                 </button>
 
@@ -56,19 +115,24 @@
                             </div>
                         </div>
 
-                        <!--  별점 표시 영역 -->
-                        <div class="flex items-center mb-2">
-                            <span th:each="i : ${#numbers.sequence(1, 5)}">
-                                <i th:class="${i <= r.rating} ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-300'"></i>
+                        <!-- 별점 -->
+                        <div class="star-rating">
+                            <span th:each="i : ${#numbers.sequence(1,5)}">
+                                <span class="star star-full" th:if="${r.rating >= i}"></span>
+                                <span class="star star-half" th:if="${r.rating < i and r.rating >= i - 0.5}"></span>
+                                <span class="star star-empty" th:if="${r.rating < i - 0.5}"></span>
                             </span>
                         </div>
 
+                        <!-- 내용 -->
                         <p class="mt-3 mb-3 text-gray-700" th:text="${r.content}"></p>
 
+                        <!-- 날짜 -->
                         <p class="text-gray-500 text-sm"
-                           th:text="${#temporals.format(r.createdAt,'yyyy-MM-dd HH:mm')}"></p>
+                           th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm')}"></p>
 
                     </div>
+                    <!-- 반복문 끝 -->
 
                 </div>
 
@@ -79,4 +143,5 @@
     </div>
 
 </div>
+
 </html>

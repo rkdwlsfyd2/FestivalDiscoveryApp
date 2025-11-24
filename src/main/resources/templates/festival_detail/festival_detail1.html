@@ -945,7 +945,7 @@
 					</h3>
 
 					<!-- 리뷰 작성 폼 -->
-					<form th:if="${loginUser != null and !hasMyReview}" th:action="@{/festivals/review(festivalNo=${festival.festivalNo}, memberNo=${loginUser.userNo})}" method="post" class="space-y-3">
+					<form id="reviewForm" th:if="${loginUser != null and !hasMyReview}" th:action="@{/festivals/review(festivalNo=${festival.festivalNo}, memberNo=${loginUser.userNo})}" method="post" class="space-y-3">
 						<!-- 별점 선택 (.5 단위) -->
 						<div class="text-body" style="margin-bottom: 8px;">
 							<!-- 별점 입력 영역 -->
@@ -1038,6 +1038,29 @@
 
 							marker.setMap(map);
 						});
+
+						/* ===== 리뷰 입력 검증 ===== */
+						const reviewForm = document.getElementById('reviewForm');
+
+						if (reviewForm) {
+							reviewForm.addEventListener('submit', function (e) {
+								const rating = parseFloat(ratingInput.value || '0');
+								const content = reviewForm.querySelector('textarea[name="content"]').value.trim();
+
+								if (rating <= 0) {
+									alert("별점을 선택해 주세요.");
+									e.preventDefault();
+									return false;
+								}
+
+								if (content.length === 0) {
+									alert("리뷰 내용을 입력해 주세요.");
+									e.preventDefault();
+									return false;
+								}
+							});
+						}
+
 					</script>
 
                     <!-- 주소, 복사-->
