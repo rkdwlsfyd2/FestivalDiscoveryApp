@@ -94,6 +94,22 @@ public class MyPageController {
 
         return "redirect:/";
     }
+    /* ------------------------------
+       리뷰 수정 처리
+    ------------------------------ */
+    @PostMapping("/reviews/update")
+    public String updateReview(HttpSession session,
+                               @RequestParam("reviewNo") Long reviewNo,
+                               @RequestParam("content") String content,
+                               @RequestParam("rating") Double rating) {
+
+        Long userNo = getLoginUserNo(session);
+        if (userNo == null) return "redirect:/login";
+
+        myPageService.updateReview(reviewNo, content, rating);
+
+        return "redirect:/mypage/reviews";
+    }
 
 
     /* ------------------------------

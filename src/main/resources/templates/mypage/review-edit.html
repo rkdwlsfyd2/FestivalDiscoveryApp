@@ -9,31 +9,105 @@
     <!-- FontAwesome (아이콘용) -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        <style>
+.star-rating {
+    display: inline-flex;
+    line-height: 1;
+    font-size: 24px;
+}
+.star {
+    position: relative;
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    cursor: pointer;
+}
+.star::before {
+    content: '★';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #e5e7eb; /* 기본 회색 */
+}
+.star-full::before {
+    color: #fbbf24; /* 노란색 */
+}
+.star-half::before {
+    color: #e5e7eb;
+}
+.star-half::after {
+    content: '★';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #fbbf24;
+    width: 50%;
+    overflow: hidden;
+    clip-path: inset(0 50% 0 0);
+}
+    </style>
 
+    </style>
     <script>
-        function setRating(score) {
-            const stars = document.querySelectorAll(".star");
-            const ratingInput = document.getElementById("ratingInput");
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ratingBox = document.getElementById('ratingBox');
+            const ratingInput = document.getElementById('ratingInput');
+            const ratingValueText = document.getElementById('ratingValueText');
 
-            ratingInput.value = score;
+            if (!ratingBox || !ratingInput) return;
 
-            stars.forEach((star, index) => {
-                const value = (index + 1) * 0.5; // 0.5 단위 점수
+            const stars = ratingBox.querySelectorAll('.star');
+            let currentRating = parseFloat(ratingInput.value || '0') || 0;
 
-                if (value <= score) {
-                    star.classList.add("fas", "text-yellow-400");
-                    star.classList.remove("far", "text-gray-300");
-                } else {
-                    star.classList.add("far", "text-gray-300");
-                    star.classList.remove("fas", "text-yellow-400");
-                }
+            // 별 채우기
+            function paintStars(rating) {
+                stars.forEach(star => {
+                    const i = Number(star.getAttribute('data-index'));
+                    star.classList.remove('star-full', 'star-half', 'star-empty');
+                    if (rating >= i) {
+                        star.classList.add('star-full');
+                    } else if (rating >= i - 0.5) {
+                        star.classList.add('star-half');
+                    }
+                });
+                ratingValueText.textContent = rating > 0 ? rating.toFixed(1) + '점' : '';
+            }
+
+            // 마우스 위치로 반점수 계산
+            function calcRatingFromEvent(star, event) {
+                const index = Number(star.getAttribute('data-index'));
+                const rect = star.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const half = rect.width / 2;
+                return x <= half ? (index - 0.5) : index;
+            }
+
+            // 초기 표시
+            paintStars(currentRating);
+
+            // 이벤트 바인딩
+            stars.forEach(star => {
+                star.addEventListener('mousemove', e => {
+                    const hoverRating = calcRatingFromEvent(star, e);
+                    paintStars(hoverRating);
+                });
+
+                star.addEventListener('click', e => {
+                    const newRating = calcRatingFromEvent(star, e);
+                    currentRating = newRating;
+                    ratingInput.value = newRating;
+                    paintStars(newRating);
+                });
             });
-        }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const current = parseFloat(document.getElementById("ratingInput").value);
-            setRating(current);
+            ratingBox.addEventListener('mouseleave', () => {
+                paintStars(currentRating);
+            });
         });
+    </script>
+
 
     </script>
 
@@ -74,26 +148,20 @@
                                class="w-full border rounded-md p-3 bg-gray-100">
                     </div>
 
-                    <!--  클릭형 평점 -->
-                    <div>
-                        <label class="block font-semibold mb-2">평점</label>
-
-                        <!-- 숨겨진 인풋 -->
-                        <input type="hidden" id="ratingInput" name="rating" th:value="${review.rating}">
-
-                        <div class="flex gap-1 text-3xl cursor-pointer">
-                            <i class="star far fa-star" onclick="setRating(0.5)"></i>
-                            <i class="star far fa-star" onclick="setRating(1.0)"></i>
-                            <i class="star far fa-star" onclick="setRating(1.5)"></i>
-                            <i class="star far fa-star" onclick="setRating(2.0)"></i>
-                            <i class="star far fa-star" onclick="setRating(2.5)"></i>
-                            <i class="star far fa-star" onclick="setRating(3.0)"></i>
-                            <i class="star far fa-star" onclick="setRating(3.5)"></i>
-                            <i class="star far fa-star" onclick="setRating(4.0)"></i>
-                            <i class="star far fa-star" onclick="setRating(4.5)"></i>
-                            <i class="star far fa-star" onclick="setRating(5.0)"></i>
+                    <!-- 별점 입력 영역 -->
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                        <label class="text-subtext">별점</label>
+                        <div id="ratingBox" class="star-rating star-rating--input">
+                            <span class="star" data-index="1"></span>
+                            <span class="star" data-index="2"></span>
+                            <span class="star" data-index="3"></span>
+                            <span class="star" data-index="4"></span>
+                            <span class="star" data-index="5"></span>
                         </div>
+                        <span id="ratingValueText" class="text-subtext"></span>
+                        <input type="hidden" id="ratingInput" name="rating" th:value="${review.rating}">
                     </div>
+
 
 
                     <!-- 리뷰 내용 -->
