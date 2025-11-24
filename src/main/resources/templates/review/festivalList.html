@@ -17,14 +17,14 @@
                     로그인하시면 <strong>즐겨찾기</strong>와
                     <strong>AI 추천</strong> 기능을 이용하실 수 있어요.
                 </span>
-                <a th:href="@{/login(redirectUrl=${'/festivals/festivalMap?page=' + festivalList.number
-                                                                       + '&size=' + festivalList.size
-                                                                       + '&keyword=' + (keyword != null ? keyword : '')
-                                                                       + '&ongoingOnly=' + ongoingOnly
-                                                                       + '&region=' + (region != null ? region : '')
-                                                                       + '&tag=' + (tag != null ? tag : '')}
-                                    )}"
-                   class="ml-auto text-[11px] text-blue-600 hover:underline">
+				<a th:with="redirectUrl=@{/festivals/festivalMap(page=${festivalList.number},
+																 size=${festivalList.size},
+																 keyword=${keyword},
+																 ongoingOnly=${ongoingOnly},
+																 region=${region},
+																 tag=${tag})}"
+				   th:href="@{/login(redirectUrl=${redirectUrl})}"
+				   class="ml-auto text-[11px] text-blue-600 hover:underline">
                     로그인
                 </a>
             </div>
@@ -55,34 +55,36 @@
                          th:onmouseout="|window.fdUnhighlightMarkerByFestivalNo('${festival.festivalNo}')|"
                          th:onclick="|window.fdOpenOverlayByFestivalNo('${festival.festivalNo}')|">
 
-                        <!-- 2-2-1. 축제 이미지 -->
-                        <div th:if="${festival.images != null and !#lists.isEmpty(festival.images)}">
+                        <!-- 2-2-1. AI 아이콘 + 축제 이미지 -->
+                        <div th:if="${festival.images != null and !#lists.isEmpty(festival.images)}" class="relative mb-3">
                             <img th:src="${festival.images[0].imageUrl}"
                                  class="w-full h-36 object-cover rounded-lg mb-3" />
+							<span th:if="${aiFestivalNos != null and #sets.contains(aiFestivalNos, festival.festivalNo)}"
+								  class="absolute left-2 top-2 inline-flex items-center px-2 py-0.5 rounded-full bg-gradient2 text-foreground text-[11px] font-semibold shadow pointer-events-none">
+                                    <span>AI 추천</span>
+							</span>
                         </div>
 
                         <!-- 이미지 없을 때 -->
                         <div th:if="${festival.images == null or #lists.isEmpty(festival.images)}"
-                             class="w-full h-36 bg-gray-300 rounded-lg mb-3 flex items-center justify-center">
+                             class="relative w-full h-36 bg-gray-300 rounded-lg mb-3 flex items-center justify-center">
                             <span class="text-xs text-gray-600">이미지 없음</span>
+							<span th:if="${aiFestivalNos != null and #sets.contains(aiFestivalNos, festival.festivalNo)}"
+								  class="absolute left-2 top-2 inline-flex items-center px-2 py-0.5 rounded-full bg-gradient2 text-foreground text-[11px] font-semibold shadow pointer-events-none">
+                                    <span>AI 추천</span>
+							</span>
                         </div>
 
-                        <!-- 2-2-2. 제목 + AI 추천 + 태그 아이콘 + 즐겨찾기 한 줄 -->
+                        <!-- 2-2-2. 제목 + 태그 아이콘 + 즐겨찾기 한 줄 -->
                         <div class="mb-2 flex items-center gap-2 flex-wrap">
 
                             <!-- 제목 -->
                             <h3 class="text-lg font-suit font-bold text-gray-800"
                                 th:text="${festival.title}">축제 제목</h3>
 
-                            <!-- AI 추천 + 태그 아이콘 -->
+                            <!-- 태그 아이콘 -->
                             <div class="flex flex-wrap gap-1"
                                  th:if="${tagMap != null and tagMap[festival.festivalNo] != null}">
-
-                                <!-- AI 추천 아이콘 -->
-                                <span th:if="${aiFestivalNos != null and #sets.contains(aiFestivalNos, festival.festivalNo)}"
-                                      class="fd-ai-badge w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 border">
-                                    <span class="icon">⚡</span>
-                                </span>
 
                                 <!-- 태그 아이콘 -->
                                 <span th:each="tag : ${tagMap[festival.festivalNo]}"

@@ -1,8 +1,8 @@
 package com.example.ex02.member.repository;
 
+import com.example.ex02.festival.entity.FestivalEntity;
 import com.example.ex02.member.entity.MemberAiScoreEntity;
 import com.example.ex02.member.entity.MemberEntity;
-import com.example.ex02.festival.entity.FestivalEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface MemberAiScoreRepository extends JpaRepository<MemberAiScoreEntity, Long> {
 
@@ -36,4 +35,6 @@ public interface MemberAiScoreRepository extends JpaRepository<MemberAiScoreEnti
             @Param("member") MemberEntity member,
             @Param("festivalNos") Collection<Long> festivalNos
     );
+
+
 }

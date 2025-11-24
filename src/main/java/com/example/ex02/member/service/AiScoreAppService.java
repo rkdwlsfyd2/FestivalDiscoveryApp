@@ -1,14 +1,12 @@
 package com.example.ex02.member.service;
 
-import com.example.ex02.member.entity.MemberEntity;
-import com.example.ex02.member.entity.MemberAiScoreEntity;
-import com.example.ex02.member.repository.MemberRepository;
-import com.example.ex02.member.repository.MemberAiScoreRepository;
-
 import com.example.ex02.festival.entity.FestivalEntity;
 import com.example.ex02.festival.entity.FestivalTagEntity;
 import com.example.ex02.festival.repository.FestivalTagRepository;
-
+import com.example.ex02.member.entity.MemberAiScoreEntity;
+import com.example.ex02.member.entity.MemberEntity;
+import com.example.ex02.member.repository.MemberAiScoreRepository;
+import com.example.ex02.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -346,6 +344,7 @@ public class AiScoreAppService {
 
         // 상위 3개 festivalNo 추출 (순서 유지)
         return filteredScores.stream()
+				.filter(s -> s.getAiScore() != null && s.getAiScore() >= 0.85)
                 .limit(3)
                 .map(s -> s.getFestival().getFestivalNo())
                 .filter(Objects::nonNull)
