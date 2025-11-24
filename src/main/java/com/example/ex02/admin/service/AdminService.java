@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -37,45 +38,52 @@ public class AdminService {
     public AdminDashboardDto getDashboard() {
 
         long totalMembers = memberRepository.count();
-        long todayJoined = memberRepository.countByJoinDate(LocalDate.now()); // 아래에 메서드 추가 필요
+        long todayJoined = memberRepository.countByJoinDate(LocalDate.now());
         long totalFestivals = festivalRepository.count();
         long totalReviews = reviewRepository.count();
 
-        // 최근 가입한 회원 5명 조회 (Entity)
-        List<MemberEntity> recentMemberEntities =
-                memberRepository.findTop5ByOrderByJoinDateDesc();
-
-        // 최근 축제 5개 조회 (Entity)
-        List<FestivalEntity> recentFestivalEntities =
-                festivalRepository.findTop5ByOrderByEventStartDateDesc();
-
-        // 엔티티 -> 요약 DTO 변환
-        List<MemberSummaryDto> recentMembers = recentMemberEntities.stream()
+        // 최근 회원 5명
+        List<MemberSummaryDto> recentMembers = memberRepository
+                .findTop5ByOrderByJoinDateDesc()
+                .stream()
                 .map(MemberSummaryDto::from)
                 .toList();
 
-        List<FestivalSummaryDto> recentFestivals = recentFestivalEntities.stream()
+        // 최근 축제 5개
+        List<FestivalSummaryDto> recentFestivals = festivalRepository
+                .findTop5ByOrderByEventStartDateDesc()
+                .stream()
                 .map(FestivalSummaryDto::from)
                 .toList();
 
-        // ★ 가장 많이 즐겨찾기된 축제 조회
-        AdminDashboardDto topFavoriteFestival;
+        // ===== 리뷰 통계 =====
+        Double avg = reviewRepository.findAverageRating();
+        double averageRating = (avg != null) ? avg : 0.0;
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
+        long todayReviewCount =
+                reviewRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+
+        // 즐겨찾기 TOP 조회
+        FavoriteFestivalDto topFavoriteFestival;
 
         List<FavoriteRepository.TopFavoriteFestivalProjection> topList =
                 favoriteRepository.findTopFavoriteFestival(PageRequest.of(0, 5));
 
         if (!topList.isEmpty()) {
-            FavoriteRepository.TopFavoriteFestivalProjection p = topList.get(0);
-            topFavoriteFestival = AdminDashboardDto.builder()
+            var p = topList.get(0);
+            topFavoriteFestival = FavoriteFestivalDto.builder()
                     .festivalNo(p.getFestivalNo())
                     .title(p.getTitle())
                     .favoriteCount(p.getFavoriteCount())
                     .build();
         }else {
-            // ⭐ 기본값 (null 방지)
-            topFavoriteFestival = AdminDashboardDto.builder()
+            topFavoriteFestival = FavoriteFestivalDto.builder()
                     .festivalNo(0L)
                     .title("데이터 없음")
+                    .addr("")
                     .favoriteCount(0L)
                     .build();
         }
@@ -85,11 +93,14 @@ public class AdminService {
                 .todayJoined(todayJoined)
                 .totalFestivals(totalFestivals)
                 .totalReviews(totalReviews)
+                .averageRating(averageRating)
+                .todayReviewCount(todayReviewCount)
                 .recentMembers(recentMembers)
                 .recentFestivals(recentFestivals)
-                .topFavoriteFestival(topFavoriteFestival.getTopFavoriteFestival())
+                .topFavoriteFestival(topFavoriteFestival)
                 .build();
     }
+
 
 //    // 회원 목록 조회 (검색/필터 포함)
 //    public List<MemberEntity> getMemberList(String keyword, String role, String isActive) {
@@ -227,11 +238,23 @@ public class AdminService {
                 .build());
     }
 
+    @Transactional
     public void updateFestival(FestivalUpdateDto dto) {
 
         // 1) 메인 엔티티 조회
         FestivalEntity festival = festivalRepository.findById(dto.getFestivalNo())
                 .orElseThrow(() -> new IllegalArgumentException("해당 축제를 찾을 수 없습니다."));
+
+        festival.setTitle(dto.getTitle());
+
+        if (dto.getEventStartDate() != null) {
+            festival.setEventStartDate(dto.getEventStartDate().atStartOfDay());
+        }
+        if (dto.getEventEndDate() != null) {
+            festival.setEventEndDate(dto.getEventEndDate().atStartOfDay());
+        }
+
+        festival.setAddr(dto.getAddr());
 
         // 2) 디테일 엔티티 조회
         FestivalDetailEntity detail = festivalDetailRepository.findByFestivalNo(dto.getFestivalNo());
@@ -255,6 +278,21 @@ public class AdminService {
 
         // 5) JPA @Transactional → 자동 dirty checking
         // 별도의 save() 필요 없음
+    }
+
+    @Transactional
+    public void deleteFestival(Long festivalNo){
+        // 1) 즐겨찾기 삭제
+        favoriteRepository.deleteByFestivalNo(festivalNo);
+
+        // 2) 리뷰 삭제
+        reviewRepository.deleteByFestivalFestivalNo(festivalNo);
+
+        // 3) 축제 상세 삭제
+        festivalDetailRepository.deleteByFestivalNo(festivalNo);
+
+        // 4) 축제 삭제
+        festivalRepository.deleteById(festivalNo);
     }
 
 }

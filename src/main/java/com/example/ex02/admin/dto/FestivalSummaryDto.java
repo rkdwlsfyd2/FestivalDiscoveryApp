@@ -16,6 +16,7 @@ public class FestivalSummaryDto {
     private String title;
     private String state;          // 지역/시도 등
     private LocalDate eventStartDate;
+    private LocalDate eventEndDate;
 
     public static FestivalSummaryDto from(FestivalEntity entity) {
         return FestivalSummaryDto.builder()
@@ -23,6 +24,7 @@ public class FestivalSummaryDto {
                 .title(entity.getTitle())
                 .state(entity.getState())
                 .eventStartDate(entity.getEventStartDate().toLocalDate())
+                .eventEndDate(entity.getEventStartDate().toLocalDate())
                 .build();
     }
 }

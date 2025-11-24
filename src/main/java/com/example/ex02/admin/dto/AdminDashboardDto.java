@@ -35,10 +35,11 @@ public class AdminDashboardDto {
     private long thisMonthFestivals;
     private String festivalSyncSource;      // ex. "한국관광공사 API"
 
-    private double avgReviewScore;
-    private long todayReviews;
+    // 리뷰 관련
+    private double averageRating;      // 평균 평점
+    private long todayReviewCount;     // 오늘 작성된 리뷰 수
     private long weekReviews;
-    private long pendingReviewReports;      // 신고 처리 대기 리뷰 수
+    private long pendingReviewCount;      // 신고 처리 대기 리뷰 수
 
     private long todayPageViews;            // 오늘 페이지뷰(전체)
     private int  onlineUsers;               // 현재 접속 중(세션 기반)

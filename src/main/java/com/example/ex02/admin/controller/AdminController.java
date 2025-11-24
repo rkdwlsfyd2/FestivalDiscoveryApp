@@ -1,5 +1,6 @@
 package com.example.ex02.admin.controller;
 
+import com.example.ex02.admin.dto.AdminDashboardDto;
 import com.example.ex02.admin.dto.MemberDetailDto;
 import com.example.ex02.admin.dto.ReviewSummaryDto;
 import com.example.ex02.admin.service.AdminService;
@@ -12,6 +13,7 @@ import com.example.ex02.member.dto.MemberDto;
 import com.example.ex02.member.entity.MemberEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,6 +47,7 @@ public class AdminController {
     
     @GetMapping
     public String adminHome(Model model) {
+        model.addAttribute("activeMenu","dashboard");
         model.addAttribute("stats", adminService.getDashboard());
         return "admin/dashboard";
     }
@@ -63,6 +66,8 @@ public class AdminController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("role", role);
         model.addAttribute("isActive", isActive);
+        model.addAttribute("page", members.getNumber());
+        model.addAttribute("totalPages", members.getTotalPages());
 
         // 사이드바 active 상태
         model.addAttribute("activeMenu", "members");
@@ -211,6 +216,13 @@ public class AdminController {
     public String updateFestival(FestivalUpdateDto dto) {
         adminService.updateFestival(dto);
         return "redirect:/festivals/detail?festivalNo=" + dto.getFestivalNo();
+    }
+
+    @PostMapping("/festivals/delete")
+    public String deleteFestival(@RequestParam Long festivalNo){
+        adminService.deleteFestival(festivalNo);
+
+        return "redirect:/admin/festivals";
     }
 
 

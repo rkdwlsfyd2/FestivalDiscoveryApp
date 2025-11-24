@@ -195,7 +195,7 @@
                 <div class="mt-6 flex justify-center space-x-2">
 
                     <a th:if="${(page ?: 0) > 0}"
-                       th:href="@{/admin/reviews(page=${(page ?: 0)-1}, sort=${sort}, keyword=${keyword})}"
+                       th:href="@{/admin/members(page=${(page ?: 0)-1}, sort=${sort}, keyword=${keyword})}"
                        class="px-3 py-1 border rounded-md">이전</a>
 
                     <span class="px-4 py-2 font-semibold bg-gray-100 rounded-md">
@@ -203,7 +203,7 @@
                     </span>
 
                     <a th:if="${(page ?: 0)+1 < (totalPages ?: 1)}"
-                       th:href="@{/admin/reviews(page=${(page ?: 0)+1}, sort=${sort}, keyword=${keyword})}"
+                       th:href="@{/admin/members(page=${(page ?: 0)+1}, sort=${sort}, keyword=${keyword})}"
                        class="px-3 py-1 border rounded-md">다음</a>
 
                 </div>

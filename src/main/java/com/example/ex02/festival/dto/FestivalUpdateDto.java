@@ -9,6 +9,7 @@ public class FestivalUpdateDto {
     private Long festivalNo;
     private LocalDate eventStartDate;
     private LocalDate eventEndDate;
+    private String title;
     private String addr;
     private String festivalFee;
     private String host;

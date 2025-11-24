@@ -6,10 +6,12 @@ import com.example.ex02.member.entity.MemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,4 +42,15 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
         """)
     Page<ReviewEntity> searchReviews(@Param("keyword") String keyword,
                                      Pageable pageable);
+
+    @Modifying
+    @Query("delete from ReviewEntity r where r.festival.festivalNo = :festivalNo")
+    void deleteByFestivalFestivalNo(Long festivalNo);
+
+    // 전체 평균 평점
+    @Query("SELECT COALESCE(AVG(r.rating), 0) FROM ReviewEntity r")
+    Double findAverageRating();
+
+    // 오늘 작성된 리뷰 수
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }

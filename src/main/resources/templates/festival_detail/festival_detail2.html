@@ -618,7 +618,8 @@
 								<input type="text"
 									   name="title"
 									   th:value="${festival.title}"
-									   class="border px-3 py-1 rounded w-full"/>
+									   class="border px-3 py-1 rounded w-full"
+										form="festivalEditForm"/>
 							</div>
 							<div th:if="${!isAdmin}">
 								<h1 class="text-h1 font-bold" th:text="${festival.title}"></h1>
@@ -1085,7 +1086,8 @@
 								<textarea name="infotext1"
 										  class="border w-full p-2 rounded"
 										  rows="6"
-										  th:text="${festival.detail.infotext1}"></textarea>
+										  th:text="${festival.detail.infotext1}"
+											form="festivalEditForm"></textarea>
 							</div>
 							<div th:if="${!isAdmin}">
 								<div class="text-body" th:text="${festival.detail.infotext1}"></div>
@@ -1104,7 +1106,8 @@
 										  name="infotext2"
 										  class="text-body border w-full rounded-md p-2"
 										  rows="6"
-										  th:text="${festival.detail.infotext2}"></textarea>
+										  th:text="${festival.detail.infotext2}"
+											form="festivalEditForm"></textarea>
 							</div>
 
 							<!-- 일반 사용자: 기존처럼 텍스트만 표시 -->
@@ -1167,13 +1170,26 @@
 			</div>
 
 			<!-- 페이지 하단 수정 버튼 (관리자 전용) -->
-			<div th:if="${isAdmin}"
-				 style="text-align:center; margin-top:24px;">
+			<div class="mt-10 flex justify-center gap-4"
+				 th:if="${isAdmin}">
 				<button type="submit"
 						form="festivalEditForm"
-						class="mt-6 px-4 py-2 bg-blue-600 text-white rounded">
+						class="px-4 py-2 bg-blue-600 text-white rounded">
 					수정하기
 				</button>
+
+				<!-- 삭제 버튼 (마찬가지로 관리자 전용) -->
+				<form th:action="@{/admin/festivals/delete}"
+					  method="post"
+					  onsubmit="return confirm('정말로 이 축제를 삭제하시겠습니까? 복구할 수 없습니다.');">
+
+					<input type="hidden" name="festivalNo" th:value="${festival.festivalNo}">
+
+					<button type="submit"
+							class="px-4 py-2 bg-red-600 text-white rounded">
+						삭제하기
+					</button>
+				</form>
 			</div>
 		</section>
 

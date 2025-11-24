@@ -149,23 +149,59 @@
         </nav>
     </aside>
 
-    <!-- 상단 타이틀 -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="dashboard-title">관리자 대시보드</h1>
-            <p class="text-sm text-gray-500 mt-1">
-                전체 회원 현황, 축제/리뷰 통계, 트래픽 요약을 한 눈에 확인할 수 있습니다.
-            </p>
-        </div>
-        <div class="text-xs text-gray-500">
-            마지막 업데이트 :
-            <span th:text="${#temporals.format(stats.lastUpdated, 'yyyy-MM-dd HH:mm')}">
-                2025-11-24 04:00
-            </span>
-        </div>
-    </div>
+    <div class="bg-white shadow-md rounded-2xl p-10 border border-gray-100">
+        <!-- 헤더: 타이틀 + 마지막 업데이트 + 사용자 분포 차트 -->
+        <div class="flex flex-col xl:flex-row items-start justify-between gap-6 mb-10">
+            <!-- 왼쪽: 타이틀/설명 -->
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">관리자 대시보드</h2>
+                <p class="text-sm text-gray-500">
+                    전체 회원 현황, 축제/리뷰 통계, 트래픽 요약을 한 눈에 확인할 수 있습니다.
+                </p>
 
-    <!-- 1. 핵심 통계 카드 4개 -->
+                <!-- 마지막 업데이트 정보 -->
+                <div class="mt-4 flex items-center gap-2 text-sm text-gray-400">
+                    <span>마지막 업데이트 :</span>
+                    <span class="font-medium text-gray-500"
+                          th:text="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm')}">
+                    2025-11-24 22:34
+                </span>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 사용자 나이/성별/선호태그 추이 카드 -->
+            <div
+                    class="w-full xl:w-[420px] bg-gray-50 border border-gray-100 rounded-2xl p-4 shadow-sm">
+                <h3 class="text-sm font-semibold text-gray-800 mb-1">
+                    사용자 분포 요약
+                </h3>
+                <p class="text-xs text-gray-400 mb-3">
+                    나이 / 성별 / 선호 태그 기준 분포입니다.
+                </p>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- 나이 분포 -->
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs font-medium text-gray-600 mb-1">나이대</span>
+                        <canvas id="ageChart" class="w-full h-20"></canvas>
+                    </div>
+
+                    <!-- 성별 분포 -->
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs font-medium text-gray-600 mb-1">성별</span>
+                        <canvas id="genderChart" class="w-full h-20"></canvas>
+                    </div>
+
+                    <!-- 선호 태그 -->
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs font-medium text-gray-600 mb-1">선호 태그</span>
+                        <canvas id="tagChart" class="w-full h-20"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. 핵심 통계 카드 4개 -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <!-- 전체 회원 수 -->
         <div class="card flex flex-col justify-between">
@@ -259,19 +295,19 @@
                     <div class="stat-label mt-1">
                         평균 평점
                         <span class="font-semibold"
-                              th:text="${#numbers.formatDecimal(stats.avgReviewScore, 1, 1)}">4.5</span>점
+                              th:text="${#numbers.formatDecimal(stats.averageRating, 1, 1)}">4.5</span>점
                     </div>
                 </div>
                 <div class="text-right">
                     <div class="text-xs text-gray-500">
                         오늘 작성된 리뷰
                         <span class="font-semibold"
-                              th:text="${stats.todayReviews}">12</span>건
+                              th:text="${stats.todayReviewCount}">12</span>건
                     </div>
                     <div class="text-[0.7rem] text-gray-400 mt-1">
                         신고 처리 대기
                         <span class="text-red-500 font-semibold"
-                              th:text="${stats.pendingReviewReports}">3</span>건
+                              th:text="${stats.pendingReviewCount}">3</span>건
                     </div>
                 </div>
             </div>
@@ -614,4 +650,64 @@
 </div>
 
 </body>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script th:inline="javascript">
+
+    // 만약 AdminDashboardDto 에서 값 받아올 거라면 이런 식으로 바꾸면 됩니다.
+    const ageLabels = [[${stats.ageLabels}]];
+    const ageData   = [[${stats.ageCounts}]];
+    const genderLabels = [[${stats.genderLabels}]];
+    const genderData   = [[${stats.genderCounts}]];
+    const tagLabels = [[${stats.tagLabels}]];
+    const tagData   = [[${stats.tagCounts}]];
+
+    function createDoughnutChart(canvasId, labels, data) {
+        const el = document.getElementById(canvasId);
+        if (!el) return;
+
+        const ctx = el.getContext('2d');
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                return `${label}: ${value}명`;
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // 차트 생성
+    document.addEventListener('DOMContentLoaded', function () {
+        createDoughnutChart('ageChart', ageLabels, ageData);
+        createDoughnutChart('genderChart', genderLabels, genderData);
+        createDoughnutChart('tagChart', tagLabels, tagData);
+    });
+
+    /*]]>*/
+</script>
+</html>
+
 </html>
