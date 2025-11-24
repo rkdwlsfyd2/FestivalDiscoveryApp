@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class ReviewSummaryDto {
 
     private Long reviewId;
+    private String userId;
     private Long festivalNo;
     private String festivalTitle;
     private String content;

@@ -2,6 +2,7 @@ package com.example.ex02.admin.service;
 
 import com.example.ex02.admin.dto.*;
 import com.example.ex02.festival.entity.FestivalEntity;
+import com.example.ex02.festival.entity.ReviewEntity;
 import com.example.ex02.festival.repository.FavoriteRepository;
 import com.example.ex02.festival.repository.FestivalRepository;
 import com.example.ex02.festival.repository.ReviewRepository;
@@ -193,4 +194,32 @@ public class AdminService {
     public void deleteReviewByAdmin(Long reviewId) {
         reviewRepository.deleteById(reviewId);
     }
+
+    public Page<ReviewSummaryDto> getReviewPage(String keyword,
+                                                String sort,
+                                                Pageable pageable) {
+
+        Pageable sortedPageable = pageable;
+
+        if ("ratingAsc".equals(sort)) {
+            sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by("rating").ascending());
+        }
+        else if ("ratingDesc".equals(sort)) {
+            sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by("rating").descending());
+        }
+
+        Page<ReviewEntity> page = reviewRepository.searchReviews(keyword, sortedPageable);
+
+        return page.map(r -> ReviewSummaryDto.builder()
+                .reviewId(r.getReviewNo())
+                .userId(r.getMember().getUserId())
+                .festivalTitle(r.getFestival().getTitle())
+                .content(r.getContent())
+                .rating(r.getRating())
+                .createdAt(r.getCreatedAt())
+                .build());
+    }
+
 }

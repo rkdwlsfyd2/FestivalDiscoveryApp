@@ -28,4 +28,16 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
             "join fetch r.festival f " +
             "where r.member.userNo = :userNo")
     List<ReviewEntity> findByMemberUserNoWithFestival(@Param("userNo") Long userNo);
+
+    /*  관리자 리뷰 목록 전용 검색 + 페이징 + 정렬  */
+    @Query("""
+        SELECT r FROM ReviewEntity r
+        JOIN r.member m
+        JOIN r.festival f
+        WHERE (:keyword IS NULL OR :keyword = '' 
+               OR m.userId LIKE %:keyword% 
+               OR r.content LIKE %:keyword%)
+        """)
+    Page<ReviewEntity> searchReviews(@Param("keyword") String keyword,
+                                     Pageable pageable);
 }

@@ -1,6 +1,7 @@
 package com.example.ex02.admin.controller;
 
 import com.example.ex02.admin.dto.MemberDetailDto;
+import com.example.ex02.admin.dto.ReviewSummaryDto;
 import com.example.ex02.admin.service.AdminService;
 import com.example.ex02.member.dto.MemberDto;
 import com.example.ex02.member.entity.MemberEntity;
@@ -69,7 +70,7 @@ public class AdminController {
     // 리뷰 삭제 (관리자)
     @PostMapping("/reviews/{reviewId}/delete")
     public String deleteReview(@PathVariable Long reviewId,
-                               @RequestParam Long userNo,
+                               @RequestParam(required = false) Long userNo,
                                HttpSession session) {
 
         MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
@@ -78,7 +79,14 @@ public class AdminController {
         }
 
         adminService.deleteReviewByAdmin(reviewId);
-        return "redirect:/admin/members/" + userNo;
+
+        // 회원 상세 페이지에서 삭제 → 그 페이지로 돌아감
+        if (userNo != null) {
+            return "redirect:/admin/members/" + userNo;
+        }
+
+        // 리뷰 관리 페이지에서 삭제 → 리뷰 목록으로
+        return "redirect:/admin/reviews";
     }
 
     // 활성/비활성 변경
@@ -157,22 +165,23 @@ public class AdminController {
     // 리뷰 관리
     @GetMapping("/reviews")
     public String reviewList(@RequestParam(required = false) String keyword,
-                             @RequestParam(required = false) String role,
-                             @RequestParam(required = false) String isActive,
-                             @PageableDefault(size = 20) Pageable pageable,
+                             @RequestParam(required = false) String sort,
+                             @PageableDefault(size = 10) Pageable pageable,
                              Model model) {
 
-        Page<MemberDto> members =
-                adminService.getMemberPage(keyword, role, isActive, pageable);
+        Page<ReviewSummaryDto> reviews =
+                adminService.getReviewPage(keyword, sort, pageable);
 
-        model.addAttribute("members", members);
+        model.addAttribute("reviews", reviews.getContent());
+        model.addAttribute("page", reviews.getNumber());
+        model.addAttribute("totalPages", reviews.getTotalPages());
+
         model.addAttribute("keyword", keyword);
-        model.addAttribute("role", role);
-        model.addAttribute("isActive", isActive);
+        model.addAttribute("sort", sort);
 
-        // 사이드바 active 상태
         model.addAttribute("activeMenu", "reviews");
 
         return "admin/review-list";
     }
+
 }

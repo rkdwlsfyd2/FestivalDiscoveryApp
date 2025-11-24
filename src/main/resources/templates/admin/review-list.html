@@ -5,30 +5,37 @@
       layout:decorate="~{common/mylayout}">
 
 <head>
-    <title>회원 관리</title>
+    <title>리뷰 관리</title>
 
     <th:block layout:fragment="css">
         <style>
-            .member-row {
+            .review-header, .review-row {
                 display: grid;
-                grid-template-columns: 80px 120px 120px 220px 160px 80px 120px 100px 140px;
+                grid-template-columns: 80px 120px 150px 1fr 80px 160px 120px;
                 padding: 12px 0;
-                border-bottom: 1px solid #e5e7eb; /* 회색 라인 */
                 align-items: center;
             }
 
-            .member-row:hover {
-                background-color: #f8fafc; /* hover 시 은은한 강조 */
-            }
-            .member-header {
-                display: grid;
-                grid-template-columns: 80px 120px 120px 220px 160px 80px 120px 100px 140px;
-                padding: 14px 0;
+            .review-header {
                 font-weight: 700;
                 border-bottom: 2px solid #d1d5db;
+                padding: 14px 0;
             }
 
+            .review-row {
+                border-bottom: 1px solid #e5e7eb;
+            }
 
+            .review-row:hover {
+                background-color: #f8fafc;
+            }
+
+            .ellipsis {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 450px;
+            }
         </style>
     </th:block>
 </head>
@@ -37,7 +44,7 @@
 
     <div class="flex max-w-6xl mx-auto py-10">
 
-        <!-- 사이드바 (대시보드와 동일하게) -->
+        <!-- 관리자 사이드바 -->
         <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8 whitespace-nowrap">
             <h2 class="text-xl font-bold mb-6">관리자 페이지</h2>
 
@@ -61,8 +68,7 @@
                 </a>
 
                 <a href="/admin/reviews"
-                   class="px-3 py-2 rounded-md"
-                   th:classappend="${activeMenu} == 'reviews' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                   class="px-3 py-2 rounded-md bg-gray-200 font-semibold">
                     리뷰 관리
                 </a>
             </nav>
@@ -70,129 +76,89 @@
 
         <!-- 본문 -->
         <main class="flex-1">
-            <div class="bg-white shadow-md rounded-xl p-6 w-full max-w-[1400px] mx-auto">
-                <h2 class="text-2xl font-bold mb-6">회원 관리</h2>
 
-                <!-- 검색 / 필터 영역 -->
-                <form th:action="@{/admin/members}" method="get"
+            <div class="bg-white shadow-md rounded-xl p-6 w-full max-w-[1300px] mx-auto">
+                <h2 class="text-2xl font-bold mb-6">리뷰 관리</h2>
+
+                <!-- 검색 및 필터 -->
+                <form th:action="@{/admin/reviews}" method="get"
                       class="flex flex-wrap gap-3 items-center mb-6 text-sm">
 
                     <input type="text" name="keyword"
                            class="border rounded-md px-3 py-2 w-48"
-                           placeholder="아이디 / 이름 / 이메일"
+                           placeholder="아이디 / 리뷰 내용"
                            th:value="${keyword}">
 
-                    <select name="role"
+                    <select name="sort"
                             class="border rounded-md px-3 py-2">
-                        <option value=""
-                                th:selected="${role} == null or role == ''">전체</option>
-                        <option th:value="'user'"
-                                th:selected="${role} == 'user'">일반 사용자</option>
-                        <option th:value="'admin'"
-                                th:selected="${role} == 'admin'">관리자</option>
-                    </select>
-
-                    <select name="isActive"
-                            class="border rounded-md px-3 py-2">
-                        <option value=""
-                                th:selected="${isActive} == null or isActive == ''">전체</option>
-                        <option th:value="'Y'"
-                                th:selected="${isActive} == 'Y'">활성</option>
-                        <option th:value="'N'"
-                                th:selected="${isActive} == 'N'">비활성</option>
+                        <option value="" th:selected="${sort == null}">정렬 없음</option>
+                        <option value="ratingAsc" th:selected="${sort == 'ratingAsc'}">평점 오름차순</option>
+                        <option value="ratingDesc" th:selected="${sort == 'ratingDesc'}">평점 내림차순</option>
                     </select>
 
                     <button type="submit"
-                            class="px-4 py-2 bg-main text-white rounded-md">
-                        검색
-                    </button>
+                            class="px-4 py-2 bg-main text-white rounded-md">검색</button>
                 </form>
 
-                <!-- 회원 리스트 테이블 -->
-                <div class="member-header overflow-x-auto">
-                    <table class="w-full text-sm border-t">
-                        <thead class="bg-gray-50">
-                        <tr class="border-b text-gray-600 whitespace-nowrap">
-                            <th class="py-2 px-2 text-left">번호</th>
-                            <th class="py-2 px-2 text-left">아이디</th>
-                            <th class="py-2 px-2 text-left">이름</th>
-                            <th class="py-2 px-2 text-left">이메일</th>
-                            <th class="py-2 px-2 text-left">전화번호</th>
-                            <th class="py-2 px-2 text-left">성별</th>
-                            <th class="py-2 px-2 text-left">가입일</th>
-                            <th class="py-2 px-2 text-left">권한</th>
-                            <th class="py-2 px-2 text-left">상태</th>
-                            <th class="py-2 px-2 text-center">관리</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="m : ${members}" class="border-b">
-                            <td class="px-4 py-3 text-center">
-                                <a th:href="@{|/admin/members/${m.userNo}|}"
-                                   class="text-main font-semibold hover:underline">
-                                    <span th:text="${m.userNo}">1</span>
-                                </a>
-                            </td>
-                            <td class="py-2 px-2 whitespace-nowrap" th:text="${m.userId}">user01</td>
-                            <td class="py-2 px-2 whitespace-nowrap" th:text="${m.name}">홍길동</td>
-                            <td class="py-2 px-2 whitespace-nowrap" th:text="${m.email}">test@example.com</td>
-                            <td class="py-2 px-2 whitespace-nowrap" th:text="${m.formattedPhone}">010-0000-0000</td>
-                            <td class="py-2 px-2 whitespace-nowrap text-center" th:text="${m.gender}">M</td>
-                            <td class="py-2 px-2 whitespace-nowrap"
-                                th:text="${m.joinDate != null} ? ${#temporals.format(m.joinDate, 'yyyy-MM-dd')} : '-'">
-                                2025-11-01
-                            </td>
-                            <td class="py-2 px-2 whitespace-nowrap">
-                                <span th:text="${m.role}">user</span>
-                            </td>
-                            <td class="py-2 px-2 whitespace-nowrap">
-                                <span th:text="${m.isActive == 'Y'} ? '활성' : '비활성'">활성</span>
-                            </td>
-                            <td class="py-2 px-2 text-center whitespace-nowrap">
-
-                                <!-- 권한 변경 -->
-                                <form th:action="@{'/admin/members/' + ${m.userNo} + '/role'}"
-                                      method="post" class="inline-block">
-                                    <input type="hidden" name="keyword" th:value="${keyword}">
-                                    <input type="hidden" name="filterRole" th:value="${role}">
-                                    <input type="hidden" name="isActive" th:value="${isActive}">
-                                    <input type="hidden" name="role"
-                                           th:value="${m.role == 'admin'} ? 'user' : 'admin'">
-                                    <button type="submit"
-                                            class="px-2 py-1 border rounded-md text-xs mr-1"
-                                            th:classappend="${m.role == 'admin'} ? '' : 'text-blue-600'">
-                                        <span th:text="${m.role == 'admin'} ? 'toUser' : 'toAdmin'">toAdmin</span>
-                                    </button>
-                                </form>
-
-                                <!-- 활성/비활성 토글 -->
-                                <form th:action="@{'/admin/members/' + ${m.userNo} + '/active'}"
-                                      method="post" class="inline-block">
-                                    <input type="hidden" name="keyword" th:value="${keyword}">
-                                    <input type="hidden" name="role" th:value="${role}">
-                                    <input type="hidden" name="filterActive" th:value="${isActive}">
-                                    <input type="hidden" name="isActive"
-                                           th:value="${m.isActive == 'Y'} ? 'N' : 'Y'">
-                                    <button type="submit"
-                                            class="px-2 py-1 border rounded-md text-xs mr-1"
-                                            th:classappend="${m.isActive == 'Y'} ? ' text-red-600' : ' text-green-600'">
-                                        <span th:text="${m.isActive == 'Y'} ? '비활성' : '활성화'">비활성</span>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-
-                        <tr th:if="${#lists.isEmpty(members)}">
-                            <td colspan="10" class="py-6 text-center text-gray-500">
-                                조회된 회원이 없습니다.
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                <!-- 리스트 헤더 -->
+                <div class="review-header text-gray-700 text-sm">
+                    <div>번호</div>
+                    <div>유저 ID</div>
+                    <div>축제명</div>
+                    <div>리뷰 내용</div>
+                    <div>평점</div>
+                    <div>작성일</div>
+                    <div class="text-center">관리</div>
                 </div>
+
+                <!-- 리뷰 리스트 -->
+                <div th:each="r : ${reviews}" class="review-row text-sm">
+
+                    <div th:text="${r.reviewId}"></div>
+                    <div th:text="${r.userId}"></div>
+                    <div th:text="${r.festivalTitle}"></div>
+
+                    <div class="ellipsis" th:text="${r.content}"></div>
+
+                    <div th:text="${r.rating}"></div>
+
+                    <div th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd')}"></div>
+
+                    <div class="text-center">
+                        <form th:action="@{'/admin/reviews/' + ${r.reviewId} + '/delete'}"
+                              method="post" onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+                            <button class="px-2 py-1 border rounded text-xs text-red-600">삭제</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 조회된 리뷰 없는 경우 -->
+                <div th:if="${#lists.isEmpty(reviews)}"
+                     class="py-6 text-center text-gray-500">
+                    조회된 리뷰가 없습니다.
+                </div>
+
+                <!-- 페이징 -->
+                <div class="mt-6 flex justify-center space-x-2">
+
+                    <a th:if="${(page ?: 0) > 0}"
+                       th:href="@{/admin/reviews(page=${(page ?: 0)-1}, sort=${sort}, keyword=${keyword})}"
+                       class="px-3 py-1 border rounded-md">이전</a>
+
+                    <span class="px-4 py-2 font-semibold bg-gray-100 rounded-md">
+                        [[${(page ?: 0)+1}]] / [[${totalPages ?: 1}]]
+                    </span>
+
+                    <a th:if="${(page ?: 0)+1 < (totalPages ?: 1)}"
+                       th:href="@{/admin/reviews(page=${(page ?: 0)+1}, sort=${sort}, keyword=${keyword})}"
+                       class="px-3 py-1 border rounded-md">다음</a>
+
+                </div>
+
 
             </div>
         </main>
     </div>
 </div>
+
 </html>
