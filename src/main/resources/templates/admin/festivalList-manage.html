@@ -25,27 +25,11 @@
                     <div th:each="festival : ${festivalList.content}"
                          class="festival-card bg-white rounded-lg p-4 cursor-pointer border-2 border-sub-red"
                          th:data-festival-no="${festival.festivalNo}"
-                         th:data-lat="${festival.mapy}"
-                         th:data-lng="${festival.mapx}"
                          th:data-title="${festival.title}"
                          th:data-addr="${festival.addr}"
                          th:data-start="${festival.eventStartDate != null ? #temporals.format(festival.eventStartDate, 'yyyy.MM.dd') : ''}"
                          th:data-end="${festival.eventEndDate != null ? #temporals.format(festival.eventEndDate, 'yyyy.MM.dd') : ''}"
-                         th:onmouseover="|window.fdHighlightMarkerByFestivalNo('${festival.festivalNo}')|"
-                         th:onmouseout="|window.fdUnhighlightMarkerByFestivalNo('${festival.festivalNo}')|"
-                         th:onclick="|window.fdOpenOverlayByFestivalNo('${festival.festivalNo}')|">
-
-                        <!-- 2-2-1. 축제 이미지 -->
-                        <div th:if="${festival.images != null and !#lists.isEmpty(festival.images)}">
-                            <img th:src="${festival.images[0].imageUrl}"
-                                 class="w-full h-36 object-cover rounded-lg mb-3" />
-                        </div>
-
-                        <!-- 이미지 없을 때 -->
-                        <div th:if="${festival.images == null or #lists.isEmpty(festival.images)}"
-                             class="w-full h-36 bg-gray-300 rounded-lg mb-3 flex items-center justify-center">
-                            <span class="text-xs text-gray-600">이미지 없음</span>
-                        </div>
+                         th:onclick="'location.href=\'/festivals/detail?festivalNo=' + ${festival.festivalNo} + '\';'">
 
                         <!-- 2-2-2. 제목 + AI 추천 + 태그 아이콘 + 즐겨찾기 한 줄 -->
                         <div class="mb-2 flex items-center gap-2 flex-wrap">
@@ -78,36 +62,6 @@
                                     </span>
                                 </span>
                             </div>
-
-                            <!-- 즐겨찾기 버튼 -->
-                            <form method="post"
-                                  th:action="@{/favorite/toggle}"
-                                  th:id="'fav-form-' + ${festival.festivalNo}"
-                                  class="fd-fav-form">
-
-                                <input type="hidden" name="festivalNo"
-                                       th:value="${festival.festivalNo}">
-
-                                <!-- 로그인 후 돌아올 redirectUrl -->
-                                <input type="hidden" name="redirectUrl"
-                                       th:value="@{/festivals/festivalMap(page=${festivalList.number},
-                                                                          size=${festivalList.size},
-                                                                          keyword=${keyword},
-                                                                          ongoingOnly=${ongoingOnly},
-                                                                          region=${region},
-                                                                          tag=${tag})}">
-
-                                <button type="submit"
-                                        onclick="event.stopPropagation();"
-                                        class="text-[12px] px-3 py-1 rounded-lg border font-semibold"
-                                        th:classappend="${favoriteFestivalNos != null and #sets.contains(favoriteFestivalNos, festival.festivalNo)}
-                                            ? ' bg-yellow-300 border-yellow-400 text-gray-900'
-                                            : ' bg-white border-gray-300 text-gray-700'"
-                                        th:text="${favoriteFestivalNos != null and #sets.contains(favoriteFestivalNos, festival.festivalNo)}
-                                            ? '★'
-                                            : '☆'">
-                                </button>
-                            </form>
                         </div>
 
                         <!-- 2-2-3. 주소 -->

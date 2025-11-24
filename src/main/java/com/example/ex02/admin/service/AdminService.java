@@ -1,9 +1,12 @@
 package com.example.ex02.admin.service;
 
 import com.example.ex02.admin.dto.*;
+import com.example.ex02.festival.dto.FestivalUpdateDto;
+import com.example.ex02.festival.entity.FestivalDetailEntity;
 import com.example.ex02.festival.entity.FestivalEntity;
 import com.example.ex02.festival.entity.ReviewEntity;
 import com.example.ex02.festival.repository.FavoriteRepository;
+import com.example.ex02.festival.repository.FestivalDetailRepository;
 import com.example.ex02.festival.repository.FestivalRepository;
 import com.example.ex02.festival.repository.ReviewRepository;
 import com.example.ex02.member.dto.MemberDto;
@@ -22,12 +25,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdminService {
 
     private final MemberRepository memberRepository;
     private final FestivalRepository festivalRepository;
     private final ReviewRepository reviewRepository;
     private final FavoriteRepository favoriteRepository;
+    private final FestivalDetailRepository festivalDetailRepository;
 
     public AdminDashboardDto getDashboard() {
 
@@ -220,6 +225,36 @@ public class AdminService {
                 .rating(r.getRating())
                 .createdAt(r.getCreatedAt())
                 .build());
+    }
+
+    public void updateFestival(FestivalUpdateDto dto) {
+
+        // 1) 메인 엔티티 조회
+        FestivalEntity festival = festivalRepository.findById(dto.getFestivalNo())
+                .orElseThrow(() -> new IllegalArgumentException("해당 축제를 찾을 수 없습니다."));
+
+        // 2) 디테일 엔티티 조회
+        FestivalDetailEntity detail = festivalDetailRepository.findByFestivalNo(dto.getFestivalNo());
+
+        if (detail == null) {
+            throw new IllegalArgumentException("해당 축제의 상세 정보가 없습니다.");
+        }
+
+        // 3) FestivalEntity 수정
+        festival.setEventStartDate(dto.getEventStartDate().atStartOfDay());
+        festival.setEventEndDate(dto.getEventEndDate().atStartOfDay());
+        festival.setAddr(dto.getAddr());
+
+        // 4) FestivalDetailEntity 수정
+        detail.setFestivalFee(dto.getFestivalFee());
+        detail.setHost(dto.getHost());
+        detail.setHostTel(dto.getHostTel());
+        detail.setHomepage(dto.getHomepage());
+        detail.setInfotext1(dto.getInfotext1());
+        detail.setInfotext2(dto.getInfotext2());
+
+        // 5) JPA @Transactional → 자동 dirty checking
+        // 별도의 save() 필요 없음
     }
 
 }

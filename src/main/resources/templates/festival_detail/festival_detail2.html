@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  lang="ko"
+	  layout:decorate="common/mylayout"> <!-- 506690, 2557842, 3379778 -->
+	<head>
+		<meta charset="UTF-8">
+		<title>축제 상세 보기</title>
+
+		<!-- 이 페이지 전용 최소 CSS -->
+		<style>
+			/* 페이지 전체 폭/여백 */
+			.page-wrap {
+				max-width: 960px;
+				margin: 24px auto 80px;
+				padding: 0 16px;
+			}
+
+			/* 카드 컴포넌트: 배경·라운드·그림자 */
+			.card {
+				background: #ffffff;
+				border-radius: 8px;
+				padding: 24px;
+				box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+				margin-bottom: 24px;
+			}
+
+			/* 상태/리뷰 요약 줄 */
+			.fd-badge-row {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				margin: 6px 0;
+				flex-wrap: wrap;
+			}
+
+			/* 상태 배지 공통 */
+			.fd-status-badge {
+				display: inline-flex;
+				align-items: center;
+				padding: 4px 10px;
+				border-radius: 999px;
+				font-size: 12px;
+				font-weight: 600;
+			}
+
+			/* 진행 중 / 종료 색상 (진행 예정은 bg-main 유틸 사용) */
+			.fd-status-badge--ongoing {
+				background: #22c55e;
+				color: #ffffff;
+			}
+
+			.fd-status-badge--finished {
+				background: #9ca3af;
+				color: #ffffff;
+			}
+
+			/* 날짜·주소 메타 정보 */
+			.fd-meta {
+				font-size: 13px;
+				color: #444444;
+				margin-top: 4px;
+			}
+
+			.fd-meta span {
+				display: inline-block;
+				margin-right: 12px;
+			}
+
+			/* 제목 옆 태그 칩: 모양만, 색은 bg-sub-blue / text-main 으로 처리 */
+            .fd-tag-chip {
+                display: inline-flex;
+                align-items: center;
+                font-size: 12px;
+                padding: 3px 8px;
+                border-radius: 999px;
+                margin-right: 4px;
+                background: #eff6ff;
+                color: #1f2933;
+            }
+
+			/* 상단 좌/우 레이아웃 */
+			.fd-top-layout {
+				display: flex;
+				align-items: flex-start;
+				gap: 24px;
+				margin-top: 12px;
+			}
+
+			.fd-top-left {
+				flex: 3;
+			}
+
+			.fd-top-right {
+				flex: 2;
+				border-left: 1px solid #f0f0f0;
+				padding-left: 16px;
+			}
+
+			/* 기본 정보 리스트 */
+            .fd-info-list {
+                list-style: none;
+                padding: 0;
+                margin: 8px 0 0;
+                font-size: 13px;
+            }
+
+            /* 한 줄 전체를 가로 정렬 */
+            .fd-info-list li {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 6px;
+            }
+
+            /* 왼쪽 라벨(기간/장소/주최/문의/홈페이지) */
+            .fd-info-list strong {
+                flex: 0 0 60px;
+                color: #555555;
+            }
+
+            /* 오른쪽 값(텍스트)만 폭 채우기 */
+            .fd-info-list span {
+                flex: 1;
+            }
+
+            /* 버튼은 내용 길이만큼만 나오도록 */
+            .fd-info-list a {
+                flex: 0 0 auto;
+                display: inline-block;
+                white-space: nowrap; /* 줄바꿈 방지(선택) */
+            }
+
+			/* 리뷰 카드 내부 */
+			.fd-review-item {
+				border-top: 1px solid #eeeeee;
+				padding-top: 10px;
+				margin-top: 10px;
+			}
+
+			.fd-review-meta {
+				font-size: 12px;
+				color: #777777;
+				margin-bottom: 4px;
+				display: inline-block;
+			}
+
+			.fd-review-text {
+				margin-top: 4px;
+			}
+
+			/* 별점 표시 ===================== */
+			/* 공통: 별 컨테이너 */
+			.star-rating {
+				display: inline-flex;
+				line-height: 1;
+			}
+
+			/* 공통: 별 한 개 */
+			.star {
+				position: relative;
+				display: inline-block;
+				width: 1em;
+				height: 1em;
+				margin-right: 1px;
+			}
+
+			/* 기본: 빈 별(회색) */
+			.star::before {
+				content: '★';
+				position: absolute;
+				left: 0;
+				top: 0;
+				color: #e5e7eb;
+			}
+
+			/* 꽉 찬 별 */
+			.star-full::before {
+				color: #fbbf24;
+			}
+
+			/* 반 별: 회색 + 노란색 절반 */
+			.star-half::before {
+				color: #e5e7eb;
+			}
+			.star-half::after {
+				content: '★';
+				position: absolute;
+				left: 0;
+				top: 0;
+				color: #fbbf24;
+				width: 70%;
+				overflow: hidden;
+				clip-path: inset(0 30% 0 0);
+			}
+
+			/* 목록(이미 작성된 리뷰)에서 쓰는 별 크기 */
+			.star-rating--list {
+				font-size: 18px;
+			}
+
+			/* 리뷰 작성 폼에서 쓰는 별 크기 (좀 더 크게) */
+			.star-rating--input {
+				font-size: 22px;
+			}
+
+			/* 리뷰 상단(이름 · 별점 · 날짜) 한 줄 정렬 */
+			.fd-review-header {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+			}
+
+			/* 메타 텍스트는 살짝 작게 */
+			.fd-review-header .fd-review-meta {
+				margin-bottom: 0;
+				font-size: 13px;
+				color: #777777;
+			}
+
+
+			/* 점수 텍스트 */
+			.rating-value {
+				font-size: 14px;
+				color: #555555;
+			}
+
+
+			/* 축제 소개/내용 2단 레이아웃 */
+			.fd-intro-layout {
+				display: flex;
+				align-items: flex-start;
+				gap: 24px;
+			}
+
+			/* 각 컬럼 */
+			.fd-intro-col {
+				flex: 1;
+			}
+
+			/* 화면이 좁으면 위/아래로 쌓기 */
+			@media (max-width: 768px) {
+				.fd-intro-layout {
+					flex-direction: column;
+				}
+			}
+
+			#ratingBox .star {
+				cursor: pointer;
+			}
+
+
+			/* 목록용 별은 텍스트랑 baseline 살짝 맞춰주기 */
+			.fd-review-header .star-rating {
+				font-size: 18px;      /* 이미 있으니 중복이면 하나로 합쳐도 됨 */
+				line-height: 1;
+				position: relative;
+				top: 1px;             /* 1~2px 사이에서 취향껏 조절 */
+			}
+
+			.fd-review-edit-btn {
+				margin-left: auto;              /* 오른쪽 끝으로 밀기 */
+				padding: 2px 8px;
+				font-size: 12px;
+				border: 1px solid #d1d5db;
+				border-radius: 4px;
+				background: #ffffff;
+				color: #4A80FA;
+				cursor: pointer;
+			}
+
+			.fd-review-edit-btn:hover {
+				background: #eff6ff;
+			}
+
+            /* 태그 아이콘 리스트 */
+            .fd-tag-icon-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            /* 주소 클릭 안내 토스트 */
+            .addr-copy-toast {
+                position: fixed;
+                left: 50%;
+                bottom: 24px;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: #ffffff;
+                padding: 8px 14px;
+                border-radius: 999px;
+                font-size: 13px;
+                z-index: 99999;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+            }
+
+            .fd-tag-chip:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+            }
+
+            .addr-copy-toast--show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        </style>
+
+		<script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const container = document.getElementById('imageSliderContainer');
+                const prevBtn = document.getElementById('prevImageBtn');
+                const nextBtn = document.getElementById('nextImageBtn');
+                const info = document.getElementById('imageSliderInfo');
+
+                const modal = document.getElementById('imageModal');
+                const modalImg = document.getElementById('modalImage');
+                const modalClose = document.getElementById('modalCloseBtn');
+                const modalPrev = document.getElementById('modalPrevBtn');
+                const modalNext = document.getElementById('modalNextBtn');
+
+                /* ===== 이미지 슬라이더 & 모달 ===== */
+                if (container) {
+                    const images = container.querySelectorAll('img');
+                    if (images && images.length > 0) {
+
+                        let currentIndex = 0;
+
+                        function showImage(index) {
+                            for (let i = 0; i < images.length; i++) {
+                                images[i].style.display = (i === index) ? '' : 'none';
+                            }
+                            if (info) {
+                                info.textContent = (index + 1) + ' / ' + images.length;
+                            }
+                            if (modal && modal.style.display === 'flex') {
+                                modalImg.src = images[index].src;
+                            }
+                        }
+
+                        function openModal(index) {
+                            if (!modal) return;
+                            modal.style.display = 'flex';
+                            modalImg.src = images[index].src;
+                        }
+
+                        function closeModal() {
+                            if (!modal) return;
+                            modal.style.display = 'none';
+                        }
+
+                        showImage(currentIndex);
+
+                        if (prevBtn) {
+                            prevBtn.addEventListener('click', function () {
+                                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
+
+                        if (nextBtn) {
+                            nextBtn.addEventListener('click', function () {
+                                currentIndex = (currentIndex + 1) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
+
+                        if (container) {
+                            container.addEventListener('click', function () {
+                                openModal(currentIndex);
+                            });
+                        }
+
+                        if (modalClose) {
+                            modalClose.addEventListener('click', function () {
+                                closeModal();
+                            });
+                        }
+
+                        if (modal) {
+                            modal.addEventListener('click', function (e) {
+                                if (e.target === modal) {
+                                    closeModal();
+                                }
+                            });
+                        }
+
+                        if (modalPrev) {
+                            modalPrev.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
+
+                        if (modalNext) {
+                            modalNext.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                currentIndex = (currentIndex + 1) % images.length;
+                                showImage(currentIndex);
+                            });
+                        }
+                    }
+                }
+
+				/* ===== 리뷰 별점 입력 (hover + 0.5 단위) ===== */
+				const ratingBox       = document.getElementById('ratingBox');       // 별 5개 컨테이너
+				const ratingInput     = document.getElementById('ratingInput');     // hidden input
+				const ratingValueText = document.getElementById('ratingValueText'); // "4.5점" 표시용
+
+                if (ratingBox && ratingInput) {
+                    const stars = ratingBox.querySelectorAll('.star');
+                    let currentRating = parseFloat(ratingInput.value || '0') || 0;
+
+                    function paintStars(rating) {
+                        stars.forEach(star => {
+                            const i = Number(star.getAttribute('data-index')); // 1~5
+                            star.classList.remove('star-full', 'star-half', 'star-empty');
+
+                            if (rating >= i) {
+                                star.classList.add('star-full');
+                            } else if (rating >= i - 0.5) {
+                                star.classList.add('star-half');
+                            } else {
+                                star.classList.add('star-empty');
+                            }
+                        });
+
+                        if (ratingValueText) {
+                            if (rating <= 0) {
+                                ratingValueText.textContent = '';
+                                return;
+                            }
+
+                            let msg = '';
+                            if (rating >= 4.5)      msg = '아주 좋아요 👍';
+                            else if (rating >= 3.5) msg = '좋아요 🙂';
+                            else if (rating >= 2.5) msg = '보통이에요 😐';
+                            else                    msg = '조금 아쉬워요 😢';
+
+                            ratingValueText.textContent = `${msg} (${rating.toFixed(1)}점)`;
+                        }
+                    }
+
+                    function calcRatingFromEvent(star, event) {
+                        const index = Number(star.getAttribute('data-index'));
+                        const rect  = star.getBoundingClientRect();
+                        const x     = event.clientX - rect.left;
+                        const half  = rect.width / 2;
+
+                        return (x <= half) ? (index - 0.5) : index;
+                    }
+
+                    // 초기 표시
+                    paintStars(currentRating);
+
+                    stars.forEach(star => {
+                        star.addEventListener('mousemove', e => {
+                            const hoverRating = calcRatingFromEvent(star, e);
+                            paintStars(hoverRating);
+                        });
+
+                        star.addEventListener('click', e => {
+                            const newRating = calcRatingFromEvent(star, e);
+                            currentRating   = newRating;
+                            ratingInput.value = newRating;
+                            paintStars(newRating);
+                        });
+                    });
+
+                    ratingBox.addEventListener('mouseleave', () => {
+                        paintStars(currentRating);
+                    });
+                }
+
+
+
+
+                // ===== 축제 내용 줄바꿈 처리 (1. 2. 3. …) =====
+				const contentEl = document.getElementById('festivalContent');
+				if (contentEl) {
+					const raw = contentEl.textContent || '';
+
+					// " 2.", " 3.", " 4.", " 5." 앞에 <br>
+					const formatted = raw.replace(/\s([2-9]\.\s)/g, '<br>$1');
+
+					// HTML로 넣어서 줄바꿈 반영
+					contentEl.innerHTML = formatted;
+				}
+
+				// ===== 리뷰 페이징 AJAX 처리 =====
+				const reviewListWrapper = document.getElementById('reviewListWrapper');
+
+				if (reviewListWrapper) {
+					// 이벤트 위임(event delegation)
+					reviewListWrapper.addEventListener('click', function (e) {
+						const link = e.target.closest('.review-page-link');
+						if (!link) return;  // 페이징 링크가 아니면 무시
+
+						e.preventDefault();
+
+						let url = link.getAttribute('href');
+						if (!url) return;
+
+						// ajax=1 파라미터 추가 (이미 있으면 중복 추가 방지)
+						if (url.indexOf('ajax=1') === -1) {
+							url += (url.indexOf('?') === -1 ? '?ajax=1' : '&ajax=1');
+						}
+
+						fetch(url, {
+							method: 'GET',
+							headers: {
+								'X-Requested-With': 'XMLHttpRequest'
+							}
+						})
+								.then(function (res) {
+									if (!res.ok) {
+										throw new Error('HTTP ' + res.status);
+									}
+									return res.text();
+								})
+								.then(function (html) {
+									// 프래그먼트 HTML로 리뷰 영역 갈아끼우기
+									reviewListWrapper.innerHTML = html;
+
+									// 스크롤을 리뷰 카드 위로 살짝 올려주기 (선택)
+									const reviewSection = document.getElementById('reviewSection');
+									if (reviewSection) {
+										reviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+									}
+								})
+								.catch(function (err) {
+									console.error('리뷰 페이지 로딩 실패', err);
+								});
+					});
+				}
+
+                // ===== 주소 클릭 -> 복사 + 토스트 알림 =====
+                const addrEl   = document.getElementById('festivalAddrText');
+                const toastEl  = document.getElementById('addrCopyToast');
+                let toastTimer = null;
+
+                if (addrEl) {
+                    addrEl.addEventListener('click', function () {
+                        const text = (addrEl.textContent || '').trim();
+                        if (!text) return;
+
+                        // Clipboard API 우선 시도
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text)
+                                .then(function () {
+                                    showAddrToast();
+                                })
+                                .catch(function (err) {
+                                    console.error('Clipboard API 실패', err);
+                                    fallbackCopy(text);
+                                });
+                        } else {
+                            // 구형 브라우저 fallback
+                            fallbackCopy(text);
+                        }
+                    });
+                }
+
+                function fallbackCopy(text) {
+                    const temp = document.createElement('textarea');
+                    temp.value = text;
+                    temp.style.position = 'fixed';
+                    temp.style.top = '-9999px';
+                    document.body.appendChild(temp);
+                    temp.select();
+
+                    try {
+                        document.execCommand('copy');
+                        showAddrToast();
+                    } catch (e) {
+                        console.error('execCommand copy 실패', e);
+                        alert('복사에 실패했습니다. 직접 복사해 주세요.');
+                    } finally {
+                        document.body.removeChild(temp);
+                    }
+                }
+
+                function showAddrToast() {
+                    if (!toastEl) {
+                        alert('주소가 복사되었습니다.');
+                        return;
+                    }
+
+                    // 이미 떠 있는 상태면 타이머 리셋
+                    if (toastTimer) {
+                        clearTimeout(toastTimer);
+                        toastTimer = null;
+                    }
+
+                    toastEl.classList.add('addr-copy-toast--show');
+
+                    // 1.2초 뒤에 자연스럽게 사라지게
+                    toastTimer = setTimeout(function () {
+                        toastEl.classList.remove('addr-copy-toast--show');
+                    }, 1200);
+                }
+			});
+		</script>
+	</head>
+	<body>
+		<section layout:fragment="content" class="festival-detail-page">
+			<div class="page-wrap">
+
+				<!-- A. 상단: 제목 + 태그 + 상태 + (왼)이미지 / (오른쪽)기본정보 -->
+				<div class="card">
+					<header>
+						<!-- 1. 축제명, 태그, 즐겨찾기 -->
+						<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+							<!-- 축제명 -->
+							<div th:if="${isAdmin}">
+								<input type="text"
+									   name="title"
+									   th:value="${festival.title}"
+									   class="border px-3 py-1 rounded w-full"/>
+							</div>
+							<div th:if="${!isAdmin}">
+								<h1 class="text-h1 font-bold" th:text="${festival.title}"></h1>
+							</div>
+
+
+							<!-- 태그 -->
+							<div class="fd-tag-icon-list">
+								<span class="fd-tag-chip bg-sub-blue"
+									  th:each="tag : ${festival.tags}">
+									<span th:switch="${tag.tag}">
+
+										<!-- 🌿 자연 -->
+										<span th:case="'자연'">🌿 자연</span>
+
+										<!-- 🌙 야간 -->
+										<span th:case="'야간'">🌙 야간</span>
+
+										<!-- 🎨 체험 -->
+										<span th:case="'체험'">🎨 체험</span>
+
+										<!-- 🍜 먹거리 -->
+										<span th:case="'먹거리'">🍜 먹거리</span>
+
+										<!-- 🎭 문화 -->
+										<span th:case="'문화'">🎭 문화</span>
+
+										<!-- 👦 아동 -->
+										<span th:case="'아동'">👦 아동</span>
+
+										<!-- ❄️ 계절 -->
+										<span th:case="'계절'">❄️ 계절</span>
+									</span>
+								</span>
+							</div>
+
+							<!-- 즐겨찾기 토글 버튼 -->
+							<form method="post" th:action="@{/favorite/toggle}">
+								<input type="hidden" name="festivalNo" th:value="${festival.festivalNo}">
+
+								<!-- 현재 상세 페이지로 다시 돌아오도록 redirectUrl 설정 -->
+								<input type="hidden" name="redirectUrl" th:value="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage}|}">
+
+								<button type="submit" class="text-[12px] px-2 py-1 rounded-lg border" th:classappend="${isFavorite} ? ' bg-yellow-300 border-yellow-400' : ' border-gray-300'" th:text="${isFavorite} ? '★' : '☆'"></button>
+							</form>
+						</div>
+
+						<!-- 2. 진행 상태, 리뷰 요약 -->
+						<div class="fd-badge-row">
+							<!-- 진행 상태 -->
+							<th:block th:with="today=${T(java.time.LocalDate).now()},
+											   start=${festival.eventStartDate.toLocalDate()},
+											   end=${festival.eventEndDate.toLocalDate()}">
+								<!-- 진행 예정 -->
+								<span class="fd-status-badge bg-main text-foreground" th:if="${today.isBefore(start)}">
+									축제 진행 예정
+								</span>
+
+								<!-- 진행 중 -->
+								<span class="fd-status-badge fd-status-badge--ongoing" th:if="${!today.isBefore(start) and !today.isAfter(end)}">
+									축제 진행 중
+								</span>
+								<!-- 종료 -->
+								<span class="fd-status-badge fd-status-badge--finished" th:if="${today.isAfter(end)}">
+									축제 종료
+								</span>
+							</th:block>
+
+							<!-- 리뷰 요약 -->
+							<span class="text-subtext" th:text="|⭐ ${#numbers.formatDecimal(festival.avgRating, 1, 1)} / 5.0|"></span>
+							<span class="text-subtext text-gray-600" th:text="|리뷰 (${festival.reviews.size()}개)|"></span>
+						</div>
+					</header>
+
+					<div class="fd-top-layout">
+						<!-- 3. 이미지 슬라이더 -->
+						<div class="fd-top-left">
+							<section>
+								<div style="width: 100%;
+											max-width: 420px;
+											margin: 0 auto;
+											display: flex;
+											align-items: center;
+											justify-content: center;">
+									<button th:if="${festival.images != null and #lists.size(festival.images) > 1}" type="button" id="prevImageBtn" style="margin-right: 8px;">◀</button>
+
+									<div id="imageSliderContainer"
+										 style="width: 100%;
+												height: 260px;
+												display: flex;
+												align-items: center;
+												justify-content: center;
+												overflow: hidden;
+												cursor: pointer;"
+										 th:styleappend="${festival.images == null or #lists.isEmpty(festival.images)} ? 'background:#e5e7eb;' : 'background:#000000;'">
+										<th:block th:if="${festival.images == null or #lists.isEmpty(festival.images)}">
+											<span class="text-xs text-gray-600">이미지 없음</span>
+										</th:block>
+										<img th:if="${festival.images != null}"
+											 th:each="image : ${festival.images}"
+											 th:src="${image.imageUrl}"
+											 th:alt="${image.imageUrl}"
+											 style="max-width: 100%;
+													max-height: 100%;
+													width: auto;
+													height: auto;">
+									</div>
+
+									<button th:if="${festival.images != null and #lists.size(festival.images) > 1}" type="button" id="nextImageBtn" style="margin-left: 8px;">▶</button>
+								</div>
+
+								<p id="imageSliderInfo"
+								   class="text-subtext"
+								   style="text-align: center;
+										  margin-top: 6px;
+										  color: #666666;"></p>
+
+								<!-- 모달 -->
+								<div id="imageModal"
+									 style="display: none;
+											position: fixed;
+											left: 0;
+											top: 0;
+											width: 100%;
+											height: 100%;
+											background: rgba(0,0,0,0.7);
+											z-index: 9999;
+											align-items: center;
+											justify-content: center;">
+									<button id="modalCloseBtn"
+											type="button"
+											style="position: absolute;
+												   top: 16px;
+												   right: 24px;
+												   font-size: 24px;
+												   border: none;
+												   background: none;
+												   color: #ffffff;
+												   cursor: pointer;">
+										✕
+									</button>
+
+									<button id="modalPrevBtn"
+											type="button"
+											style="position: absolute;
+												   left: 16px;
+												   font-size: 32px;
+												   border: none;
+												   background: none;
+												   color: #ffffff;
+												   cursor: pointer;">
+										◀
+									</button>
+
+									<button id="modalNextBtn"
+											type="button"
+											style="position: absolute;
+												   right: 16px;
+												   font-size: 32px;
+												   border: none;
+												   background: none;
+												   color: #ffffff;
+												   cursor: pointer;">
+										▶
+									</button>
+
+									<img id="modalImage"
+										 src=""
+										 alt="원본 이미지"
+										 style="max-width: 90%;
+												max-height: 90%;
+												box-shadow: 0 0 12px rgba(0,0,0,0.5);
+												background: #ffffff;">
+								</div>
+							</section>
+						</div>
+
+						<!-- 일반 사용자용 : 기본 정보 표시 -->
+						<div class="fd-top-right" th:if="${!isAdmin}">
+							<section>
+								<h2 class="text-h3 font-semibold mb-2">기본 정보</h2>
+								<ul class="fd-info-list">
+									<li>
+										<strong>기간</strong>
+										<span th:text="|${festival.eventStartDate.toLocalDate()} ~ ${festival.eventEndDate.toLocalDate()}|"></span>
+									</li>
+									<li>
+										<strong>장소</strong>
+										<span th:text="${festival.addr}"></span>
+									</li>
+									<li>
+										<strong>요금</strong>
+										<span th:text="${festival.detail.festivalFee}"></span>
+									</li>
+									<li>
+										<strong>주최</strong>
+										<span th:text="${festival.detail.host}"></span>
+									</li>
+									<li>
+										<strong>문의</strong>
+										<span th:text="${festival.detail.hostTel}"></span>
+									</li>
+									<li th:if="${festival.detail.homepage != null}">
+										<strong>홈페이지</strong>
+										<a th:href="${festival.detail.homepage}"
+										   target="_blank"
+										   class="text-subtext text-foreground bg-main"
+										   style="display:inline-block;
+												  margin-left:4px;
+												  padding:6px 10px;
+												  border-radius:4px;
+												  text-decoration:none;">
+											홈페이지 바로가기
+										</a>
+									</li>
+								</ul>
+							</section>
+						</div>
+
+						<!-- 관리자용 : 수정 폼 -->
+						<form th:if="${isAdmin}"
+							  th:action="@{/admin/festivals/update}"
+							  method="post"
+							  id="festivalEditForm"
+							  style="margin-top:20px;">
+
+							<input type="hidden" name="festivalNo" th:value="${festival.festivalNo}" />
+
+							<div class="fd-top-right">
+								<section>
+									<h2 class="text-h3 font-semibold mb-2">기본 정보 (관리자 수정)</h2>
+									<ul class="fd-info-list">
+										<li>
+											<strong>기간</strong>
+											<div class="flex items-center gap-2">
+												<input type="date"
+													   name="eventStartDate"
+													   th:value="${festival.eventStartDate.toLocalDate()}"
+													   class="border rounded px-2 py-1" />
+												<span>~</span>
+												<input type="date"
+													   name="eventEndDate"
+													   th:value="${festival.eventEndDate.toLocalDate()}"
+													   class="border rounded px-2 py-1" />
+											</div>
+										</li>
+
+										<li>
+											<strong>장소</strong>
+											<input type="text"
+												   name="addr"
+												   th:value="${festival.addr}"
+												   class="border rounded px-2 py-1 w-full" />
+										</li>
+
+										<li>
+											<strong>요금</strong>
+											<input type="text"
+												   name="festivalFee"
+												   th:value="${festival.detail.festivalFee}"
+												   class="border rounded px-2 py-1 w-full" />
+										</li>
+
+										<li>
+											<strong>주최</strong>
+											<input type="text"
+												   name="host"
+												   th:value="${festival.detail.host}"
+												   class="border rounded px-2 py-1 w-full" />
+										</li>
+
+										<li>
+											<strong>문의</strong>
+											<input type="text"
+												   name="hostTel"
+												   th:value="${festival.detail.hostTel}"
+												   class="border rounded px-2 py-1 w-full" />
+										</li>
+
+										<li>
+											<strong>홈페이지</strong>
+											<input type="url"
+												   name="homepage"
+												   th:value="${festival.detail.homepage}"
+												   class="border rounded px-2 py-1 w-full" />
+										</li>
+									</ul>
+								</section>
+							</div>
+
+						</form>
+
+
+					</div>
+				</div>
+
+				<!-- B. 리뷰 -->
+				<div class="card" id="reviewSection">
+					<h2 class="text-h3 font-semibold mb-3">리뷰</h2>
+
+					<!-- AJAX -->
+					<div id="reviewListWrapper">
+						<!-- 프래그먼트 정의 -->
+						<th:block th:fragment="reviewListFragment">
+
+							<!-- 평균 평점/리뷰 개수 -->
+							<p class="text-body" style="margin-bottom: 8px;">
+								평균 평점
+								<strong th:text="|⭐ ${#numbers.formatDecimal(festival.avgRating, 1, 1)} / 5.0 · 리뷰 ${totalReviews}개|"></strong>
+							</p>
+
+							<!-- 페이징된 리뷰 목록 -->
+							<div class="fd-review-item" th:each="review : ${reviewPage.content}">
+								<div class="fd-review-header">
+									<span class="fd-review-meta" th:text="${review.member.name}"></span>
+									<span class="fd-review-meta">·</span>
+
+									<!-- 별점 -->
+									<span class="star-rating star-rating--list">
+										<span th:each="i : ${#numbers.sequence(1,5)}">
+											<span class="star star-full"
+												  th:if="${review.rating >= i}"></span>
+											<span class="star star-half"
+												  th:if="${review.rating < i and review.rating >= i - 0.5}"></span>
+											<span class="star star-empty"
+												  th:if="${review.rating < i - 0.5}"></span>
+										</span>
+									</span>
+
+									<span class="fd-review-meta">·</span>
+									<span class="fd-review-meta"
+										  th:if="${review.updatedAt == null}"
+										  th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+									<span class="fd-review-meta"
+										  th:if="${review.updatedAt != null}"
+										  th:text="${#temporals.format(review.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+
+									<!-- 수정 버튼 -->
+									<button type="button"
+											th:if="${loginUser != null and loginUser.userNo == review.member.userNo}"
+											th:onclick="|location.href='@{/mypage/reviews(reviewNo=${review.reviewNo})}'|"
+											class="fd-review-edit-btn">
+										수정하기
+									</button>
+								</div>
+								<div class="fd-review-text text-body" th:text="${review.content}"></div>
+							</div>
+
+							<!-- 리뷰 페이징 버튼 -->
+							<div class="pagination" th:if="${totalPages > 1}"
+								 style="margin-top:16px; text-align:center; font-size:13px;">
+
+								<!-- 이전 버튼 -->
+								<a th:if="${currentPage > 0}"
+								   th:href="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage - 1}|}"
+								   class="review-page-link"
+								   style="display:inline-block;
+										  margin:0 4px;
+										  padding:4px 8px;
+										  border:1px solid #e5e7eb;
+										  border-radius:4px;
+										  text-decoration:none;">
+													이전
+								</a>
+
+								<!-- 페이지 번호 -->
+								<span th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+									  style="display:inline-block; margin:0 2px;">
+									<a th:if="${p != currentPage}"
+									   th:href="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${p}|}"
+									   th:text="${p + 1}"
+									   class="review-page-link"
+									   style="display:inline-block; padding:4px 8px;
+											  border:1px solid #e5e7eb; border-radius:4px;
+											  text-decoration:none;">
+									</a>
+									<span th:if="${p == currentPage}"
+										  th:text="${p + 1}"
+										  style="display:inline-block; padding:4px 8px;
+												 border:1px solid #4A80FA; border-radius:4px;
+												 background:#4A80FA; color:#ffffff;">
+									</span>
+								</span>
+
+								<!-- 다음 버튼 -->
+								<a th:if="${currentPage < totalPages - 1}"
+								   th:href="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage + 1}|}"
+								   class="review-page-link"
+								   style="display:inline-block;
+										  margin:0 4px;
+										  padding:4px 8px;
+										  border:1px solid #e5e7eb;
+										  border-radius:4px;
+										  text-decoration:none;">
+													다음
+								</a>
+							</div>
+						</th:block>
+					</div>
+					<!-- AJAX 영역 끝 -->
+
+					<!-- 구분선 -->
+					<hr style="margin: 16px 0; border: none; border-top: 1px solid #eeeeee;">
+
+					<!-- 리뷰 작성 폼 -->
+					<h3 th:if="${loginUser != null and !hasMyReview}" class="text-h3 font-semibold mb-2">
+						리뷰 작성
+					</h3>
+
+					<!-- 리뷰 작성 폼 -->
+					<form th:if="${loginUser != null and !hasMyReview}" th:action="@{/festivals/review(festivalNo=${festival.festivalNo}, memberNo=${loginUser.userNo})}" method="post" class="space-y-3">
+						<!-- 별점 선택 (.5 단위) -->
+						<div class="text-body" style="margin-bottom: 8px;">
+							<!-- 별점 입력 영역 -->
+							<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+								<label class="text-subtext">별점</label>
+								<div id="ratingBox" class="star-rating star-rating--input">
+									<span class="star" data-index="1"></span>
+									<span class="star" data-index="2"></span>
+									<span class="star" data-index="3"></span>
+									<span class="star" data-index="4"></span>
+									<span class="star" data-index="5"></span>
+								</div>
+								<!-- 현재 선택된 점수 표시 -->
+								<span id="ratingValueText" class="text-subtext"></span>
+								<!-- 실제 서버로 보내는 값 -->
+								<input type="hidden" id="ratingInput" name="rating" value="0">
+							</div>
+						</div>
+						<!-- 내용 입력 -->
+						<div class="text-body">
+							<label class="text-subtext block mb-1">내용</label>
+							<textarea name="content" rows="2" class="w-full border rounded px-3 py-2 text-body" placeholder="축제에 대한 후기를 자유롭게 남겨 주세요."></textarea>
+						</div>
+						<!-- 제출 버튼 -->
+						<div>
+							<button type="submit" class="bg-main text-foreground text-subtext px-4 py-2 rounded"> 리뷰 등록 </button>
+						</div>
+					</form>
+
+					<!-- 이미 리뷰가 있는 경우 -->
+					<div th:if="${loginUser != null and hasMyReview}"
+						 class="text-subtext"
+						 style="margin-top: 8px;">
+						이미 이 축제에 대한 리뷰를 작성하셨어요.
+						<a th:href="@{/mypage/reviews}" style="color: cornflowerblue">마이페이지</a>에서 수정하실 수 있습니다.
+					</div>
+					<!-- 로그인이 안된경우 -->
+					<div th:if="${loginUser == null}"
+						 class="text-subtext"
+						 style="margin-top: 8px;">
+						리뷰 작성을 위해 <a th:href="@{/login}" style="color: cornflowerblue">로그인</a>하세요
+					</div>
+				</div>
+
+
+				<!-- C. 축제 소개 -->
+				<div class="card">
+					<div class="fd-intro-layout">
+						<!-- 왼쪽: 축제 소개 (infotext1) -->
+						<section class="fd-intro-col">
+							<h2 class="text-h3 font-semibold mb-3">축제 소개</h2>
+							<div th:if="${isAdmin}">
+								<textarea name="infotext1"
+										  class="border w-full p-2 rounded"
+										  rows="6"
+										  th:text="${festival.detail.infotext1}"></textarea>
+							</div>
+							<div th:if="${!isAdmin}">
+								<div class="text-body" th:text="${festival.detail.infotext1}"></div>
+							</div>
+
+						</section>
+
+						<!-- 오른쪽: 축제 내용 (infotext2 있을 때만) -->
+						<section class="fd-intro-col"
+								 th:if="${isAdmin or (festival.detail.infotext2 != null and !#strings.isEmpty(festival.detail.infotext2))}">
+							<h2 class="text-h3 font-semibold mb-3">축제 내용</h2>
+
+							<!-- 관리자: 인라인 수정용 textarea -->
+							<div th:if="${isAdmin}">
+								<textarea id="festival_Content"
+										  name="infotext2"
+										  class="text-body border w-full rounded-md p-2"
+										  rows="6"
+										  th:text="${festival.detail.infotext2}"></textarea>
+							</div>
+
+							<!-- 일반 사용자: 기존처럼 텍스트만 표시 -->
+							<p th:if="${!isAdmin}"
+							   id="festivalContent"
+							   class="text-body"
+							   th:text="${festival.detail.infotext2}"></p>
+						</section>
+
+					</div>
+				</div>
+
+
+				<!-- D. 위치 안내 -->
+				<div class="card">
+					<h2 class="text-h3 font-semibold mb-3">위치 안내</h2>
+					<div id="map" style="width:100%; height:260px;"></div>
+					<script th:src="@{|https://dapi.kakao.com/v2/maps/sdk.js?appkey=${@environment.getProperty('kakao.javascript-key')}|}"></script>
+					<script th:inline="javascript">
+						document.addEventListener('DOMContentLoaded', function () {
+							var container = document.getElementById('map');
+							if (!container) return;
+
+							var options = {
+								center: new kakao.maps.LatLng([[${festival.mapy}]], [[${festival.mapx}]]),
+								level: 3,
+								draggable: false
+							};
+
+							var map = new kakao.maps.Map(container, options);
+
+							var markerPosition = new kakao.maps.LatLng([[${festival.mapy}]], [[${festival.mapx}]]);
+
+							var marker = new kakao.maps.Marker({
+								position: markerPosition
+							});
+
+							marker.setMap(map);
+						});
+					</script>
+
+					<!-- 주소, 복사-->
+					<p id="festivalAddrText"
+					   class="text-subtext"
+					   style="margin-top: 8px; color: #555555; cursor: pointer;"
+					   title="주소를 클릭하면 복사됩니다."
+					   th:text="${festival.addr}">
+					</p>
+					<p class="text-subtext"
+					   style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
+						주소를 클릭하면 클립보드에 복사됩니다.
+					</p>
+
+					<!-- 토스트 알림 -->
+					<div id="addrCopyToast" class="addr-copy-toast">
+						주소가 복사되었습니다.
+					</div>
+
+				</div>
+			</div>
+
+			<!-- 페이지 하단 수정 버튼 (관리자 전용) -->
+			<div th:if="${isAdmin}"
+				 style="text-align:center; margin-top:24px;">
+				<button type="submit"
+						form="festivalEditForm"
+						class="mt-6 px-4 py-2 bg-blue-600 text-white rounded">
+					수정하기
+				</button>
+			</div>
+		</section>
+
+	</body>
+</html>
