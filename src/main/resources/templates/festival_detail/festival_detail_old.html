@@ -601,6 +601,43 @@
                         toastEl.classList.remove('addr-copy-toast--show');
                     }, 1200);
                 }
+
+				// ===== 리뷰 폼 유효성 검사 =====
+				const reviewForm = document.querySelector('form[data-review-form="true"]');
+
+				if (reviewForm) {
+					const ratingInput = document.getElementById('ratingInput');
+					const contentTextarea = reviewForm.querySelector('textarea[name="content"]');
+
+					reviewForm.addEventListener('submit', function (e) {
+						const rating = parseFloat((ratingInput?.value || '0'));
+						const content = (contentTextarea?.value || '').trim();
+
+						const errors = [];
+
+						// 별점 필수 (0.5 ~ 5.0)
+						if (isNaN(rating) || rating <= 0) {
+							errors.push('별점을 선택해 주세요.');
+						} else if (rating < 0.5 || rating > 5.0) {
+							errors.push('별점은 0.5점 이상 5.0점 이하입니다.');
+						}
+
+						// 2) 내용 길이 체크 (최소 3자, 최대 1000자)
+						if (content.length < 3) {
+							errors.push('리뷰 내용은 최소 3자 이상 입력해 주세요.');
+						}
+						if (content.length > 1000) {
+							errors.push('리뷰 내용은 1000자 이내로 입력해 주세요.');
+						}
+
+						// 에러가 있으면 전송 막고 알림
+						if (errors.length > 0) {
+							e.preventDefault();
+							alert(errors.join('\n'));
+						}
+					});
+				}
+
 			});
 		</script>
 	</head>
@@ -614,57 +651,47 @@
 						<!-- 1. 축제명, 태그, 즐겨찾기 -->
 						<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
 							<!-- 축제명 -->
-							<div th:if="${isAdmin}">
-								<input type="text"
-									   name="title"
-									   th:value="${festival.title}"
-									   class="border px-3 py-1 rounded w-full"
-										form="festivalEditForm"/>
-							</div>
-							<div th:if="${!isAdmin}">
-								<h1 class="text-h1 font-bold" th:text="${festival.title}"></h1>
-							</div>
+							<h1 class="text-h1 font-bold" th:text="${festival.title}"></h1>
 
+                            <!-- 태그 -->
+                            <div class="fd-tag-icon-list">
+                                <span class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg border-2 border-white-300 text-white whitespace-nowrap text-center hover:bg-gradient2"
+                                      th:each="tag : ${festival.tags}">
+                                    <span th:switch="${tag.tag}">
 
-							<!-- 태그 -->
-							<div class="fd-tag-icon-list">
-								<span class="fd-tag-chip bg-sub-blue"
-									  th:each="tag : ${festival.tags}">
-									<span th:switch="${tag.tag}">
+                                        <!-- 🌿 자연 -->
+                                        <span th:case="'자연'">🌿 자연</span>
 
-										<!-- 🌿 자연 -->
-										<span th:case="'자연'">🌿 자연</span>
+                                        <!-- 🌙 야간 -->
+                                        <span th:case="'야간'">🌙 야간</span>
 
-										<!-- 🌙 야간 -->
-										<span th:case="'야간'">🌙 야간</span>
+                                        <!-- 🎨 체험 -->
+                                        <span th:case="'체험'">🎨 체험</span>
 
-										<!-- 🎨 체험 -->
-										<span th:case="'체험'">🎨 체험</span>
+                                        <!-- 🍜 먹거리 -->
+                                        <span th:case="'먹거리'">🍜 먹거리</span>
 
-										<!-- 🍜 먹거리 -->
-										<span th:case="'먹거리'">🍜 먹거리</span>
+                                        <!-- 🎭 문화 -->
+                                        <span th:case="'문화'">🎭 문화</span>
 
-										<!-- 🎭 문화 -->
-										<span th:case="'문화'">🎭 문화</span>
+                                        <!-- 👦 아동 -->
+                                        <span th:case="'아동'">👦 아동</span>
 
-										<!-- 👦 아동 -->
-										<span th:case="'아동'">👦 아동</span>
+                                        <!-- ❄️ 계절 -->
+                                        <span th:case="'계절'">❄️ 계절</span>
+                                    </span>
+                                </span>
+                            </div>
 
-										<!-- ❄️ 계절 -->
-										<span th:case="'계절'">❄️ 계절</span>
-									</span>
-								</span>
-							</div>
+                            <!-- 즐겨찾기 토글 버튼 -->
+                            <form method="post" th:action="@{/favorite/toggle}">
+                                <input type="hidden" name="festivalNo" th:value="${festival.festivalNo}">
 
-							<!-- 즐겨찾기 토글 버튼 -->
-							<form method="post" th:action="@{/favorite/toggle}">
-								<input type="hidden" name="festivalNo" th:value="${festival.festivalNo}">
+                                <!-- 현재 상세 페이지로 다시 돌아오도록 redirectUrl 설정 -->
+                                <input type="hidden" name="redirectUrl" th:value="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage}|}">
 
-								<!-- 현재 상세 페이지로 다시 돌아오도록 redirectUrl 설정 -->
-								<input type="hidden" name="redirectUrl" th:value="@{|/festivals/detail?festivalNo=${festival.festivalNo}&page=${currentPage}|}">
-
-								<button type="submit" class="text-[12px] px-2 py-1 rounded-lg border" th:classappend="${isFavorite} ? ' bg-yellow-300 border-yellow-400' : ' border-gray-300'" th:text="${isFavorite} ? '★' : '☆'"></button>
-							</form>
+                                <button type="submit" class="text-[12px] px-2 py-1 rounded-lg border" th:classappend="${isFavorite} ? ' bg-yellow-300 border-yellow-400' : ' border-gray-300'" th:text="${isFavorite} ? '★' : '☆'"></button>
+                            </form>
 						</div>
 
 						<!-- 2. 진행 상태, 리뷰 요약 -->
@@ -706,20 +733,20 @@
 											justify-content: center;">
 									<button th:if="${festival.images != null and #lists.size(festival.images) > 1}" type="button" id="prevImageBtn" style="margin-right: 8px;">◀</button>
 
-									<div id="imageSliderContainer"
-										 style="width: 100%;
-												height: 260px;
-												display: flex;
-												align-items: center;
-												justify-content: center;
-												overflow: hidden;
-												cursor: pointer;"
-										 th:styleappend="${festival.images == null or #lists.isEmpty(festival.images)} ? 'background:#e5e7eb;' : 'background:#000000;'">
-										<th:block th:if="${festival.images == null or #lists.isEmpty(festival.images)}">
-											<span class="text-xs text-gray-600">이미지 없음</span>
-										</th:block>
-										<img th:if="${festival.images != null}"
-											 th:each="image : ${festival.images}"
+                                    <div id="imageSliderContainer"
+                                         style="width: 100%;
+                                                height: 260px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                overflow: hidden;
+                                                cursor: pointer;"
+                                         th:styleappend="${festival.images == null or #lists.isEmpty(festival.images)} ? 'background:#e5e7eb;' : 'background:#000000;'">
+                                        <th:block th:if="${festival.images == null or #lists.isEmpty(festival.images)}">
+                                            <span class="text-xs text-gray-600">이미지 없음</span>
+                                        </th:block>
+                                        <img th:if="${festival.images != null}"
+                                             th:each="image : ${festival.images}"
 											 th:src="${image.imageUrl}"
 											 th:alt="${image.imageUrl}"
 											 style="max-width: 100%;
@@ -797,8 +824,8 @@
 							</section>
 						</div>
 
-						<!-- 일반 사용자용 : 기본 정보 표시 -->
-						<div class="fd-top-right" th:if="${!isAdmin}">
+						<!-- 4. 기본 정보 -->
+						<div class="fd-top-right">
 							<section>
 								<h2 class="text-h3 font-semibold mb-2">기본 정보</h2>
 								<ul class="fd-info-list">
@@ -838,81 +865,6 @@
 								</ul>
 							</section>
 						</div>
-
-						<!-- 관리자용 : 수정 폼 -->
-						<form th:if="${isAdmin}"
-							  th:action="@{/admin/festivals/update}"
-							  method="post"
-							  id="festivalEditForm"
-							  style="margin-top:20px;">
-
-							<input type="hidden" name="festivalNo" th:value="${festival.festivalNo}" />
-
-							<div class="fd-top-right">
-								<section>
-									<h2 class="text-h3 font-semibold mb-2">기본 정보 (관리자 수정)</h2>
-									<ul class="fd-info-list">
-										<li>
-											<strong>기간</strong>
-											<div class="flex items-center gap-2">
-												<input type="date"
-													   name="eventStartDate"
-													   th:value="${festival.eventStartDate.toLocalDate()}"
-													   class="border rounded px-2 py-1" />
-												<span>~</span>
-												<input type="date"
-													   name="eventEndDate"
-													   th:value="${festival.eventEndDate.toLocalDate()}"
-													   class="border rounded px-2 py-1" />
-											</div>
-										</li>
-
-										<li>
-											<strong>장소</strong>
-											<input type="text"
-												   name="addr"
-												   th:value="${festival.addr}"
-												   class="border rounded px-2 py-1 w-full" />
-										</li>
-
-										<li>
-											<strong>요금</strong>
-											<input type="text"
-												   name="festivalFee"
-												   th:value="${festival.detail.festivalFee}"
-												   class="border rounded px-2 py-1 w-full" />
-										</li>
-
-										<li>
-											<strong>주최</strong>
-											<input type="text"
-												   name="host"
-												   th:value="${festival.detail.host}"
-												   class="border rounded px-2 py-1 w-full" />
-										</li>
-
-										<li>
-											<strong>문의</strong>
-											<input type="text"
-												   name="hostTel"
-												   th:value="${festival.detail.hostTel}"
-												   class="border rounded px-2 py-1 w-full" />
-										</li>
-
-										<li>
-											<strong>홈페이지</strong>
-											<input type="url"
-												   name="homepage"
-												   th:value="${festival.detail.homepage}"
-												   class="border rounded px-2 py-1 w-full" />
-										</li>
-									</ul>
-								</section>
-							</div>
-
-						</form>
-
-
 					</div>
 				</div>
 
@@ -1030,7 +982,7 @@
 					</h3>
 
 					<!-- 리뷰 작성 폼 -->
-					<form th:if="${loginUser != null and !hasMyReview}" th:action="@{/festivals/review(festivalNo=${festival.festivalNo}, memberNo=${loginUser.userNo})}" method="post" class="space-y-3">
+					<form th:if="${loginUser != null and !hasMyReview}" th:action="@{/festivals/review(festivalNo=${festival.festivalNo}, memberNo=${loginUser.userNo})}" method="post" class="space-y-3" data-review-form="true">
 						<!-- 별점 선택 (.5 단위) -->
 						<div class="text-body" style="margin-bottom: 8px;">
 							<!-- 별점 입력 영역 -->
@@ -1082,38 +1034,14 @@
 						<!-- 왼쪽: 축제 소개 (infotext1) -->
 						<section class="fd-intro-col">
 							<h2 class="text-h3 font-semibold mb-3">축제 소개</h2>
-							<div th:if="${isAdmin}">
-								<textarea name="infotext1"
-										  class="border w-full p-2 rounded"
-										  rows="6"
-										  th:text="${festival.detail.infotext1}"
-											form="festivalEditForm"></textarea>
-							</div>
-							<div th:if="${!isAdmin}">
-								<div class="text-body" th:text="${festival.detail.infotext1}"></div>
-							</div>
-
+							<p class="text-body" th:text="${festival.detail.infotext1}"></p>
 						</section>
 
 						<!-- 오른쪽: 축제 내용 (infotext2 있을 때만) -->
 						<section class="fd-intro-col"
-								 th:if="${isAdmin or (festival.detail.infotext2 != null and !#strings.isEmpty(festival.detail.infotext2))}">
+								 th:if="${festival.detail.infotext2 != null and !#strings.isEmpty(festival.detail.infotext2)}">
 							<h2 class="text-h3 font-semibold mb-3">축제 내용</h2>
-
-							<!-- 관리자: 인라인 수정용 textarea -->
-							<div th:if="${isAdmin}">
-								<textarea id="festival_Content"
-										  name="infotext2"
-										  class="text-body border w-full rounded-md p-2"
-										  rows="6"
-										  th:text="${festival.detail.infotext2}"
-											form="festivalEditForm"></textarea>
-							</div>
-
-							<!-- 일반 사용자: 기존처럼 텍스트만 표시 -->
-							<p th:if="${!isAdmin}"
-							   id="festivalContent"
-							   class="text-body"
+							<p id="festivalContent" class="text-body"
 							   th:text="${festival.detail.infotext2}"></p>
 						</section>
 
@@ -1125,8 +1053,8 @@
 				<div class="card">
 					<h2 class="text-h3 font-semibold mb-3">위치 안내</h2>
 					<div id="map" style="width:100%; height:260px;"></div>
-					<script th:src="@{|https://dapi.kakao.com/v2/maps/sdk.js?appkey=${@environment.getProperty('kakao.javascript-key')}|}"></script>
-					<script th:inline="javascript">
+                    <script th:src="@{|https://dapi.kakao.com/v2/maps/sdk.js?appkey=${@environment.getProperty('kakao.javascript-key')}|}"></script>
+                    <script th:inline="javascript">
 						document.addEventListener('DOMContentLoaded', function () {
 							var container = document.getElementById('map');
 							if (!container) return;
@@ -1149,49 +1077,25 @@
 						});
 					</script>
 
-					<!-- 주소, 복사-->
-					<p id="festivalAddrText"
-					   class="text-subtext"
-					   style="margin-top: 8px; color: #555555; cursor: pointer;"
-					   title="주소를 클릭하면 복사됩니다."
-					   th:text="${festival.addr}">
-					</p>
-					<p class="text-subtext"
-					   style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
-						주소를 클릭하면 클립보드에 복사됩니다.
-					</p>
+                    <!-- 주소, 복사-->
+                    <p id="festivalAddrText"
+                       class="text-subtext"
+                       style="margin-top: 8px; color: #555555; cursor: pointer;"
+                       title="주소를 클릭하면 복사됩니다."
+                       th:text="${festival.addr}">
+                    </p>
+                    <p class="text-subtext"
+                       style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
+                        주소를 클릭하면 클립보드에 복사됩니다.
+                    </p>
 
-					<!-- 토스트 알림 -->
-					<div id="addrCopyToast" class="addr-copy-toast">
-						주소가 복사되었습니다.
-					</div>
+                    <!-- 토스트 알림 -->
+                    <div id="addrCopyToast" class="addr-copy-toast">
+                        주소가 복사되었습니다.
+                    </div>
 
 				</div>
 			</div>
-
-			<!-- 페이지 하단 수정 버튼 (관리자 전용) -->
-			<div class="mt-10 flex justify-center gap-4"
-				 th:if="${isAdmin}">
-				<button type="submit"
-						form="festivalEditForm"
-						class="px-4 py-2 bg-blue-600 text-white rounded">
-					수정하기
-				</button>
-
-				<!-- 삭제 버튼 (마찬가지로 관리자 전용) -->
-				<form th:action="@{/admin/festivals/delete}"
-					  method="post"
-					  onsubmit="return confirm('정말로 이 축제를 삭제하시겠습니까? 복구할 수 없습니다.');">
-
-					<input type="hidden" name="festivalNo" th:value="${festival.festivalNo}">
-
-					<button type="submit"
-							class="px-4 py-2 bg-red-600 text-white rounded">
-						삭제하기
-					</button>
-				</form>
-			</div>
 		</section>
-
 	</body>
 </html>
