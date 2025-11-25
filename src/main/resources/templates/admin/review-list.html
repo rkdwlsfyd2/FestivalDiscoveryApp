@@ -42,7 +42,7 @@
 
 <div layout:fragment="content" class="bg-gray-50 min-h-screen">
 
-    <div class="flex max-w-6xl mx-auto py-10">
+    <div class="flex max-w-4xl mx-auto py-10">
 
         <!-- 관리자 사이드바 -->
         <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8 whitespace-nowrap">
@@ -68,7 +68,8 @@
                 </a>
 
                 <a href="/admin/reviews"
-                   class="px-3 py-2 rounded-md bg-gray-200 font-semibold">
+                   class="px-3 py-2 rounded-md bg-gray-200 font-semibold"
+                   th:classappend="${activeMenu} == 'reviews' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
                     리뷰 관리
                 </a>
             </nav>

@@ -1,5 +1,6 @@
 package com.example.ex02.admin.dto;
 
+import com.example.ex02.festival.repository.FavoriteRepository;
 import com.example.ex02.member.entity.MemberEntity;
 import com.example.ex02.festival.entity.FestivalEntity;
 import lombok.*;
@@ -59,6 +60,7 @@ public class AdminDashboardDto {
     private long todayEndFestivals;
     private long weekFestivals;
 
+    List<FavoriteRepository.TopFavoriteFestivalProjection> topList;
     private FavoriteFestivalDto topFavoriteFestival; // 제목 + 즐겨찾기 수
     private String topFestivalStates;                       // "경북, 서울, 부산" 이런 식 문자열
 

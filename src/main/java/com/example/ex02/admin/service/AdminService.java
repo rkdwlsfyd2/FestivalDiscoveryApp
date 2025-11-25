@@ -5,10 +5,7 @@ import com.example.ex02.festival.dto.FestivalUpdateDto;
 import com.example.ex02.festival.entity.FestivalDetailEntity;
 import com.example.ex02.festival.entity.FestivalEntity;
 import com.example.ex02.festival.entity.ReviewEntity;
-import com.example.ex02.festival.repository.FavoriteRepository;
-import com.example.ex02.festival.repository.FestivalDetailRepository;
-import com.example.ex02.festival.repository.FestivalRepository;
-import com.example.ex02.festival.repository.ReviewRepository;
+import com.example.ex02.festival.repository.*;
 import com.example.ex02.member.dto.MemberDto;
 import com.example.ex02.member.entity.MemberEntity;
 import com.example.ex02.member.repository.MemberRepository;
@@ -22,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,6 +32,7 @@ public class AdminService {
     private final ReviewRepository reviewRepository;
     private final FavoriteRepository favoriteRepository;
     private final FestivalDetailRepository festivalDetailRepository;
+    private final FestivalTagRepository tagRepository;
 
     public AdminDashboardDto getDashboard() {
 
@@ -98,6 +97,7 @@ public class AdminService {
                 .recentMembers(recentMembers)
                 .recentFestivals(recentFestivals)
                 .topFavoriteFestival(topFavoriteFestival)
+                .topList(topList)
                 .build();
     }
 
@@ -141,6 +141,68 @@ public class AdminService {
         return memberRepository.findById(userNo)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. userNo=" + userNo));
     }
+
+    public UserStatsDto getUserStats() {
+
+        // 1. 나이대
+        List<Object[]> ageRows = memberRepository.countMembersByAgeGroup();
+        List<String> ageLabels = new ArrayList<>();
+        List<Long> ageCounts = new ArrayList<>();
+
+        for (Object[] row : ageRows) {
+            Integer ageGroup = ((Number) row[0]).intValue();
+            ageLabels.add(ageGroup + "대");
+            ageCounts.add(((Number) row[1]).longValue());
+        }
+
+        // 2. 성별
+        List<Object[]> genderRows = memberRepository.countMembersByGender();
+        List<String> genderLabels = new ArrayList<>();
+        List<Long> genderCounts = new ArrayList<>();
+
+        for (Object[] row : genderRows) {
+            Object genderObj = row[0];
+            String genderCode = (genderObj == null) ? "U" : String.valueOf(genderObj); // 'M', 'F'
+
+            long cnt = ((Number) row[1]).longValue();
+
+            String label;
+            switch (genderCode) {
+                case "M":
+                    label = "남자";
+                    break;
+                case "F":
+                    label = "여자";
+                    break;
+                default:
+                    label = "기타";
+            }
+
+            genderLabels.add(label);
+            genderCounts.add(cnt);
+        }
+
+        // 3. 선호태그
+        List<Object[]> tagRows = tagRepository.findTopTagCounts(7);
+        List<String> tagLabels = new ArrayList<>();
+        List<Long> tagCounts = new ArrayList<>();
+
+        for (Object[] row : tagRows) {
+            tagLabels.add((String) row[0]);
+            tagCounts.add(((Number) row[1]).longValue());
+        }
+
+        return UserStatsDto.builder()
+                .ageLabels(ageLabels)
+                .ageCounts(ageCounts)
+                .genderLabels(genderLabels)
+                .genderCounts(genderCounts)
+                .tagLabels(tagLabels)
+                .tagCounts(tagCounts)
+                .build();
+    }
+
+
 
     // 활성 상태 변경 (Y/N)
     @Transactional

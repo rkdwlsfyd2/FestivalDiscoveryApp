@@ -48,6 +48,8 @@ function updateFestivalList(page = 0,
     const pagination = document.querySelector("#pagination");
     const markers = document.querySelector("#allFestivalMarkers");
 
+    const isAdmin = window.isAdmin === true;
+
     // 요청 URL 구성
     let url = `/festivals/festivalMap/ajax?page=${page}` +
         `&keyword=${encodeURIComponent(searchKeyword)}` +
@@ -58,6 +60,9 @@ function updateFestivalList(page = 0,
     if (selectedTag) {
         url += `&tag=${encodeURIComponent(selectedTag)}`;
     }
+
+    url += `&isAdmin=${encodeURIComponent(isAdmin)}`;
+
     // 캐시 방지용
     url += `&_=${new Date().getTime()}`;
 

@@ -35,7 +35,7 @@
 
 <div layout:fragment="content" class="bg-gray-50 min-h-screen">
 
-    <div class="flex max-w-6xl mx-auto py-10">
+    <div class="flex max-w-4xl mx-auto py-10">
 
         <!-- 사이드바 (대시보드와 동일하게) -->
         <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8 whitespace-nowrap">
@@ -84,8 +84,33 @@
     </div>
 </div>
 <th:block layout:fragment="script">
+    <script th:inline="javascript">
+        // admin계정이면 true, 아니면 false
+        window.isAdmin = /*[[${session.loginUser != null and session.loginUser.role == 'admin'}]]*/ false;
+    </script>
+
     <!-- 기존 JS (리스트 AJAX, 필터 핸들러) -->
     <script type="text/javascript" th:src="@{/js/festivalDataLoad.js}"></script>
     <script type="text/javascript" th:src="@{/js/filterhandler.js}"></script>
+
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // 기존 updateFestivalList 감싸서, AJAX 이후에 높이 + 마커 다시 세팅
+            const originalUpdateFestivalList = window.updateFestivalList;
+            if (typeof originalUpdateFestivalList === "function") {
+                window.updateFestivalList = function (...args) {
+                    const result = originalUpdateFestivalList.apply(this, args);
+
+                    return result;
+                };
+            } else {
+                // 혹시 모를 초기 동기화를 위해 한번 호출
+                if (typeof window.updateKakaoMarkersFromDom === "function") {
+                    window.updateKakaoMarkersFromDom({ keepBounds: true });
+                }
+            }
+        });
+    </script>
 </th:block>
 </html>

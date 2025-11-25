@@ -49,6 +49,7 @@ public class AdminController {
     public String adminHome(Model model) {
         model.addAttribute("activeMenu","dashboard");
         model.addAttribute("stats", adminService.getDashboard());
+        model.addAttribute("userStats", adminService.getUserStats());
         return "admin/dashboard";
     }
 
