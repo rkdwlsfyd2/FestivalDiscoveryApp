@@ -601,6 +601,42 @@
                         toastEl.classList.remove('addr-copy-toast--show');
                     }, 1200);
                 }
+
+                // ===== 리뷰 폼 유효성 검사 =====
+                const reviewForm = document.querySelector('form[data-review-form="true"]');
+
+                if (reviewForm) {
+                    const ratingInput = document.getElementById('ratingInput');
+                    const contentTextarea = reviewForm.querySelector('textarea[name="content"]');
+
+                    reviewForm.addEventListener('submit', function (e) {
+                        const rating = parseFloat((ratingInput?.value  '0'));
+                        const content = (contentTextarea?.value  '').trim();
+
+                        const errors = [];
+
+                        // 별점 필수 (0.5 ~ 5.0)
+                        if (isNaN(rating)  rating <= 0) {
+                            errors.push('별점을 선택해 주세요.');
+                        } else if (rating < 0.5  rating > 5.0) {
+                            errors.push('별점은 0.5점 이상 5.0점 이하입니다.');
+                        }
+
+                        // 2) 내용 길이 체크 (최소 3자, 최대 1000자)
+                        if (content.length < 3) {
+                            errors.push('리뷰 내용은 최소 3자 이상 입력해 주세요.');
+                        }
+                        if (content.length > 1000) {
+                            errors.push('리뷰 내용은 1000자 이내로 입력해 주세요.');
+                        }
+
+                        // 에러가 있으면 전송 막고 알림
+                        if (errors.length > 0) {
+                            e.preventDefault();
+                            alert(errors.join('\n'));
+                        }
+                    });
+                }
 			});
 		</script>
 	</head>
