@@ -5,10 +5,9 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{common/mylayout}">
 
-<head>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+
+<th:block layout:fragment="css">
     <style>
         /* ========= 별점 공통 스타일 (마이페이지 리뷰와 동일) ========= */
         .star-rating {
@@ -60,7 +59,8 @@
             color: #e5e7eb;
         }
     </style>
-
+</th:block>
+<th:block layout:fragment="script">
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const ratingBox = document.getElementById('ratingBox');
@@ -120,8 +120,7 @@
             paintStars(currentRating);
         });
     </script>
-</head>
-
+</th:block>
 
 <div layout:fragment="content" class="bg-gray-50 min-h-screen">
 
@@ -132,20 +131,19 @@
             <h2 class="text-xl font-bold mb-6">마이페이지</h2>
 
             <nav class="flex flex-col space-y-3">
-                <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gray-100">프로필 확인</a>
-                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gray-100">회원수정 및 탈퇴</a>
-                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gray-100">축제 즐겨찾기</a>
-                <a href="/mypage/reviews" class="px-3 py-2 rounded-md bg-gray-200 font-semibold">내 리뷰 관리</a>
+                <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">프로필 확인</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">회원수정 및 회원탈퇴</a>
+                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">축제 즐겨찾기</a>
+                <a href="/mypage/reviews" class="px-3 py-2 rounded-md bg-gray-200 hover:bg-gradient2 hover:text-white">내 리뷰 관리</a>
             </nav>
         </aside>
 
-
         <!-- 본문 -->
         <main class="flex-1">
-
             <div class="bg-white shadow-md rounded-2xl p-10">
+                <h2 class="text-h1 font-black text-gradient mb-3">리뷰 수정</h2>
 
-                <h2 class="text-2xl font-bold mb-10">리뷰 수정</h2>
+                <div class="h-px bg-gray-300 my-2 mb-10"></div>
 
                 <form action="/mypage/reviews/update" method="post" class="space-y-8">
 
@@ -154,14 +152,14 @@
 
                     <!-- 축제명 -->
                     <div>
-                        <label class="block font-semibold mb-2">축제명</label>
+                        <label class="block font-bold mb-2">축제명</label>
                         <input type="text" th:value="${review.festival.title}" disabled
                                class="w-full border rounded-md p-3 bg-gray-100">
                     </div>
 
                     <!-- 별점 입력 -->
                     <div>
-                        <label class="block font-semibold mb-2">별점</label>
+                        <label class="block font-bold mb-2">별점</label>
 
                         <div id="ratingBox" class="star-rating">
                             <span class="star" data-index="1"></span>
@@ -179,15 +177,15 @@
 
                     <!-- 내용 -->
                     <div>
-                        <label class="block font-semibold mb-2">리뷰 내용</label>
+                        <label class="block font-bold mb-2">리뷰 내용</label>
                         <textarea name="content" th:text="${review.content}"
-                                  class="w-full border rounded-md p-3 h-40 focus:ring-main focus:border-main"></textarea>
+                                  class="w-full border rounded-md p-3 h-40 resize-none focus:ring-main focus:border-main"></textarea>
                     </div>
 
                     <!-- 버튼 -->
                     <div>
                         <button type="submit"
-                                class="bg-main text-white px-6 py-3 rounded-md shadow hover:bg-foregroundSub transition">
+                                class="bg-gradient-to-br from-[#6B96FC] to-[#4A80FA] text-white px-6 py-3 rounded-md shadow">
                             수정 완료
                         </button>
                     </div>
