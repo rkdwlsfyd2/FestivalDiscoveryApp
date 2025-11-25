@@ -51,6 +51,10 @@
                 border-top-right-radius: 9999px;
                 border-bottom-right-radius: 9999px;
             }
+            #calendarBox {
+                max-width: 1130px;
+                margin-right: 12px;   /* 캘린더와 오른쪽 패널 사이 여유 */
+            }
         </style>
     </th:block>
 
@@ -60,7 +64,7 @@
 <div layout:fragment="content" class="qwert font-suit">
 
     <!-- 상단 타이틀 / 월 이동 / 지역 필터 -->
-    <div class="flex flex-col items-center gap-3">
+    <div class="flex flex-col items-center gap-3 mt-32">
         <h1 class="text-h1 font-black text-gradient mb-4">축제 캘린더</h1>
 
         <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-center">
@@ -69,7 +73,7 @@
                    class="px-3 py-1.5 rounded-full border border-gray-300 text-sm bg-white hover:bg-gray-50">
                     ◀ 이전 달
                 </a>
-                <div class="text-h3 font-semibold text-main mx-1">
+                <div class="text-h3 font-bold text-black mx-1">
                     <span th:text="${year}">2025</span>.
                     <span th:text="${month}">11</span>
                 </div>
@@ -93,7 +97,7 @@
                     </option>
                 </select>
                 <button type="submit"
-                        class="px-3 py-1.5 bg-main text-foreground text-sm rounded-lg shadow hover:opacity-90">
+                        class="px-3 py-1.5 bg-main text-foreground text-sm rounded-lg hover:bg-gradient2 transition">
                     적용
                 </button>
             </form>
@@ -101,25 +105,26 @@
     </div>
 
     <!-- 달력 + 우측 상세 패널 컨테이너 -->
-    <div class="mt-6 mb-20 flex flex-col md:flex-row md:items-stretch">
+    <div class="mt-6 mb-20 flex flex-col md:flex-row md:items-stretch md:justify-center">
 
-        <!-- 달력 그리드 (좌측) -->
+
+    <!-- 달력 그리드 (좌측) -->
         <div id="calendarBox" class="flex-1 bg-white rounded-2xl shadow-md overflow-hidden">
             <!-- 요일 헤더 -->
-            <div class="grid grid-cols-7 bg-sub-blue text-foreground text-center text-subtext py-2 font-medium">
-                <div class="text-red-500">일</div>
-                <div>월</div>
-                <div>화</div>
-                <div>수</div>
-                <div>목</div>
-                <div>금</div>
-                <div class="text-blue-500">토</div>
+            <div class="grid grid-cols-7 text-foreground text-center text-subtext font-medium">
+                <div class="bg-sub-red py-2 border border-gray-200">일</div>
+                <div class="bg-gray-600 py-2 border border-gray-200">월</div>
+                <div class="bg-gray-600 py-2 border border-gray-200">화</div>
+                <div class="bg-gray-600 py-2 border border-gray-200">수</div>
+                <div class="bg-gray-600 py-2 border border-gray-200">목</div>
+                <div class="bg-gray-600 py-2 border border-gray-200">금</div>
+                <div class="bg-main py-2 border border-gray-200">토</div>
             </div>
 
             <!-- 날짜들 -->
             <div class="calendar-grid bg-sub-blue bg-opacity-10 gap-0">
                 <div class="contents" th:each="week : ${weeks}">
-                    <div class="calendar-day bg-white py-2 px-0 flex flex-col
+                    <div class="calendar-day bg-white py-2 px-0 flex flex-col border border-gray-200
                                 hover:bg-sub-blue hover:bg-opacity-10 transition"
                          th:each="day : ${week}"
                          th:classappend="${!day.inMonth ? ' opacity-40 bg-gray-50 hover:bg-gray-50' :
@@ -130,7 +135,7 @@
 
                         <!-- 날짜 숫자 -->
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold"
+                            <span class="text-sm font-semibold ml-2"
                                   th:text="${day.date.dayOfMonth}">1</span>
                         </div>
 
@@ -215,12 +220,18 @@
 
         <!-- 우측: 선택된 날짜의 축제 목록 표시 영역 -->
         <div id="festivalDetail"
-             class="w-full md:w-80 bg-white rounded-2xl shadow-md p-4 hidden md:flex md:flex-col h-[750px]">
-            <div class="flex items-center justify-between sticky top-0 bg-white z-10">
-                <div class="font-semibold text-main" id="detailDateText">선택한 날짜의 축제 목록</div>
+             class="w-full md:w-80 bg-white rounded-2xl shadow-md hidden md:flex md:flex-col h-[755px] border border-gray-300 overflow-hidden">
+
+            <!-- 캘린더 요일 헤더처럼 보일 영역 -->
+            <div id="detailHeader" class="bg-main pt-1 pb-[6px] px-4 text-center font-medium sticky top-0 z-10">
+                <div id="detailDateText" class="text-white">선택한 날짜의 축제 목록</div>
             </div>
-            <div id="detailContent" class="divide-y divide-gray-100 mt-2 flex-1 overflow-y-auto">
-                <!-- JS로 각 날짜의 hidden 목록을 복사해서 여기에 넣음 -->
+
+            <!-- 실제 내용 (p-4로 내부 여백 지정) -->
+            <div id="detailContent" class="p-4 pt-[1px] flex-1 overflow-y-auto">
+                <div class="divide-y divide-gray-100 flex-1 pr-3">
+                    <!-- JS로 각 날짜의 hidden 목록을 복사해서 여기에 넣음 -->
+                </div>
             </div>
         </div>
 
@@ -237,8 +248,8 @@
                     <span>🌿 자연</span>
                     <span>🌙 야간</span>
                     <span>🎨 체험</span>
-                    <span>🍜 먹거리</span><br>
-                    <span>🎭 문화</span>
+                    <span>🍜 먹거리</span>
+                    <span>🎭 문화</span><br>
                     <span>👦 아동</span>
                     <span>❄️ 계절</span>
                 </p>

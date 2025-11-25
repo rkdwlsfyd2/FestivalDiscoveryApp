@@ -64,13 +64,13 @@
 }
 
 /* 축제 목록 스크롤바 커스터마이징 */
-#festivalListContainer::-webkit-scrollbar {
+#festivalListContainer::-webkit-scrollbar,#detailContent::-webkit-scrollbar {
     width: 6px;
 }
-#festivalListContainer::-webkit-scrollbar-track {
+#festivalListContainer::-webkit-scrollbar-track,#detailContent::-webkit-scrollbar-track {
     background: transparent;
 }
-#festivalListContainer::-webkit-scrollbar-thumb {
+#festivalListContainer::-webkit-scrollbar-thumb,#detailContent::-webkit-scrollbar-thumb {
     background: #4A80FA;
     border-radius: 4px;
 }
