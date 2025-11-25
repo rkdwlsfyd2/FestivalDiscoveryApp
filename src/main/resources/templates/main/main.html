@@ -6,16 +6,80 @@
 
 <body>
 
+<th:block layout:fragment="css">
+    <style>
+        @keyframes fadeSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-slide {
+            opacity: 0;
+            animation: fadeSlideIn 0.8s ease-out forwards;
+        }
+
+        .fade-up-start {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .fade-up-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .soft-float {
+            animation: softFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes softFloat {
+            0%   { transform: translateY(0); }
+            50%  { transform: translateY(-6px); } /* 너무 크면 어색함 */
+            100% { transform: translateY(0); }
+        }
+
+        .wave-delay-1 { animation-delay: 0s; }
+        .wave-delay-2 { animation-delay: 1.5s; }
+        .wave-delay-3 { animation-delay: 3s; }
+        .wave-delay-4 { animation-delay: 4.5s; }
+        .wave-delay-5 { animation-delay: 6s; }
+    </style>
+</th:block>
+
 <section layout:fragment="content" class="relative z-50">   <!-- ★ 핵심: 배경보다 위로 -->
     <main class="flex flex-col items-center justify-center">
-        <img th:src="@{/img/mainpage/main1.png}" class="w-[1730px]"/>
+        <img th:src="@{/img/mainpage/main1.png}" class="w-[1730px] pt-20"/>
 
-        <div class="relative w-full flex justify-center">
-            <img th:src="@{/img/mainpage/main2.png}"/>
+        <div class="relative w-full flex flex-col items-center mt-20 mb-20">
+            <h1 class="text-[50px] mt-20 font-black mb-10">
+                당신만을 위한 기능들이 준비되어 있습니다.
+            </h1>
 
+            <!-- 공통 가로 폭 지정 -->
+            <div class="w-[900px] flex flex-col items-center">
+                <div class="flex justify-center gap-10 w-full mb-6">
+                    <img th:src="@{/img/mainpage/main_asset1.png}" class="h-auto w-[428.5964px] object-contain fade-up-start soft-float wave-delay-1 ">
+                    <img th:src="@{/img/mainpage/main_asset2.png}" class="h-auto w-[428.5964px] object-contain fade-up-start soft-float wave-delay-2 ">
+                    <img th:src="@{/img/mainpage/main_asset3.png}" class="h-auto w-[428.5964px] object-contain fade-up-start soft-float wave-delay-3 ">
+                </div>
+
+                <div class="flex justify-center w-full gap-10">
+                    <img th:src="@{/img/mainpage/main_asset4.png}" class="h-auto w-[428.5964px] object-contain fade-up-start soft-float wave-delay-4 ">
+                    <img th:src="@{/img/mainpage/main_asset5.png}" class="h-auto w-[916.5459px] object-contain fade-up-start soft-float wave-delay-5 ">
+                </div>
+            </div>
+
+            <!-- 상단 그라데이션 효과 -->
             <div
                     class="absolute top-0 left-0 w-full h-10 pointer-events-none
-                   bg-gradient-to-b from-black/10 to-transparent">
+               bg-gradient-to-b from-black/10 to-transparent">
             </div>
         </div>
 
@@ -52,5 +116,33 @@
 </section>
 
 </body>
+
+<th:block layout:fragment="script">
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const targets = document.querySelectorAll(".fade-up-start");
+
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const index = [...targets].indexOf(entry.target);
+
+                        // 순차 딜레이 적용 (index * 150ms)
+                        entry.target.style.transitionDelay = `${index * 150}ms`;
+
+                        entry.target.classList.add("fade-up-active");
+
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.2
+            });
+
+            targets.forEach(target => observer.observe(target));
+        });
+    </script>
+</th:block>
+
 </html>
 
