@@ -344,7 +344,7 @@ public class AiScoreAppService {
 
         // 상위 3개 festivalNo 추출 (순서 유지)
         return filteredScores.stream()
-				.filter(s -> s.getAiScore() != null && s.getAiScore() >= 0.85)
+				.filter(s -> s.getAiScore() != null && s.getAiScore() >= 0.8)
                 .limit(3)
                 .map(s -> s.getFestival().getFestivalNo())
                 .filter(Objects::nonNull)

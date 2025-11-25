@@ -117,28 +117,39 @@
 
 <body>
 
-<div layout:fragment="content" class="p-6 space-y-6">
+<div layout:fragment="content" class="p-6 space-y-6 mt-32">
 
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <section class="max-w-15xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         <!-- 사이드바 + 오른쪽 내용 한 줄 배치 -->
         <div class="flex gap-6 items-start">
 
             <!-- 왼쪽: 관리자 페이지 사이드바 -->
-            <aside class="w-64 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8">
                 <h2 class="text-xl font-bold mb-6">관리자 페이지</h2>
 
-                <nav class="space-y-2 text-sm">
-                    <a href="/admin" class="block px-3 py-2 rounded-lg bg-gray-100 font-semibold text-gray-900">
+                <nav class="flex flex-col space-y-3">
+                    <a href="/admin"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'dashboard' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
                         대시보드
                     </a>
-                    <a href="/admin/members" class="block px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700">
+
+                    <a href="/admin/members"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'members' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
                         회원 관리
                     </a>
-                    <a href="/admin/festivals" class="block px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700">
+
+                    <a href="/admin/festivals"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'festivals' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
                         축제 관리
                     </a>
-                    <a href="/admin/reviews" class="block px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700">
+
+                    <a href="/admin/reviews"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'reviews' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
                         리뷰 관리
                     </a>
                 </nav>
@@ -212,7 +223,7 @@
                     <div class="stat-label mt-1">
                         오늘 가입
                         <span class="text-main font-semibold"
-                              th:text="${stats.todaySignups}">5</span>명
+                              th:text="${stats.todayJoined}">5</span>명
                     </div>
                 </div>
                 <div class="text-right">
@@ -228,7 +239,7 @@
                     </div>
                     <div class="text-[0.7rem] text-gray-400 mt-1">
                         이번 주 가입
-                        <span th:text="${stats.weekSignups}">32</span>명
+                        <span th:text="${stats.weekJoined}">32</span>명
                     </div>
                 </div>
             </div>
@@ -252,7 +263,7 @@
                     <div class="stat-label mt-1">
                         현재 진행중
                         <span class="font-semibold"
-                              th:text="${stats.activeFestivals}">42</span>개
+                              th:text="${stats.ongoingFestivals}">42</span>개
                     </div>
                 </div>
                 <div class="text-right">
@@ -260,10 +271,6 @@
                         이번 달 예정
                         <span class="font-semibold"
                               th:text="${stats.thisMonthFestivals}">78</span>개
-                    </div>
-                    <div class="text-[0.7rem] text-gray-400 mt-1">
-                        데이터 최신화 :
-                        <span th:text="${stats.festivalSyncSource}">한국관광공사 API</span>
                     </div>
                 </div>
             </div>
@@ -362,7 +369,7 @@
                     <div class="text-xs text-gray-500 mb-1">오늘 가입</div>
                     <div class="flex items-end justify-between">
                         <div class="stat-value"
-                             th:text="${stats.todaySignups}">5</div>
+                             th:text="${stats.todayJoined}">5</div>
                         <div class="trend-up"
                              th:if="${stats.todaySignupsDelta >= 0}"
                              th:text="'어제보다 +' + ${stats.todaySignupsDelta} + '명'">
@@ -374,17 +381,13 @@
                             -1명
                         </div>
                     </div>
-                    <div class="text-[0.7rem] text-gray-400 mt-1">
-                        7일 평균
-                        <span th:text="${stats.weeklyAvgSignups}">4</span>명
-                    </div>
                 </div>
 
                 <div class="card">
                     <div class="text-xs text-gray-500 mb-1">이번 주 리뷰 수</div>
                     <div class="flex items-end justify-between">
                         <div class="stat-value"
-                             th:text="${stats.weekReviews}">32</div>
+                             th:text="${stats.todayReviewCount}">32</div>
                         <div class="text-[0.7rem] text-gray-400">
                             신고된 리뷰
                             <span class="text-red-500 font-semibold"
@@ -393,7 +396,7 @@
                     </div>
                     <div class="text-[0.7rem] text-gray-400 mt-1">
                         평균 평점
-                        <span th:text="${#numbers.formatDecimal(stats.weekAvgReviewScore,1,1)}">4.3</span>점
+                        <span th:text="${#numbers.formatDecimal(stats.avgWeekScore,1,1)}">4.3</span>점
                     </div>
                 </div>
             </div>
@@ -411,10 +414,9 @@
                 <table class="w-full text-xs">
                     <thead class="border-b table-header">
                     <tr class="text-left">
-                        <th class="py-2">닉네임</th>
+                        <th class="py-2">이름</th>
                         <th class="py-2">이메일</th>
                         <th class="py-2">가입일</th>
-                        <th class="py-2 text-center">상태</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -424,17 +426,6 @@
                         <td class="py-2"
                             th:text="${#temporals.format(m.joinDate, 'yyyy-MM-dd ')}">
                             2025-11-23 21:10
-                        </td>
-                        <td class="py-2 text-center">
-                            <span class="pill">
-                                <span class="pill-dot pill-dot-green"
-                                      th:if="${m.status == 'ACTIVE'}"></span>
-                                <span class="pill-dot pill-dot-amber"
-                                      th:if="${m.status == 'SUSPENDED'}"></span>
-                                <span class="pill-dot pill-dot-red"
-                                      th:if="${m.status == 'WITHDRAWN'}"></span>
-                                <span th:text="${m.statusLabel}">정상</span>
-                            </span>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(stats.recentMembers)}">

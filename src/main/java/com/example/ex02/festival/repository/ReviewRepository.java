@@ -51,6 +51,15 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
     @Query("SELECT COALESCE(AVG(r.rating), 0) FROM ReviewEntity r")
     Double findAverageRating();
 
+    @Query("""
+           SELECT COALESCE(AVG(r.rating), 0)
+           FROM ReviewEntity r
+           WHERE r.createdAt >= :start
+             AND r.createdAt <  :end
+           """)
+    Double findAverageScoreBetween(@Param("start") LocalDateTime start,
+                                   @Param("end") LocalDateTime end);
+
     // 오늘 작성된 리뷰 수
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }

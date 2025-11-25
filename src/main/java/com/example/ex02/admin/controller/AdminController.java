@@ -81,12 +81,6 @@ public class AdminController {
                                HttpSession session,
                                Model model) {
 
-        // 관리자 권한 체크 (인터셉터 쓴다면 생략 가능)
-//        MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
-//        if (loginUser == null || !"admin".equals(loginUser.getRole())) {
-//            return "redirect:/member/login";
-//        }
-
         MemberDetailDto detail = adminService.getMemberDetail(userNo);
         model.addAttribute("detail", detail);
 
@@ -303,19 +297,6 @@ public class AdminController {
 
         // 태그 Map
         Map<Long, List<FestivalTagEntity>> tagMap = festivalService.getTagMap();
-
-        // 지도용 전체 축제 (현재 필터 조건 반영)
-//        List<FestivalEntity> mapFestivals =
-//                festivalService.getFestivalsForMap(keyword, region, tag, ongoingOnly);
-//
-//        // AI 추천 Top3
-//        Set<Long> aiFestivalNos = Collections.emptySet();
-//        if (loginUser != null) {
-//            aiFestivalNos = aiScoreAppService.getTop3FestivalNosForFilteredFestivals(
-//                    loginUser,
-//                    mapFestivals
-//            );
-//        }
 
         model.addAttribute("tagMap", tagMap);
         model.addAttribute("favoriteFestivalNos", favoriteFestivalNos);

@@ -17,6 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
+
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,11 +37,52 @@ public class AdminService {
     private final FestivalTagRepository tagRepository;
 
     public AdminDashboardDto getDashboard() {
+        // 이번주: 월요일 ~ 오늘
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
+
+        // 이번 달
+        LocalDate thisMonthStart   = today.withDayOfMonth(1);
+        LocalDate nextMonthStart = thisMonthStart.plusMonths(1);
+
+        // 지난 달
+        LocalDate lastMonthStart = thisMonthStart.minusMonths(1);
+        LocalDate lastMonthEnd = thisMonthStart.minusDays(1);
 
         long totalMembers = memberRepository.count();
-        long todayJoined = memberRepository.countByJoinDate(LocalDate.now());
+        long todayJoined = memberRepository.countByJoinDate(today);
+        long yesterdayJoined = memberRepository.countByJoinDate(yesterday);
+        long weekJoined = memberRepository.countByJoinDateBetween(weekStart, today);
         long totalFestivals = festivalRepository.count();
         long totalReviews = reviewRepository.count();
+
+        long todaySignupsDelta = todayJoined - yesterdayJoined;
+
+        // 이번 달 가입자 수
+        long thisMonthJoined =
+                memberRepository.countByJoinDateBetween(thisMonthStart, nextMonthStart.minusDays(1));
+
+        // 지난 달 가입자 수
+        long lastMonthJoined =
+                memberRepository.countByJoinDateBetween(lastMonthStart, lastMonthEnd);
+
+        // 성장률 계산: (이번달 - 지난달) / 지난달 * 100
+        Double memberGrowthRate;
+
+        if (lastMonthJoined == 0) {
+            // 지난달 0명인 경우 나눗셈 방지용 처리
+            if (thisMonthJoined == 0) {
+                memberGrowthRate = 0.0;       // 0 → 0 : 0%
+            } else {
+                memberGrowthRate = 100.0;     // 0 → N : 100%
+            }
+        } else {
+            memberGrowthRate =
+                    ((double) (thisMonthJoined - lastMonthJoined) / lastMonthJoined) * 100.0;
+        }
+
+        memberGrowthRate = Math.round(memberGrowthRate * 10) / 10.0;
 
         // 최근 회원 5명
         List<MemberSummaryDto> recentMembers = memberRepository
@@ -55,15 +98,65 @@ public class AdminService {
                 .map(FestivalSummaryDto::from)
                 .toList();
 
+        // ===== 축제 통계 =====
+        LocalDateTime now = LocalDateTime.now();
+
+        long ongoingFestivals  = festivalRepository.countOngoing(now);
+
+        LocalDate firstDay     = LocalDate.now().withDayOfMonth(1);
+        LocalDate firstNextMon = firstDay.plusMonths(1);
+        LocalDateTime monthStart = firstDay.atStartOfDay();
+        LocalDateTime nextMonthStart_ldt = firstNextMon.atStartOfDay();
+
+        // 오늘 00:00 ~ 내일 00:00
+        LocalDateTime startOfToday = today.atStartOfDay();
+        LocalDateTime startOfTomorrow = today.plusDays(1).atStartOfDay();
+
+        // 이번 주 (월요일 ~ 다음 주 월요일)
+        LocalDate weekStartDate = today.with(DayOfWeek.MONDAY);
+        LocalDate weekEndDate = weekStartDate.plusWeeks(1); // 다음 주 월요일
+
+//        LocalDateTime weekStart = weekStartDate.atStartOfDay();
+        LocalDateTime weekEnd   = weekEndDate.atStartOfDay();
+        long thisMonthFestivals =
+                festivalRepository.countThisMonth(monthStart, nextMonthStart_ldt);
+
+        long todayStartFestivals =
+                festivalRepository.countFestivalStartingToday(startOfToday, startOfTomorrow);
+
+        long todayEndFestivals =
+                festivalRepository.countFestivalEndingToday(startOfToday, startOfTomorrow);
+
+        // 이번 주 전체 기간 내에 "겹치는" 축제 개수
+        long weekFestivals =
+                festivalRepository.countFestivalsThisWeek(weekStart.atStartOfDay(), weekEnd);
+
         // ===== 리뷰 통계 =====
         Double avg = reviewRepository.findAverageRating();
         double averageRating = (avg != null) ? avg : 0.0;
 
-        LocalDate today = LocalDate.now();
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
+        LocalDateTime startOfWeek = weekStartDate.atStartOfDay();   // 이번주 시작
+        LocalDateTime endOfWeek   = weekEndDate.atStartOfDay();     // 이번주 끝
+
         long todayReviewCount =
-                reviewRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+                reviewRepository.countByCreatedAtBetween(startOfWeek, endOfWeek);
+
+        Double avgWeekScore =
+                reviewRepository.findAverageScoreBetween(startOfWeek, endOfWeek);
+
+        // 소수점 한 자리까지 반올림
+        if (avgWeekScore == null) {
+            avgWeekScore = 0.0;
+        } else {
+            avgWeekScore = Math.round(avgWeekScore * 10) / 10.0;
+        }
+
+        // 신고 리뷰 수
+//        long reportedReviewCount = reviewRepository.countByReportedTrue();
+
+
+        // 전체 즐겨찾기 수
+        long totalFavorites = favoriteRepository.count();
 
         // 즐겨찾기 TOP 조회
         FavoriteFestivalDto topFavoriteFestival;
@@ -90,12 +183,22 @@ public class AdminService {
         return AdminDashboardDto.builder()
                 .totalMembers(totalMembers)
                 .todayJoined(todayJoined)
+                .weekJoined(weekJoined)
+                .memberGrowthRate(memberGrowthRate)
+                .ongoingFestivals(ongoingFestivals)
+                .thisMonthFestivals(thisMonthFestivals)
                 .totalFestivals(totalFestivals)
                 .totalReviews(totalReviews)
                 .averageRating(averageRating)
                 .todayReviewCount(todayReviewCount)
+                .totalFavorites(totalFavorites)
+                .todaySignupsDelta(todaySignupsDelta)
+                .avgWeekScore(avgWeekScore)
                 .recentMembers(recentMembers)
                 .recentFestivals(recentFestivals)
+                .todayStartFestivals(todayStartFestivals)
+                .todayEndFestivals(todayEndFestivals)
+                .weekFestivals(weekFestivals)
                 .topFavoriteFestival(topFavoriteFestival)
                 .topList(topList)
                 .build();

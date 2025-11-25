@@ -24,6 +24,7 @@ public class AdminDashboardDto {
     // 상단 4개 카드
     private long totalMembers;
     private long todayJoined;
+    private long weekJoined;
     private long totalFestivals;
     private long totalReviews;
     private long totalFavorites;
@@ -32,7 +33,7 @@ public class AdminDashboardDto {
     private long weekSignups;
     private double memberGrowthRate;        // 지난달 대비 % (ex. 12.3, -3.2)
 
-    private long activeFestivals;           // 진행중인 축제 수
+    private long ongoingFestivals;           // 진행중인 축제 수
     private long thisMonthFestivals;
     private String festivalSyncSource;      // ex. "한국관광공사 API"
 
@@ -51,7 +52,7 @@ public class AdminDashboardDto {
     private long todaySignupsDelta;         // 어제 대비 증감
     private long weeklyAvgSignups;
     private long reportedReviewsThisWeek;
-    private double weekAvgReviewScore;
+    private double avgWeekScore;
 
     private List<MemberSummaryDto> recentMembers;
 
