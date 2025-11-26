@@ -212,6 +212,7 @@ public class MyPageService {
         return reviewPage.map(r -> {
             MypageReviewDto dto = new MypageReviewDto();
             dto.setReviewNo(r.getReviewNo());
+            dto.setFestivalNo(r.getFestival().getFestivalNo());
             dto.setFestivalTitle(r.getFestival().getTitle());
             dto.setRating(r.getRating());
             dto.setContent(r.getContent());

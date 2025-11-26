@@ -10,4 +10,5 @@ public class MypageReviewDto {
     private String content;
     private String createdAt;
     private String updatedAt;
+    private Long festivalNo;
 }

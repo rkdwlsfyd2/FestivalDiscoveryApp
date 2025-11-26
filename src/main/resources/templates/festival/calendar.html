@@ -134,17 +134,19 @@
                                   data-istoday=${day.date.equals(today)}">
 
                         <!-- 날짜 숫자 -->
-                        <div class="">
-                            <span class="text-sm font-semibold ml-2 justify-left"
+                        <div class="flex items-center  px-2">
+                            <span class="text-sm font-semibold  "
                                   th:text="${day.date.dayOfMonth}">1</span>
 
                             <!-- 축제 개수 -->
-                            <span th:if="${#lists.size(day.festivals) > 0}"
-                                  class="text-[11px] text-gradient mt-1"
-                                  th:data-date="${day.date}"
-                                  th:data-day-id="'day-' + ${day.date}">
-                                <span th:text="${#lists.size(day.festivals)}">0</span>개의 축제
-                            </span>
+                            <div class="flex-1 flex justify-center">
+                                <span th:if="${#lists.size(day.festivals) > 0}"
+                                      class="text-[11px] text-gradient "
+                                      th:data-date="${day.date}"
+                                      th:data-day-id="'day-' + ${day.date}">
+                                    <span th:text="${#lists.size(day.festivals)}">0</span>개의 축제
+                                </span>
+                            </div>
                         </div>
 
                         <!-- 즐겨찾기 축제 바 (구글 캘린더 스타일) -->
