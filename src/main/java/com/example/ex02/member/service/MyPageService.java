@@ -10,9 +10,14 @@ import com.example.ex02.festival.repository.ReviewRepository;
 import com.example.ex02.member.dto.MypageAccountDto;
 import com.example.ex02.member.dto.MypageFavoriteDto;
 import com.example.ex02.member.dto.MypageProfileDto;
+import com.example.ex02.member.dto.MypageReviewDto;
 import com.example.ex02.member.entity.MemberEntity;
 import com.example.ex02.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -197,5 +202,25 @@ public class MyPageService {
         member.setIsActive("N");
         member.setWithdrawDate(LocalDate.now());
     }
+    public Page<MypageReviewDto> getMyReviews(Long userNo, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<ReviewEntity> reviewPage =
+                reviewRepository.findByMember_UserNo(userNo, pageable);
+
+        return reviewPage.map(r -> {
+            MypageReviewDto dto = new MypageReviewDto();
+            dto.setReviewNo(r.getReviewNo());
+            dto.setFestivalTitle(r.getFestival().getTitle());
+            dto.setRating(r.getRating());
+            dto.setContent(r.getContent());
+            dto.setCreatedAt(r.getCreatedAt().toString());
+            dto.setUpdatedAt(r.getUpdatedAt() != null ? r.getUpdatedAt().toString() : null);
+            return dto;
+        });
+
+    }
+
 
 }

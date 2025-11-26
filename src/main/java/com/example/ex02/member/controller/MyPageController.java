@@ -11,6 +11,7 @@ import com.example.ex02.member.service.MemberService;
 import com.example.ex02.member.service.MyPageService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -127,20 +128,26 @@ public class MyPageController {
         return "mypage/mypage-favorites";
     }
 
-    /* ------------------------------
-       리뷰 목록
-    ------------------------------ */
+    /* 리뷰 목록 (페이징 적용) */
     @GetMapping("/reviews")
-    public String reviews(HttpSession session, Model model) {
+    public String reviews(HttpSession session,
+                          @RequestParam(defaultValue = "0") int page,
+                          Model model) {
 
         Long userNo = getLoginUserNo(session);
         if (userNo == null) return "redirect:/login";
 
-        model.addAttribute("reviews",
-                myPageService.getReviewList(userNo));
+        // 10개씩 페이징
+        Page<MypageReviewDto> reviewPage =
+                myPageService.getMyReviews(userNo, page, 10);
+
+        model.addAttribute("reviews", reviewPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", reviewPage.getTotalPages());
 
         return "mypage/reviews";
     }
+
 
     /* ------------------------------
        리뷰 수정
@@ -188,4 +195,5 @@ public class MyPageController {
 
         return "redirect:/mypage/favorites";
     }
+
 }

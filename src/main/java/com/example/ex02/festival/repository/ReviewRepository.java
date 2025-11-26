@@ -62,4 +62,7 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
 
     // 오늘 작성된 리뷰 수
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    Page<ReviewEntity> findByMember_UserNo(Long userNo, Pageable pageable);
+
 }

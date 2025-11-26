@@ -12,7 +12,6 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* 빈 별 */
         .star-empty::before {
             content: '★';
             position: absolute;
@@ -36,7 +35,6 @@
             font-size: inherit;
         }
 
-        /* 기본 회색 */
         .star::before {
             content: '★';
             position: absolute;
@@ -45,12 +43,10 @@
             color: #e5e7eb;
         }
 
-        /* 가득 찬 별 */
         .star-full::before {
             color: #fbbf24;
         }
 
-        /* 반별 */
         .star-half::before {
             color: #e5e7eb;
         }
@@ -100,7 +96,7 @@
 
                         <!-- 상단: 제목 + 버튼 -->
                         <div class="flex justify-between items-center mb-3">
-                            <div class="text-2xl font-bold text-main" th:text="${r.festival.title}">축제명</div>
+                            <div class="text-2xl font-bold text-main" th:text="${r.festivalTitle}">축제명</div>
 
                             <div class="flex gap-3">
                                 <button class="px-4 py-2 text-white rounded-md bg-gradient-to-br from-[#6B96FC] to-[#4A80FA]"
@@ -129,13 +125,38 @@
 
                         <!-- 날짜 -->
                         <p class="text-gray-500 text-sm"
-						   th:if="${r.updatedAt == null}"
-						   th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
-						<p class="text-gray-500 text-sm"
-						   th:if="${r.updatedAt != null}"
-						   th:text="${#temporals.format(r.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
+                           th:if="${r.updatedAt == null}"
+                           th:text="${r.createdAt}"></p>
+                        <p class="text-gray-500 text-sm"
+                           th:if="${r.updatedAt != null}"
+                           th:text="${r.updatedAt}"></p>
+
                     </div>
                     <!-- 반복문 끝 -->
+
+                    <!-- 페이징 -->
+                    <div class="mt-10 flex justify-center items-center space-x-2">
+
+                        <!-- 이전 -->
+                        <a th:if="${currentPage > 0}"
+                           th:href="@{/mypage/reviews(page=${currentPage - 1})}"
+                           class="px-4 py-2 bg-gray-200 rounded-md">이전</a>
+
+                        <!-- 페이지 번호 -->
+                        <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                            <a th:href="@{/mypage/reviews(page=${i})}"
+                               th:text="${i + 1}"
+                               th:classappend="${i == currentPage} ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                               class="px-3 py-2 rounded-md mx-1">
+                            </a>
+                        </span>
+
+                        <!-- 다음 -->
+                        <a th:if="${currentPage < totalPages - 1}"
+                           th:href="@{/mypage/reviews(page=${currentPage + 1})}"
+                           class="px-4 py-2 bg-gray-200 rounded-md">다음</a>
+
+                    </div>
 
                 </div>
 
