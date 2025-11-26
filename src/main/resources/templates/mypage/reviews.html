@@ -102,7 +102,7 @@
 
                         <!-- 상단: 제목 + 버튼 -->
                         <div class="flex justify-between items-center mb-3">
-                            <div class="text-2xl font-bold text-main" th:text="${r.festivalTitle}">축제명</div>
+                            <a class="text-2xl font-bold text-main" th:text="${r.festivalTitle}" th:href="@{/festivals/detail(festivalNo=${r.})}">축제명</a>
 
                             <div class="flex gap-3">
                                 <button class="px-4 py-2 text-white rounded-md bg-gradient-to-br from-[#6B96FC] to-[#4A80FA]"
@@ -132,10 +132,10 @@
                         <!-- 날짜 -->
                         <p class="text-gray-500 text-sm"
                            th:if="${r.updatedAt == null}"
-                           th:text="${r.createdAt}"></p>
+                           th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
                         <p class="text-gray-500 text-sm"
                            th:if="${r.updatedAt != null}"
-                           th:text="${r.updatedAt}"></p>
+                           th:text="${#temporals.format(r.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
 
                     </div>
                     <!-- 반복문 끝 -->
