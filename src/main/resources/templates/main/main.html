@@ -1,295 +1,341 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      lang="ko"
-      layout:decorate="common/mylayout">
-<body>
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  lang="ko"
+	  layout:decorate="common/mylayout">
+	<body>
 
-<th:block layout:fragment="css">
-    <style>
-        @keyframes fadeSlideIn {
-            0% {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+		<th:block layout:fragment="css">
+			<style>
+				@keyframes fadeSlideIn {
+					0% {
+						opacity: 0;
+						transform: translateY(-30px);
+					}
+					100% {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
 
-        .fade-slide {
-            opacity: 0;
-            animation: fadeSlideIn 0.8s ease-out forwards;
-        }
+				.fade-slide {
+					opacity: 0;
+					animation: fadeSlideIn 0.8s ease-out forwards;
+				}
 
-        .fade-up-start {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
-        }
+				.fade-up-start {
+					opacity: 0;
+					transform: translateY(30px);
+					transition: all 0.8s ease-out;
+				}
 
-        .fade-up-active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+				.fade-up-active {
+					opacity: 1;
+					transform: translateY(0);
+				}
 
-        .soft-float {
-            animation: softFloat 6s ease-in-out infinite;
-        }
+				.soft-float {
+					animation: softFloat 6s ease-in-out infinite;
+				}
 
-        @keyframes softFloat {
-            0%   { transform: translateY(0); }
-            50%  { transform: translateY(-6px); } /* 너무 크면 어색함 */
-            100% { transform: translateY(0); }
-        }
+				@keyframes softFloat {
+					0%   { transform: translateY(0); }
+					50%  { transform: translateY(-6px); } /* 너무 크면 어색함 */
+					100% { transform: translateY(0); }
+				}
 
-        .wave-delay-1 { animation-delay: 0s; }
-        .wave-delay-2 { animation-delay: 1.5s; }
-        .wave-delay-3 { animation-delay: 3s; }
-        .wave-delay-4 { animation-delay: 4.5s; }
-        .wave-delay-5 { animation-delay: 6s; }
+				.wave-delay-1 { animation-delay: 0s; }
+				.wave-delay-2 { animation-delay: 1.5s; }
+				.wave-delay-3 { animation-delay: 3s; }
+				.wave-delay-4 { animation-delay: 4.5s; }
+				.wave-delay-5 { animation-delay: 6s; }
 
-        @keyframes slideInLeft {
-            0% {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
+				@keyframes slideInLeft {
+					0% {
+						opacity: 0;
+						transform: translateX(-50px);
+					}
+					100% {
+						opacity: 1;
+						transform: translateX(0);
+					}
+				}
 
-        @keyframes slideInRight {
-            0% {
-                opacity: 0;
-                transform: translateX(50px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
+				@keyframes slideInRight {
+					0% {
+						opacity: 0;
+						transform: translateX(50px);
+					}
+					100% {
+						opacity: 1;
+						transform: translateX(0);
+					}
+				}
 
-        /* 초기 상태 - 투명 + 이동된 상태 */
-        .slide-left, .slide-right {
-            opacity: 0;
-        }
+				/* 초기 상태 - 투명 + 이동된 상태 */
+				.slide-left, .slide-right {
+					opacity: 0;
+				}
 
-        .slide-left {
-            transform: translateX(-50px);
-        }
+				.slide-left {
+					transform: translateX(-50px);
+				}
 
-        .slide-right {
-            transform: translateX(50px);
-        }
+				.slide-right {
+					transform: translateX(50px);
+				}
 
-        /* 화면에 들어왔을 때 실행될 애니메이션 */
-        .slide-active-left {
-            animation: slideInLeft 2s ease-out forwards;
-        }
+				/* 화면에 들어왔을 때 실행될 애니메이션 */
+				.slide-active-left {
+					animation: slideInLeft 2s ease-out forwards;
+				}
 
-        .slide-active-right {
-            animation: slideInRight 2s ease-out forwards;
-        }
+				.slide-active-right {
+					animation: slideInRight 2s ease-out forwards;
+				}
 
-        .scale-container {
-            width: 100%;
-            max-width: 1440px;
-            transform-origin: top center;
-            margin: 0 auto;
-        }
-        .scale-container-2 {
-            width: 100%;
-            max-width: 1440px;
-            transform-origin: top center;
-            margin: 0 auto;
-        }
-        @media (min-width: 1440px) {
-            .scale-container {
-                transform: scale(1);
-            }
-        }
-    </style>
-</th:block>
+				.scale-container {
+					width: 100%;
+					max-width: 1440px;
+					transform-origin: top center;
+					margin: 0 auto;
+				}
+				.scale-container-2 {
+					width: 100%;
+					max-width: 1440px;
+					transform-origin: top center;
+					margin: 0 auto;
+				}
+				@media (min-width: 1440px) {
+					.scale-container {
+						transform: scale(1);
+					}
+				}
 
-<section layout:fragment="content" class="relative z-50">   <!-- ★ 핵심: 배경보다 위로 -->
-    <main class="flex flex-col items-center justify-center">
-        <img th:src="@{/img/mainpage/main1.png}" class="w-full max-w-full pt-20"/>
+				#main-content-wrapper {
+					position: relative;
+				}
+				#main-content-wrapper::before {
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0; /* 이 부분은 유지해도 되지만, 핵심은 box-shadow 값입니다. */
+					z-index: 0;
+					pointer-events: none;
 
-        <div id="main-content-wrapper" class="relative w-full flex flex-col items-center mt-20 mb-20 overflow-x-hidden overflow-y-hidden">
-            <div id="scale-container" class="scale-container">
-                <h1 class="text-[50px] mt-20 font-black mb-10 text-center">
-                    당신만을 위한 기능들이 준비되어 있습니다.
-                </h1>
+					box-shadow: inset 0 20px 20px -20px rgba(0, 0, 0, 0.3);
+				}
+			</style>
+		</th:block>
 
-                <div class="w-full flex flex-col items-center">
-                    <div class="flex justify-center gap-10 w-full mb-6">
-                        <img th:src="@{/img/mainpage/main_asset1.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-1">
-                        <img th:src="@{/img/mainpage/main_asset2.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-2">
-                        <img th:src="@{/img/mainpage/main_asset3.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-3">
-                    </div>
+		<section layout:fragment="content" class="relative z-50">
+			<main class="flex flex-col items-center justify-center">
 
-                    <div class="flex justify-center w-full gap-10">
-                        <img th:src="@{/img/mainpage/main_asset4.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-4">
-                        <img th:src="@{/img/mainpage/main_asset5.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-5">
-                    </div>
-                </div>
-            </div>
-        </div>
+				<!-- A.실사용 영상 + 간단한 제목글 -->
+				<div class="relative w-full flex flex-col items-center py-20 mt-20 mb-20">
+					<div class="scale-container w-full flex justify-between items-center px-4 md:px-0">
 
-        <div id="second-content-wrapper" class="bg-[#F8F8F8] relative w-full flex flex-col items-center pb-20 overflow-x-hidden overflow-y-hidden">
-            <div id="scale-container-2" class="scale-container-2">
-                <h1 class="text-[50px] mt-20 font-black mb-10 text-center">
-                    개인화 데이터를 활용한 머신러닝 기반 축제 맞춤 시스템
-                </h1>
-                <div class="w-full flex flex-col gap-6 mx-auto">
-                    <div class="flex justify-start w-full mb-6 gap-10 px-20 flex-nowrap">
-                        <img th:src="@{/img/mainpage/main_asset6.png}" class="h-auto object-contain slide-left observer-slide">
-                        <img th:src="@{/img/mainpage/main_asset7.png}" class="h-auto object-contain slide-left observer-slide">
-                    </div>
-                    <div class="flex justify-end w-full gap-10 px-20 flex-nowrap">
-                        <img th:src="@{/img/mainpage/main_asset9.png}" class="h-auto object-contain slide-right observer-slide">
-                        <img th:src="@{/img/mainpage/main_asset8.png}" class="h-auto object-contain slide-right observer-slide">
-                    </div>
-                    <div class="flex justify-start w-full ml-10 mb-6 gap-10 px-20 flex-nowrap">
-                        <img th:src="@{/img/mainpage/main_asset10.png}" class="h-auto object-contain slide-left observer-slide">
-                        <img th:src="@{/img/mainpage/main_asset11.png}" class="h-auto object-contain slide-left observer-slide">
-                    </div>
-                </div>
-            </div>
+						<div class="w-1/2 flex flex-col justify-center p-8">
+							<!-- ⬇⬇ 여기에 이미지 추가됨 ⬇⬇ -->
+							<img th:src="@{/img/mainpage/mainlogo_1.png}"
+								 class="w-[667px] h-[137px] mb-6 drop-shadow-lg">
 
-        </div>
-    </main>
+							<h2 class="text-6xl font-extrabold leading-tight mb-4">
+								당신의 취향에 딱 맞는 <br>
+								축제를 추천 받아보세요!
+							</h2>
+							<p class="text-xl text-gray-600 mt-4">
+								개인화된 데이터를 기반으로, 숨겨진 보석 같은 축제들을 <br>
+								한눈에 쉽고 빠르게 추천받아보세요.
+							</p>
 
-    <div class="relative w-full flex flex-col items-center justify-center py-20 h-[600px]">
-        <!-- 배경 이미지 -->
-        <div class="absolute inset-0">
-            <img th:src="@{/img/mainpage/지도맵.png}"
-                 class="w-full h-full object-cover opacity-30" /> <!-- opacity로 투명도 조절 -->
-        </div>
+						</div>
 
-        <!-- 문구 -->
-        <div class="text-center mt-20 mb-10 relative z-50">
-            <h2 class="text-4xl font-extrabold text-gradient">
-                오늘은 어떤 축제를 추천받아보시겠어요?
-            </h2>
-        </div>
+						<div class="w-1/2 flex justify-center items-center p-8">
+							<div class="w-full aspect-video bg-gray-200 rounded-xl shadow-md flex items-center justify-center text-gray-500 text-2xl font-bold">
+								[실사용 영상 영역 - Video Player 삽입 예정]
+							</div>
+						</div>
 
-        <!-- 버튼 -->
-        <div class="flex justify-center mt-4 relative z-50">
-            <a href="/festivals/festivalMap"
-               class="bg-gradient text-white text-2xl py-4 px-10 rounded-xl shadow-md
+					</div>
+				</div>
+
+				<!-- B.기능 설명 -->
+				<div id="main-content-wrapper"
+					 class="relative w-full flex flex-col items-center mb-20 overflow-x-hidden overflow-y-hidden">
+					<div id="scale-container" class="scale-container relative z-10">
+						<h1 class="text-[50px] mt-20 font-black mb-10 text-center">
+							당신만을 위한 기능들이 준비되어 있습니다.
+						</h1>
+						<div class="w-full flex flex-col items-center">
+							<div class="flex justify-center gap-10 w-full mb-6">
+								<img th:src="@{/img/mainpage/main_asset1.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-1">
+								<img th:src="@{/img/mainpage/main_asset2.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-2">
+								<img th:src="@{/img/mainpage/main_asset3.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-3">
+							</div>
+							<div class="flex justify-center w-full gap-10">
+								<img th:src="@{/img/mainpage/main_asset4.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-4">
+								<img th:src="@{/img/mainpage/main_asset5.png}" class="h-auto object-contain fade-up-start soft-float wave-delay-5">
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- C.머신러닝 설명 -->
+				<div id="second-content-wrapper" class="bg-[#F8F8F8] relative w-full flex flex-col items-center pb-20 overflow-x-hidden overflow-y-hidden">
+					<div id="scale-container-2" class="scale-container-2">
+						<h1 class="text-[50px] mt-20 font-black mb-10 text-center">
+							개인화 데이터를 활용한 머신러닝 기반 축제 맞춤 시스템
+						</h1>
+						<div class="w-full flex flex-col gap-6 mx-auto">
+							<div class="flex justify-start w-full mb-6 gap-10 px-20 flex-nowrap">
+								<img th:src="@{/img/mainpage/main_asset6.png}" class="h-auto object-contain slide-left observer-slide">
+								<img th:src="@{/img/mainpage/main_asset7.png}" class="h-auto object-contain slide-left observer-slide">
+							</div>
+							<div class="flex justify-end w-full gap-10 px-20 flex-nowrap">
+								<img th:src="@{/img/mainpage/main_asset9.png}" class="h-auto object-contain slide-right observer-slide">
+								<img th:src="@{/img/mainpage/main_asset8.png}" class="h-auto object-contain slide-right observer-slide">
+							</div>
+							<div class="flex justify-start w-full ml-10 mb-6 gap-10 px-20 flex-nowrap">
+								<img th:src="@{/img/mainpage/main_asset10.png}" class="h-auto object-contain slide-left observer-slide">
+								<img th:src="@{/img/mainpage/main_asset11.png}" class="h-auto object-contain slide-left observer-slide">
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</main>
+
+			<!-- D.축제 둘러보기 -->
+			<div class="relative w-full flex flex-col items-center justify-center py-20 h-[600px]">
+				<!-- 배경 이미지 -->
+				<div class="absolute inset-0">
+					<img th:src="@{/img/mainpage/지도맵.png}"
+						 class="w-full h-full object-cover opacity-30" /> <!-- opacity로 투명도 조절 -->
+				</div>
+
+				<!-- 문구 -->
+				<div class="text-center mt-20 mb-10 relative z-50">
+					<h2 class="text-4xl font-extrabold text-gradient">
+						오늘은 어떤 축제를 추천받아보시겠어요?
+					</h2>
+				</div>
+
+				<!-- 버튼 -->
+				<div class="flex justify-center mt-4 relative z-50">
+					<a href="/festivals/festivalMap"
+					   class="bg-gradient text-white text-2xl py-4 px-10 rounded-xl shadow-md
               transition-all duration-300 ease-in-out
               hover:bg-gradient2 hover:scale-95">
-                축제 둘러보기
-            </a>
-        </div>
-    </div>
+						축제 둘러보기
+					</a>
+				</div>
+			</div>
 
-</section>
+		</section>
 
-</body>
+	</body>
 
-<th:block layout:fragment="script">
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
+	<th:block layout:fragment="script">
+		<script>
+			document.addEventListener("DOMContentLoaded", () => {
 
-            const targets = document.querySelectorAll(".fade-up-start");
-            const observer = new IntersectionObserver((entries, obs) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const index = [...targets].indexOf(entry.target);
+				const targets = document.querySelectorAll(".fade-up-start");
+				const observer = new IntersectionObserver((entries, obs) => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							const index = [...targets].indexOf(entry.target);
 
-                        // 순차 딜레이 적용 (index * 150ms)
-                        entry.target.style.transitionDelay = `${index * 150}ms`;
+							// 순차 딜레이 적용 (index * 150ms)
+							entry.target.style.transitionDelay = `${index * 150}ms`;
 
-                        entry.target.classList.add("fade-up-active");
+							entry.target.classList.add("fade-up-active");
 
-                        obs.unobserve(entry.target);
-                    }
-                });
-            }, {threshold: 0.2});
-            targets.forEach(target => observer.observe(target));
+							obs.unobserve(entry.target);
+						}
+					});
+				}, {threshold: 0.2});
+				targets.forEach(target => observer.observe(target));
 
-            const slideTargets = document.querySelectorAll(".observer-slide");
-            const slideObserver = new IntersectionObserver((entries, obs) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        // 현재 관찰 대상이 slideTargets 중 몇 번째인지 확인
-                        const index = [...slideTargets].indexOf(entry.target);
+				const slideTargets = document.querySelectorAll(".observer-slide");
+				const slideObserver = new IntersectionObserver((entries, obs) => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							// 현재 관찰 대상이 slideTargets 중 몇 번째인지 확인
+							const index = [...slideTargets].indexOf(entry.target);
 
-                        // 순차 딜레이 적용 (예: index * 200ms)
-                        entry.target.style.animationDelay = `${index * 200}ms`; // 애니메이션 딜레이 적용!
+							// 순차 딜레이 적용 (예: index * 200ms)
+							entry.target.style.animationDelay = `${index * 200}ms`; // 애니메이션 딜레이 적용!
 
-                        if (entry.target.classList.contains("slide-left")) {
-                            entry.target.classList.add("slide-active-left");
-                        }
-                        if (entry.target.classList.contains("slide-right")) {
-                            entry.target.classList.add("slide-active-right");
-                        }
+							if (entry.target.classList.contains("slide-left")) {
+								entry.target.classList.add("slide-active-left");
+							}
+							if (entry.target.classList.contains("slide-right")) {
+								entry.target.classList.add("slide-active-right");
+							}
 
-                        obs.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.2 });
-            slideTargets.forEach(t => slideObserver.observe(t));
+							obs.unobserve(entry.target);
+						}
+					});
+				}, { threshold: 0.2 });
+				slideTargets.forEach(t => slideObserver.observe(t));
 
-            // 첫 번째 섹션 (Asset 1~5) 로직
-            const scaleContainer = document.getElementById('scale-container');
-            const wrapper = document.getElementById('main-content-wrapper');
-            const baseWidth = 1440;
+				// 첫 번째 섹션 (Asset 1~5) 로직
+				const scaleContainer = document.getElementById('scale-container');
+				const wrapper = document.getElementById('main-content-wrapper');
+				const baseWidth = 1440;
 
-            function adjustScale(container, wrapper) {
-                let currentWidth = window.innerWidth;
-                let scaleFactor = 1;
+				function adjustScale(container, wrapper) {
+					let currentWidth = window.innerWidth;
+					let scaleFactor = 1;
 
-                if (currentWidth < baseWidth) {
-                    scaleFactor = currentWidth / baseWidth;
-                } else {
-                    scaleFactor = 1;
-                }
+					if (currentWidth < baseWidth) {
+						scaleFactor = currentWidth / baseWidth;
+					} else {
+						scaleFactor = 1;
+					}
 
-                // 1. transform을 일시적으로 1로 설정하여 원래 높이를 정확히 측정
-                container.style.transform = 'scale(1)';
-                // 💡 scrollHeight 대신 getBoundingClientRect().height를 사용하여
-                // Border/Padding이 포함된 실제 레이아웃 높이를 얻는 것이 더 안전합니다.
-                const originalHeight = container.getBoundingClientRect().height;
+					// 1. transform을 일시적으로 1로 설정하여 원래 높이를 정확히 측정
+					container.style.transform = 'scale(1)';
+					// 💡 scrollHeight 대신 getBoundingClientRect().height를 사용하여
+					// Border/Padding이 포함된 실제 레이아웃 높이를 얻는 것이 더 안전합니다.
+					const originalHeight = container.getBoundingClientRect().height;
 
-                // 2. 부모(Wrapper)의 높이를 '원래 높이 * 축소 비율'로 조정
-                const newHeight = originalHeight * scaleFactor;
-                wrapper.style.height = `${newHeight}px`;
+					// 2. 부모(Wrapper)의 높이를 '원래 높이 * 축소 비율'로 조정
+					const newHeight = originalHeight * scaleFactor;
+					wrapper.style.height = `${newHeight}px`;
 
-                // 3. 계산된 축소 비율을 다시 적용
-                container.style.transform = `scale(${scaleFactor})`;
-            }
+					// 3. 계산된 축소 비율을 다시 적용
+					container.style.transform = `scale(${scaleFactor})`;
+				}
 
-            // ==========================================================
-            // 두 번째 섹션 (Asset 6~11) 로직
-            const scaleContainer2 = document.getElementById('scale-container-2');
-            const wrapper2 = document.getElementById('second-content-wrapper');
+				// ==========================================================
+				// 두 번째 섹션 (Asset 6~11) 로직
+				const scaleContainer2 = document.getElementById('scale-container-2');
+				const wrapper2 = document.getElementById('second-content-wrapper');
 
-            function handleAllScaling() {
-                // 두 섹션 모두 동일한 함수 호출
-                if (scaleContainer && wrapper) {
-                    adjustScale(scaleContainer, wrapper);
-                }
-                if (scaleContainer2 && wrapper2) {
-                    adjustScale(scaleContainer2, wrapper2);
-                }
-            }
+				function handleAllScaling() {
+					// 두 섹션 모두 동일한 함수 호출
+					if (scaleContainer && wrapper) {
+						adjustScale(scaleContainer, wrapper);
+					}
+					if (scaleContainer2 && wrapper2) {
+						adjustScale(scaleContainer2, wrapper2);
+					}
+				}
 
-            // 기존 adjustScale, adjustScale2 대신 handleAllScaling을 호출합니다.
-            handleAllScaling();
+				// 기존 adjustScale, adjustScale2 대신 handleAllScaling을 호출합니다.
+				handleAllScaling();
 
-            window.addEventListener('resize', handleAllScaling);
+				window.addEventListener('resize', handleAllScaling);
 
-            // 이미지 로드 후 최종적으로 다시 조정
-            window.addEventListener('load', handleAllScaling);
-        });
-    </script>
-</th:block>
+				// 이미지 로드 후 최종적으로 다시 조정
+				window.addEventListener('load', handleAllScaling);
+			});
+		</script>
+	</th:block>
 
 </html>
 
