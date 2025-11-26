@@ -1022,7 +1022,11 @@
 					<div th:if="${loginUser == null}"
 						 class="text-subtext"
 						 style="margin-top: 8px;">
-						리뷰 작성을 위해 <a th:href="@{/login}" style="color: cornflowerblue">로그인</a>하세요
+						리뷰 작성을 위해
+						<a th:with="redirectUrl=@{/festivals/detail(festivalNo=${festival.festivalNo})}"
+						   th:href="@{/login(redirectUrl=${redirectUrl})}" style="color: cornflowerblue">
+							로그인
+						</a>하세요
 					</div>
 				</div>
 
