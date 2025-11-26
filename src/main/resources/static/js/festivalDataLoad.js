@@ -108,6 +108,16 @@ function updateFestivalList(page = 0,
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
+    // "현재 진행중인 축제만 보기" 체크박스 전역 핸들러
+    document.addEventListener("change", function (e) {
+        // id가 ongoingOnlyCheckbox인 input에서 발생한 change만 처리
+        if (e.target && e.target.id === "ongoingOnlyCheckbox") {
+            // 페이지는 0으로 리셋해서 다시 조회
+            updateFestivalList(0);
+        }
+    });
+
+
 }
 
 
