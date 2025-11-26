@@ -102,7 +102,7 @@
 
                         <!-- 상단: 제목 + 버튼 -->
                         <div class="flex justify-between items-center mb-3">
-                            <a class="text-2xl font-bold text-main" th:text="${r.festivalTitle}" th:href="@{/festivals/detail(festivalNo=${r.})}">축제명</a>
+                            <div class="text-2xl font-bold text-main" th:text="${r.festivalTitle}">축제명</div>
 
                             <div class="flex gap-3">
                                 <button class="px-4 py-2 text-white rounded-md bg-gradient-to-br from-[#6B96FC] to-[#4A80FA]"
