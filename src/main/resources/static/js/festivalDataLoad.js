@@ -72,36 +72,42 @@ function updateFestivalList(page = 0,
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
 
-            // 새 DOM 조각에서 필요한 부분 꺼내기
-            const newItems      = doc.querySelector(".festival-items");
-            const newPagination = doc.querySelector("#pagination");
-            const newMarkers    = doc.querySelector("#allFestivalMarkers");
+            // 새 fragment 루트와 기존 루트 찾기
+            const newRoot = doc.querySelector("#festivalListRoot");
+            const oldRoot = document.querySelector("#festivalListRoot");
 
-            // 1) 리스트 카드 교체
-            if (items && newItems) {
-                items.replaceWith(newItems);
+            if (newRoot && oldRoot) {
+                oldRoot.replaceWith(newRoot);
+            } else {
+                console.warn("festivalListRoot를 찾을 수 없습니다.", { newRoot, oldRoot });
             }
 
-            // 2) 페이지네이션 교체
-            if (pagination && newPagination) {
-                pagination.replaceWith(newPagination);
-            }
-
-            // 3) 지도용 마커 카드들 교체 (전체 축제 필터링 반영)
-            if (markers && newMarkers) {
-                markers.replaceWith(newMarkers);
-            }
-
-            // 4) 지도 마커 다시 그리기
-            //    - updateMarkers=true 인 경우(검색/필터 변경 시)에만
+            // 지도 마커 다시 그리기
             if (updateMarkers && typeof window.updateKakaoMarkersFromDom === "function") {
-                // keepBounds 옵션은 취향에 맞게 true/false 조정 가능
                 window.updateKakaoMarkersFromDom({ keepBounds: true });
             }
         })
         .finally(() => {
-            removeLoadingOverlay(); // 요청 완료 시 오버레이 제거
+            removeLoadingOverlay();
         });
+
+    // 페이지네이션 전역 이벤트 위임
+    document.addEventListener("click", function (e) {
+        // .page-btn 또는 그 안쪽을 클릭했을 때만 동작
+        const btn = e.target.closest("#pagination .page-btn");
+        if (!btn) return;  // 페이지네이션이 아니면 무시
+
+        e.preventDefault();
+
+        const page = parseInt(btn.dataset.page, 10) || 0;
+
+        // 필터 상태는 updateFestivalList 안에서 다시 읽어가니까 page만 넘겨도 됨
+        updateFestivalList(page);
+
+        // 필요하면 스크롤 맨 위로
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
 }
 
 

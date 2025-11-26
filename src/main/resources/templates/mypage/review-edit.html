@@ -7,120 +7,203 @@
 
 
 
-<th:block layout:fragment="css">
-    <style>
-        /* ========= 별점 공통 스타일 (마이페이지 리뷰와 동일) ========= */
-        .star-rating {
-            display: inline-flex;
-            line-height: 1;
-            font-size: 22px;
-        }
+	<th:block layout:fragment="css">
+		<style>
+			/* ========= 별점 공통 스타일 (축제 상세와 동일) ========= */
 
-        .star {
-            position: relative;
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            margin-right: 3px;
-            cursor: pointer;
-        }
+			/* 공통: 별 컨테이너 */
+			.star-rating {
+				display: inline-flex;
+				line-height: 1;
+			}
 
-        /* 기본 회색 별 */
-        .star::before {
-            content: '★';
-            position: absolute;
-            left: 0;
-            top: 0;
-            color: #e5e7eb;
-        }
+			/* 공통: 별 한 개 */
+			.star {
+				position: relative;
+				display: inline-block;
+				width: 1em;
+				height: 1em;
+				margin-right: 1px;
+			}
 
-        /* 가득 찬 별 */
-        .star-full::before {
-            color: #fbbf24;
-        }
+			/* 기본: 빈 별(회색) */
+			.star::before {
+				content: '★';
+				position: absolute;
+				left: 0;
+				top: 0;
+				color: #e5e7eb;
+			}
 
-        /* 반 별 */
-        .star-half::before {
-            color: #e5e7eb;
-        }
-        .star-half::after {
-            content: '★';
-            position: absolute;
-            left: 0;
-            top: 0;
-            color: #fbbf24;
-            width: 70%;
-            overflow: hidden;
-            clip-path: inset(0 30% 0 0);
-        }
+			/* 꽉 찬 별 */
+			.star-full::before {
+				color: #fbbf24;
+			}
 
-        /* 빈 별 */
-        .star-empty::before {
-            color: #e5e7eb;
-        }
-    </style>
-</th:block>
-<th:block layout:fragment="script">
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ratingBox = document.getElementById('ratingBox');
-            const ratingInput = document.getElementById('ratingInput');
-            const ratingValueText = document.getElementById('ratingValueText');
+			/* 반 별: 회색 + 노란색 절반 */
+			.star-half::before {
+				color: #e5e7eb;
+			}
+			.star-half::after {
+				content: '★';
+				position: absolute;
+				left: 0;
+				top: 0;
+				color: #fbbf24;
+				width: 70%;
+				overflow: hidden;
+				clip-path: inset(0 30% 0 0);
+			}
 
-            const stars = ratingBox.querySelectorAll('.star');
-            let currentRating = parseFloat(ratingInput.value || '0') || 0;
+			/* 빈 별 */
+			.star-empty::before {
+				color: #e5e7eb;
+			}
 
-            /* 별 색칠 함수 */
-            function paintStars(rating) {
-                stars.forEach(star => {
-                    const i = Number(star.getAttribute('data-index'));
-                    star.classList.remove('star-full', 'star-half', 'star-empty');
+			/* 목록(이미 작성된 리뷰)에서 쓰는 별 크기 */
+			.star-rating--list {
+				font-size: 18px;
+			}
 
-                    if (rating >= i) {
-                        star.classList.add('star-full');
-                    } else if (rating >= i - 0.5) {
-                        star.classList.add('star-half');
-                    } else {
-                        star.classList.add('star-empty');
-                    }
-                });
+			/* 리뷰 작성/수정 폼에서 쓰는 별 크기 (좀 더 크게) */
+			.star-rating--input {
+				font-size: 22px;
+			}
 
-                if (rating > 0) ratingValueText.textContent = rating.toFixed(1) + '점';
-                else ratingValueText.textContent = '';
-            }
+			/* 입력용 별은 마우스 포인터 표시 */
+			#ratingBox .star {
+				cursor: pointer;
+			}
 
-            /* 마우스로 반별 또는 전체 별 계산 */
-            function calcRatingFromEvent(star, e) {
-                const index = Number(star.getAttribute('data-index'));
-                const rect = star.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const half = rect.width / 2;
+			/* 점수 텍스트 (선택) */
+			.rating-value {
+				font-size: 14px;
+				color: #555555;
+			}
+		</style>
+	</th:block>
 
-                return (x <= half) ? (index - 0.5) : index;
-            }
+	<th:block layout:fragment="script">
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
 
-            /* 이벤트 설정 */
-            stars.forEach(star => {
-                star.addEventListener('mousemove', e => {
-                    paintStars(calcRatingFromEvent(star, e));
-                });
+				// ===== 리뷰 별점 입력 (hover + 0.5 단위) =====
+				const ratingBox       = document.getElementById('ratingBox');       // 별 5개 컨테이너
+				const ratingInput     = document.getElementById('ratingInput');     // hidden input
+				const ratingValueText = document.getElementById('ratingValueText'); // "4.5점" 표시용
 
-                star.addEventListener('click', e => {
-                    const newRating = calcRatingFromEvent(star, e);
-                    currentRating = newRating;
-                    ratingInput.value = newRating;
-                    paintStars(newRating);
-                });
-            });
+				if (ratingBox && ratingInput) {
+					const stars = ratingBox.querySelectorAll('.star');
+					let currentRating = parseFloat(ratingInput.value || '0') || 0;
 
-            ratingBox.addEventListener('mouseleave', () => {
-                paintStars(currentRating);
-            });
+					function paintStars(rating) {
+						stars.forEach(star => {
+							const i = Number(star.getAttribute('data-index')); // 1~5
+							star.classList.remove('star-full', 'star-half', 'star-empty');
 
-            paintStars(currentRating);
-        });
-    </script>
-</th:block>
+							if (rating >= i) {
+								star.classList.add('star-full');
+							} else if (rating >= i - 0.5) {
+								star.classList.add('star-half');
+							} else {
+								star.classList.add('star-empty');
+							}
+						});
+
+						if (ratingValueText) {
+							if (rating <= 0) {
+								ratingValueText.textContent = '';
+								return;
+							}
+
+							let msg = '';
+							if (rating >= 4.5)      msg = '아주 좋아요 👍';
+							else if (rating >= 3.5) msg = '좋아요 🙂';
+							else if (rating >= 2.5) msg = '보통이에요 😐';
+							else                    msg = '조금 아쉬워요 😢';
+
+							ratingValueText.textContent = `${msg} (${rating.toFixed(1)}점)`;
+						}
+					}
+
+					function calcRatingFromEvent(star, event) {
+						const index = Number(star.getAttribute('data-index'));
+						const rect  = star.getBoundingClientRect();
+						const x     = event.clientX - rect.left;
+						const half  = rect.width / 2;
+
+						return (x <= half) ? (index - 0.5) : index;
+					}
+
+					// 초기 표시 (기존 리뷰 점수 표시)
+					paintStars(currentRating);
+
+					stars.forEach(star => {
+						star.addEventListener('mousemove', e => {
+							const hoverRating = calcRatingFromEvent(star, e);
+							paintStars(hoverRating);
+						});
+
+						star.addEventListener('click', e => {
+							const newRating = calcRatingFromEvent(star, e);
+							currentRating   = newRating;
+							ratingInput.value = newRating;
+							paintStars(newRating);
+						});
+					});
+
+					ratingBox.addEventListener('mouseleave', () => {
+						paintStars(currentRating);
+					});
+				}
+
+				// ===== 리뷰 폼 유효성 검사 (축제 상세와 동일 로직) =====
+				const reviewForm = document.querySelector('form[data-review-form="true"]');
+
+				if (reviewForm) {
+					const ratingInputEl   = document.getElementById('ratingInput');
+					const contentTextarea = reviewForm.querySelector('textarea[name="content"]');
+
+					reviewForm.addEventListener('submit', function (e) {
+						// rating 값 파싱 (없으면 0으로 처리)
+						const ratingRaw =
+								(ratingInputEl && ratingInputEl.value && ratingInputEl.value.trim()) || '0';
+						const rating = parseFloat(ratingRaw);
+
+						// 내용 문자열 (없으면 빈 문자열)
+						const content =
+								(contentTextarea && contentTextarea.value
+												? contentTextarea.value
+												: ''
+								).trim();
+
+						const errors = [];
+
+						// 1) 별점 필수 (0.5 ~ 5.0)
+						if (isNaN(rating) || rating <= 0) {
+							errors.push('별점을 선택해 주세요.');
+						} else if (rating < 0.5 || rating > 5.0) {
+							errors.push('별점은 0.5점 이상 5.0점 이하입니다.');
+						}
+
+						// 2) 내용 길이 체크 (최소 3자, 최대 300자)
+						if (content.length < 3) {
+							errors.push('리뷰 내용은 최소 3자 이상 입력해 주세요.');
+						}
+						if (content.length > 300) {
+							errors.push('리뷰 내용은 300자 이내로 입력해 주세요.');
+						}
+
+						// 에러가 있으면 전송 막고 알림
+						if (errors.length > 0) {
+							e.preventDefault();
+							alert(errors.join('\n'));
+						}
+					});
+				}
+			});
+		</script>
+	</th:block>
 
 <div layout:fragment="content" class="bg-gray-50 min-h-screen">
 
@@ -145,7 +228,7 @@
 
                 <div class="h-px bg-gray-300 my-2 mb-10"></div>
 
-                <form action="/mypage/reviews/update" method="post" class="space-y-8">
+                <form action="/mypage/reviews/update" method="post" class="space-y-8" data-review-form="true">
 
                     <!-- 리뷰 번호 -->
                     <input type="hidden" name="reviewNo" th:value="${review.reviewNo}">
@@ -161,7 +244,7 @@
                     <div>
                         <label class="block font-bold mb-2">별점</label>
 
-                        <div id="ratingBox" class="star-rating">
+                        <div id="ratingBox" class="star-rating star-rating--input">
                             <span class="star" data-index="1"></span>
                             <span class="star" data-index="2"></span>
                             <span class="star" data-index="3"></span>

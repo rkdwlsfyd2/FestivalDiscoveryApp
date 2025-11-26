@@ -79,7 +79,7 @@
 
             <nav class="flex flex-col space-y-3">
                 <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">프로필 확인</a>
-                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">회원수정 및 탈퇴</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">회원수정 및 회원탈퇴</a>
                 <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">축제 즐겨찾기</a>
                 <a href="/mypage/reviews" class="px-3 py-2 rounded-md bg-gray-200 hover:bg-gradient2 hover:text-white">내 리뷰 관리</a>
             </nav>
@@ -129,8 +129,11 @@
 
                         <!-- 날짜 -->
                         <p class="text-gray-500 text-sm"
-                           th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm')}"></p>
-
+						   th:if="${r.updatedAt == null}"
+						   th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
+						<p class="text-gray-500 text-sm"
+						   th:if="${r.updatedAt != null}"
+						   th:text="${#temporals.format(r.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
                     </div>
                     <!-- 반복문 끝 -->
 

@@ -94,8 +94,9 @@
                 <!-- 이름 -->
                 <div>
                     <label class="block text-gray-700 mb-1">이름</label>
-                    <input th:field="*{name}"
+                    <input th:field="*{name}" id="name"
                            class="w-full border px-3 py-2 rounded" required>
+					<p id="nameMsg" class="text-sm mt-1"></p>
                 </div>
 
                 <!-- 전화번호: 010 고정 + 8자리 -->
@@ -228,223 +229,323 @@
     </div>
 </div>
 
-<th:block layout:fragment="script">
-    <script type="text/javascript" th:src="@{/js/signupDropdown.js}"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
+	<th:block layout:fragment="script">
+		<script type="text/javascript" th:src="@{/js/signupDropdown.js}"></script>
+		<script>
+			document.addEventListener("DOMContentLoaded", () => {
 
-            let emailVerified = false;
+				/* ---------- 0. 공통 DOM 요소 / 패턴 ---------- */
+				const signupForm      = document.getElementById("signupForm");
 
-            /* ------------------- 비밀번호 체크 ------------------- */
-            const password = document.getElementById("password");
-            const passwordConfirm = document.getElementById("passwordConfirm");
-            const pwCheckMsg = document.getElementById("pwCheckMsg");
+				// 아이디
+				const userId          = document.getElementById("userId");
+				const idCheckMsg      = document.getElementById("idCheckMsg");
+				const checkIdBtn      = document.getElementById("checkIdBtn");
 
-            function checkPwMatch() {
+				// 이메일
+				const emailInput      = document.getElementById("email");
+				const checkEmailBtn   = document.getElementById("checkEmailBtn");
+				const emailMsgTag     = document.getElementById("emailMsg");
+				const emailSendBtn    = document.getElementById("emailSendBtn");
+				const emailCodeInput  = document.getElementById("emailCodeInput");
+				const hiddenEmailCode = document.getElementById("hiddenEmailCode");
+				const verifyEmailBtn  = document.getElementById("verifyEmailBtn");
+				const verifyMsg       = document.getElementById("verifyMsg");
+				const emailPattern    = /^[0-9a-zA-Z._%+-]+@[0-9a-zA-Z.-]+\.[a-zA-Z]{2,}$/;
 
-                const pw = password.value;
-                const pwc = passwordConfirm.value;
+				// 이름
+				const nameInput       = document.getElementById("name");
+				const nameMsg         = document.getElementById("nameMsg");
+				const namePattern     = /^[가-힣a-zA-Z\s]{2,20}$/;
 
-                // ⭐ 비밀번호 정규식: 영문 + 숫자 또는 특수문자, 8~20자
-                const pwPattern =
-                    /^(?=.*[A-Za-z])(?=.*(\d|[!@#$%^&*?_~]))[A-Za-z\d!@#$%^&*?_~]{8,20}$/;
+				// 비밀번호
+				const password        = document.getElementById("password");
+				const passwordConfirm = document.getElementById("passwordConfirm");
+				const pwCheckMsg      = document.getElementById("pwCheckMsg");
 
-                // 둘 다 비었으면 리셋
-                if (pw === "" && pwc === "") {
-                    pwCheckMsg.innerText = "";
-                    return;
-                }
+				// 전화번호
+				const phoneRest       = document.getElementById("phoneRest");
+				const phoneFull       = document.getElementById("phoneFull");
+				const phoneMsg        = document.getElementById("phoneMsg");
 
-                // ⭐ 먼저 형식 검증
-                if (!pwPattern.test(pw)) {
-                    pwCheckMsg.innerText = "비밀번호 형식이 올바르지 않습니다. (영문 + 숫자/특수기호, 8~20자)";
-                    pwCheckMsg.style.color = "red";
-                    return;
-                }
-
-                // ⭐ 정규식 통과 → 이제 일치 여부 검사
-                if (pw !== "" && pwc !== "") {
-                    if (pw === pwc) {
-                        pwCheckMsg.innerText = "비밀번호가 일치합니다.";
-                        pwCheckMsg.style.color = "green";
-                    } else {
-                        pwCheckMsg.innerText = "비밀번호가 일치하지 않습니다.";
-                        pwCheckMsg.style.color = "red";
-                    }
-                } else {
-                    pwCheckMsg.innerText = "";
-                }
-            }
-
-            password.addEventListener("input", checkPwMatch);
-            passwordConfirm.addEventListener("input", checkPwMatch);
+				// 생년월일
+				const birthInput      = document.getElementById("birthDate");
 
 
-            /* ------------------- 아이디 중복확인 ------------------- */
-            const userId = document.getElementById("userId");
-            const idCheckMsg = document.getElementById("idCheckMsg");
-            const checkIdBtn = document.getElementById("checkIdBtn");
+				/* ---------- 1. 상태 변수 ---------- */
+				let emailVerified = false;
+				let verifiedEmail = "";   // 인증 완료된 이메일
 
-            checkIdBtn.addEventListener("click", () => {
-                const uid = userId.value.trim();
-                const idRegex = /^[a-zA-Z0-9]{5,20}$/;
+				let idChecked     = false;
+				let checkedUserId = "";   // 중복 확인에 사용된 아이디
 
-                if (!idRegex.test(uid)) {
-                    idCheckMsg.innerText = "영문/숫자 5~20자 입력";
-                    idCheckMsg.style.color = "red";
-                    return;
-                }
-
-                fetch(`/api/member/check-userid?userId=${uid}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.exists) {
-                            idCheckMsg.innerText = "이미 사용 중인 아이디입니다.";
-                            idCheckMsg.style.color = "red";
-                        } else {
-                            idCheckMsg.innerText = "사용 가능한 아이디입니다!";
-                            idCheckMsg.style.color = "green";
-                        }
-                    });
-            });
+				let emailChecked  = false;
+				let checkedEmail  = "";   // 중복 확인에 사용된 이메일
 
 
-            /* ------------------- 이메일 중복확인 ------------------- */
-            const emailInput = document.getElementById("email");
-            const checkEmailBtn = document.getElementById("checkEmailBtn");
-            const emailMsgTag = document.getElementById("emailMsg");
-            const emailSendBtn = document.getElementById("emailSendBtn");
-            const emailPattern = /^[0-9a-zA-Z._%+-]+@[0-9a-zA-Z.-]+\.[a-zA-Z]{2,}$/;
+				/* ---------- 2. 아이디 중복 확인 ---------- */
+				checkIdBtn.addEventListener("click", () => {
+					const uid = userId.value.trim();
+					const idRegex = /^[a-zA-Z0-9]{5,20}$/;
 
-            checkEmailBtn.addEventListener("click", () => {
-                const email = emailInput.value.trim();
+					if (!idRegex.test(uid)) {
+						idCheckMsg.innerText = "영문/숫자 5~20자 입력";
+						idCheckMsg.style.color = "red";
+						idChecked = false;
+						checkedUserId = "";
+						return;
+					}
 
-                if (!emailPattern.test(email)) {
-                    emailMsgTag.innerText = "올바른 이메일 형식이 아닙니다.";
-                    emailMsgTag.style.color = "red";
-                    emailSendBtn.disabled = true;
-                    emailSendBtn.classList.remove("bg-main");
-                    emailSendBtn.classList.add("bg-gray-400");
-                    return;
-                }
+					fetch(`/api/member/check-userid?userId=${uid}`)
+							.then(res => res.json())
+							.then(data => {
+								if (data.exists) {
+									idCheckMsg.innerText = "이미 사용 중인 아이디입니다.";
+									idCheckMsg.style.color = "red";
+									idChecked = false;
+									checkedUserId = "";
+								} else {
+									idCheckMsg.innerText = "사용 가능한 아이디입니다!";
+									idCheckMsg.style.color = "green";
+									idChecked = true;
+									checkedUserId = uid;
+								}
+							});
+				});
 
-                fetch(`/api/member/check-email?email=${email}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.exists) {
-                            emailMsgTag.innerText = "이미 가입된 이메일입니다.";
-                            emailMsgTag.style.color = "red";
-                            emailSendBtn.disabled = true;
-                        } else {
-                            emailMsgTag.innerText = "사용 가능한 이메일입니다!";
-                            emailMsgTag.style.color = "green";
-                            emailSendBtn.disabled = false;
-                            emailSendBtn.classList.remove("bg-gray-400");
-                            emailSendBtn.classList.add("bg-main");
-                        }
-                    });
-            });
-
-
-            /* ------------------- 인증코드 발송 ------------------- */
-            const emailCodeInput = document.getElementById("emailCodeInput");
-            const hiddenEmailCode = document.getElementById("hiddenEmailCode");
-            const verifyEmailBtn = document.getElementById("verifyEmailBtn");
-            const verifyMsg = document.getElementById("verifyMsg");
-
-            emailSendBtn.addEventListener("click", () => {
-                const email = emailInput.value.trim();
-
-                fetch(`/api/member/send-email-code?email=${email}`)
-                    .then(res => res.text())
-                    .then(result => {
-                        if (result === "OK") {
-                            alert("인증코드가 이메일로 발송되었습니다!");
-                        }
-                    });
-            });
+				// 아이디 변경 시 → 중복 확인 무효화
+				userId.addEventListener("input", () => {
+					if (userId.value.trim() !== checkedUserId) {
+						idChecked = false;
+						idCheckMsg.innerText = "아이디 중복 확인을 다시 해주세요.";
+						idCheckMsg.style.color = "red";
+					}
+				});
 
 
-            /* ------------------- 인증번호 확인 ------------------- */
-            verifyEmailBtn.addEventListener("click", () => {
-                const email = emailInput.value.trim();
-                const code = emailCodeInput.value.trim();
+				/* ---------- 3. 이메일 중복 확인 + 인증 ---------- */
 
-                fetch(`/api/member/verify-email-code`, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                    body: `email=${email}&code=${code}`
-                })
-                    .then(res => res.text())
-                    .then(result => {
-                        if (result === "true" || result === true) {
-                            verifyMsg.innerText = "인증 완료!";
-                            verifyMsg.style.color = "green";
-                            hiddenEmailCode.value = code;
-                            emailVerified = true;
-                        } else {
-                            verifyMsg.innerText = "인증번호가 잘못되었습니다.";
-                            verifyMsg.style.color = "red";
-                        }
-                    });
-            });
+				// 이메일 입력 변경 시 상태 초기화
+				emailInput.addEventListener("input", () => {
+					emailChecked  = false;
+					checkedEmail  = "";
+					emailVerified = false;
+					verifiedEmail = "";
+
+					emailMsgTag.innerText = "";
+					verifyMsg.innerText   = "";
+					hiddenEmailCode.value = "";
+
+					emailSendBtn.disabled = true;
+					emailSendBtn.classList.add("bg-gray-400");
+					emailSendBtn.classList.remove("bg-main");
+				});
+
+				// 이메일 중복 확인
+				checkEmailBtn.addEventListener("click", () => {
+					const email = emailInput.value.trim();
+
+					if (!emailPattern.test(email)) {
+						emailMsgTag.innerText = "올바른 이메일 형식이 아닙니다.";
+						emailMsgTag.style.color = "red";
+						emailSendBtn.disabled = true;
+						emailSendBtn.classList.remove("bg-main");
+						emailSendBtn.classList.add("bg-gray-400");
+						emailChecked = false;
+						checkedEmail = "";
+						return;
+					}
+
+					fetch(`/api/member/check-email?email=${email}`)
+							.then(res => res.json())
+							.then(data => {
+								if (data.exists) {
+									emailMsgTag.innerText = "이미 가입된 이메일입니다.";
+									emailMsgTag.style.color = "red";
+									emailSendBtn.disabled = true;
+									emailChecked = false;
+									checkedEmail = "";
+								} else {
+									emailMsgTag.innerText = "사용 가능한 이메일입니다!";
+									emailMsgTag.style.color = "green";
+									emailChecked = true;
+									checkedEmail = email;
+
+									emailSendBtn.disabled = false;
+									emailSendBtn.classList.remove("bg-gray-400");
+									emailSendBtn.classList.add("bg-main");
+								}
+							});
+				});
+
+				// 인증코드 발송
+				emailSendBtn.addEventListener("click", () => {
+					const email = emailInput.value.trim();
+
+					// 중복 확인된 이메일인지 한 번 더 체크
+					if (!emailChecked || email === "" || email !== checkedEmail) {
+						alert("이메일 중복 확인을 다시 해주세요.");
+						return;
+					}
+
+					fetch(`/api/member/send-email-code?email=${email}`)
+							.then(res => res.text())
+							.then(result => {
+								if (result === "OK") {
+									alert("인증코드가 이메일로 발송되었습니다!");
+								}
+							});
+				});
+
+				// 인증번호 확인
+				verifyEmailBtn.addEventListener("click", () => {
+					const email = emailInput.value.trim();
+					const code  = emailCodeInput.value.trim();
+
+					fetch(`/api/member/verify-email-code`, {
+						method: "POST",
+						headers: {"Content-Type": "application/x-www-form-urlencoded"},
+						body: `email=${email}&code=${code}`
+					})
+							.then(res => res.text())
+							.then(result => {
+								if (result === "true" || result === true) {
+									verifyMsg.innerText = "인증 완료!";
+									verifyMsg.style.color = "green";
+									hiddenEmailCode.value = code;
+
+									emailVerified = true;
+									verifiedEmail = email;
+								} else {
+									verifyMsg.innerText = "인증번호가 잘못되었습니다.";
+									verifyMsg.style.color = "red";
+									emailVerified = false;
+									verifiedEmail = "";
+								}
+							});
+				});
 
 
-            /* ------------------- 전화번호: 010 고정 + 8자리 입력 ------------------- */
-            const phoneRest = document.getElementById("phoneRest");
-            const phoneFull = document.getElementById("phoneFull");
-            const phoneMsg = document.getElementById("phoneMsg");
+				/* ---------- 4. 이름 유효성 검사 ---------- */
+				nameInput.addEventListener("input", () => {
+					const v = nameInput.value.trim();
 
-            phoneRest.addEventListener("input", () => {
+					if (!v) {
+						nameMsg.innerText = "";
+						return;
+					}
 
-                let v = phoneRest.value.replace(/[^0-9]/g, "");
-                if (v.length > 8) v = v.slice(0, 8);
-
-                phoneRest.value = v;
-
-                if (v.length === 8) {
-                    const formatted = `010${v.slice(0,4)}${v.slice(4,8)}`;
-                    phoneFull.value = formatted;
-
-                    phoneMsg.innerText = "올바른 전화번호입니다.";
-                    phoneMsg.style.color = "green";
-                } else {
-                    phoneFull.value = "";
-                    phoneMsg.innerText = "숫자 8자리를 입력해주세요.";
-                    phoneMsg.style.color = "red";
-                }
-            });
+					if (!namePattern.test(v)) {
+						nameMsg.innerText = "이름은 2~20자, 한글/영문만 입력 가능합니다.";
+						nameMsg.style.color = "red";
+					} else {
+						nameMsg.innerText = "사용 가능한 이름입니다.";
+						nameMsg.style.color = "green";
+					}
+				});
 
 
-            /* ------------------- 생년월일: 오늘 이후 선택 불가 ------------------- */
-            const birthInput = document.getElementById("birthDate");
-            if (birthInput) {
-                const today = new Date().toISOString().split("T")[0];
-                birthInput.setAttribute("max", today);
-            }
+				/* ---------- 5. 비밀번호 형식 + 일치 검사 ---------- */
+				function checkPwMatch() {
+					const pw  = password.value;
+					const pwc = passwordConfirm.value;
+
+					const pwPattern =
+							/^(?=.*[A-Za-z])(?=.*(\d|[!@#$%^&*?_~]))[A-Za-z\d!@#$%^&*?_~]{8,20}$/;
+
+					if (pw === "" && pwc === "") {
+						pwCheckMsg.innerText = "";
+						return;
+					}
+
+					if (!pwPattern.test(pw)) {
+						pwCheckMsg.innerText = "비밀번호 형식이 올바르지 않습니다. (영문 + 숫자/특수기호, 8~20자)";
+						pwCheckMsg.style.color = "red";
+						return;
+					}
+
+					if (pw !== "" && pwc !== "") {
+						if (pw === pwc) {
+							pwCheckMsg.innerText = "비밀번호가 일치합니다.";
+							pwCheckMsg.style.color = "green";
+						} else {
+							pwCheckMsg.innerText = "비밀번호가 일치하지 않습니다.";
+							pwCheckMsg.style.color = "red";
+						}
+					} else {
+						pwCheckMsg.innerText = "";
+					}
+				}
+
+				password.addEventListener("input", checkPwMatch);
+				passwordConfirm.addEventListener("input", checkPwMatch);
 
 
-            /* ------------------- 최종 가입 검증 ------------------- */
-            const signupForm = document.getElementById("signupForm");
+				/* ---------- 6. 전화번호: 010 + 8자리 ---------- */
+				phoneRest.addEventListener("input", () => {
+					let v = phoneRest.value.replace(/[^0-9]/g, "");
+					if (v.length > 8) v = v.slice(0, 8);
+					phoneRest.value = v;
 
-            signupForm.addEventListener("submit", (e) => {
+					if (v.length === 8) {
+						const formatted = `010${v.slice(0,4)}${v.slice(4,8)}`;
+						phoneFull.value = formatted;
 
-                if (!emailVerified) {
-                    e.preventDefault();
-                    alert("이메일 인증을 완료해주세요!");
-                    return;
-                }
+						phoneMsg.innerText = "올바른 전화번호입니다.";
+						phoneMsg.style.color = "green";
+					} else {
+						phoneFull.value = "";
+						phoneMsg.innerText = "숫자 8자리를 입력해주세요.";
+						phoneMsg.style.color = "red";
+					}
+				});
 
-                if (!phoneFull.value) {
-                    e.preventDefault();
-                    alert("전화번호를 올바르게 입력해주세요!");
-                    return;
-                }
-            });
 
-        });
-    </script>
-</th:block>
+				/* ---------- 7. 생년월일: 오늘 이후 선택 불가 ---------- */
+				if (birthInput) {
+					const today = new Date().toISOString().split("T")[0];
+					birthInput.setAttribute("max", today);
+				}
+
+
+				/* ---------- 8. 최종 가입 검증 ---------- */
+				signupForm.addEventListener("submit", (e) => {
+
+					// (1) 아이디 중복 확인 여부 + 값 일치
+					const currentUserId = userId.value.trim();
+					if (!idChecked || currentUserId === "" || currentUserId !== checkedUserId) {
+						e.preventDefault();
+						alert("아이디 중복 확인을 다시 해주세요.");
+						return;
+					}
+
+					// (2) 이메일 인증 여부 + 값 일치
+					const currentEmail = emailInput.value.trim();
+					if (!emailVerified || currentEmail === "" || currentEmail !== verifiedEmail) {
+						e.preventDefault();
+						alert("현재 입력된 이메일에 대해 인증을 완료해주세요!");
+						return;
+					}
+
+					// (3) 전화번호
+					if (!phoneFull.value) {
+						e.preventDefault();
+						alert("전화번호를 올바르게 입력해주세요!");
+						return;
+					}
+
+					// (4) 이름 형식
+					const nameVal = nameInput.value.trim();
+					if (!namePattern.test(nameVal)) {
+						e.preventDefault();
+						alert("이름을 올바르게 입력해주세요. (2~20자, 한글/영문만)");
+						return;
+					}
+				});
+
+			});
+		</script>
+	</th:block>
 
 </body>
 </html>
