@@ -61,6 +61,12 @@
             overflow: hidden;
             clip-path: inset(0 30% 0 0);
         }
+        .review-content {
+            white-space: normal;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+
     </style>
 </head>
 
@@ -121,7 +127,7 @@
                         </div>
 
                         <!-- 내용 -->
-                        <p class="mt-3 mb-3 text-gray-700" th:text="${r.content}"></p>
+                        <p class="mt-3 mb-3 text-gray-700 review-content" th:text="${r.content}"></p>
 
                         <!-- 날짜 -->
                         <p class="text-gray-500 text-sm"

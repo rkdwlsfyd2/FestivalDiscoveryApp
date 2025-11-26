@@ -305,6 +305,11 @@
                 opacity: 1;
                 pointer-events: auto;
             }
+			.review-content {
+            white-space: normal;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        	}
         </style>
 
 		<script>
@@ -916,7 +921,7 @@
 										수정하기
 									</button>
 								</div>
-								<div class="fd-review-text text-body" th:text="${review.content}"></div>
+								<div class="fd-review-text text-body review-content" th:text="${review.content}"></div>
 							</div>
 
 							<!-- 리뷰 페이징 버튼 -->
