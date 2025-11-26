@@ -145,7 +145,8 @@
                     <!-- 반복문 끝 -->
 
                     <!-- 페이징 -->
-                    <div class="mt-10 flex justify-center items-center space-x-2">
+                    <div th:if="${totalPages > 1}"
+                         class="mt-10 flex justify-center items-center space-x-2">
 
                         <!-- 이전 -->
                         <a th:if="${currentPage > 0}"
@@ -167,6 +168,7 @@
                            class="px-4 py-2 bg-gray-200 rounded-md">다음</a>
 
                     </div>
+
 
                 </div>
 
