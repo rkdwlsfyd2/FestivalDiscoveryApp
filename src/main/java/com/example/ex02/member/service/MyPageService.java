@@ -216,8 +216,8 @@ public class MyPageService {
             dto.setFestivalTitle(r.getFestival().getTitle());
             dto.setRating(r.getRating());
             dto.setContent(r.getContent());
-            dto.setCreatedAt(r.getCreatedAt().toString());
-            dto.setUpdatedAt(r.getUpdatedAt() != null ? r.getUpdatedAt().toString() : null);
+            dto.setCreatedAt(r.getCreatedAt());
+            dto.setUpdatedAt(r.getUpdatedAt());
             return dto;
         });
 

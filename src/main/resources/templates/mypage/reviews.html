@@ -139,7 +139,7 @@
                            th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
                         <p class="text-gray-500 text-sm"
                            th:if="${r.updatedAt != null}"
-                           th:text="${#temporals.format(r.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></p>
+                           th:text="${#temporals.format(r.updatedAt, 'yyyy-MM-dd HH:mm')}"></p>
 
                     </div>
                     <!-- 반복문 끝 -->
