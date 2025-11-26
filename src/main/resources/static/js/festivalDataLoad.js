@@ -28,29 +28,19 @@ function updateFestivalList(page = 0,
                             tag = "") {
     showLoadingOverlay();
 
-    // 검색어 감지(null일 때 처리)
     const keywordInput = document.querySelector("#keywordInput");
     const searchKeyword = keyword || (keywordInput?.value || "");
 
-    // 체크박스 상태 감지
     const ongoingOnlyCheckbox = document.querySelector("#ongoingOnlyCheckbox");
     const isOngoingOnly = ongoingOnly || (ongoingOnlyCheckbox?.checked || false);
 
-    // 지역 필터 감지
     const regionFilter = document.querySelector("#regionFilter");
     const selectedRegion = region || (regionFilter?.value || "");
 
-    // 태그 필터 감지 (전역 변수로 관리)
     const selectedTag = tag || (window.selectedTag || "");
-
-    // 현재 DOM 요소들
-    const items = document.querySelector(".festival-items");
-    const pagination = document.querySelector("#pagination");
-    const markers = document.querySelector("#allFestivalMarkers");
 
     const isAdmin = window.isAdmin === true;
 
-    // 요청 URL 구성
     let url = `/festivals/festivalMap/ajax?page=${page}` +
         `&keyword=${encodeURIComponent(searchKeyword)}` +
         `&ongoingOnly=${isOngoingOnly}`;
@@ -60,10 +50,7 @@ function updateFestivalList(page = 0,
     if (selectedTag) {
         url += `&tag=${encodeURIComponent(selectedTag)}`;
     }
-
     url += `&isAdmin=${encodeURIComponent(isAdmin)}`;
-
-    // 캐시 방지용
     url += `&_=${new Date().getTime()}`;
 
     fetch(url)
@@ -72,7 +59,6 @@ function updateFestivalList(page = 0,
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
 
-            // 새 fragment 루트와 기존 루트 찾기
             const newRoot = doc.querySelector("#festivalListRoot");
             const oldRoot = document.querySelector("#festivalListRoot");
 
@@ -82,7 +68,6 @@ function updateFestivalList(page = 0,
                 console.warn("festivalListRoot를 찾을 수 없습니다.", { newRoot, oldRoot });
             }
 
-            // 지도 마커 다시 그리기
             if (updateMarkers && typeof window.updateKakaoMarkersFromDom === "function") {
                 window.updateKakaoMarkersFromDom({ keepBounds: true });
             }
@@ -90,37 +75,34 @@ function updateFestivalList(page = 0,
         .finally(() => {
             removeLoadingOverlay();
         });
+}
 
-    // 페이지네이션 전역 이벤트 위임
+// 전역 플래그: 리스너 중복 등록 방지
+if (!window.festivalFilterInitialized) {
+    window.festivalFilterInitialized = true;
+
+    // 페이지네이션 클릭
     document.addEventListener("click", function (e) {
-        // .page-btn 또는 그 안쪽을 클릭했을 때만 동작
         const btn = e.target.closest("#pagination .page-btn");
-        if (!btn) return;  // 페이지네이션이 아니면 무시
+        if (!btn) return;
 
         e.preventDefault();
 
         const page = parseInt(btn.dataset.page, 10) || 0;
-
-        // 필터 상태는 updateFestivalList 안에서 다시 읽어가니까 page만 넘겨도 됨
         updateFestivalList(page);
 
-        // 필요하면 스크롤 맨 위로
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
-    // "현재 진행중인 축제만 보기" 체크박스 전역 핸들러
+    // "현재 진행중인 축제만 보기" 체크박스
     document.addEventListener("change", function (e) {
-        // id가 ongoingOnlyCheckbox인 input에서 발생한 change만 처리
         if (e.target && e.target.id === "ongoingOnlyCheckbox") {
-            // 페이지는 0으로 리셋해서 다시 조회
             updateFestivalList(0);
         }
     });
-
-
 }
 
-
+/*
 // 안쓰는 함수 -하요한- 네이버맵 마커 업데이트 함수(여기서 마커 찍어줌)
 function updateMapMarkers(festivalsJson) {
     // 네이버맵 SDK 초기화, 지도 인스턴스, maps 객체 확인
@@ -194,4 +176,5 @@ function updateMapMarkers(festivalsJson) {
     
     console.log('[마커 업데이트] 완료 - 마커(축제) 개수:', markers.length);
 }
+*/
 

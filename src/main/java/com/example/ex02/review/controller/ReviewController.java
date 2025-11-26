@@ -43,7 +43,7 @@ public class ReviewController {
 		}
 
 		// 축제 상세 페이지 URL 패턴에 맞게만 수정
-		return "redirect:/festivals/detail?festivalNo=" + festivalNo;
+		return "redirect:/festivals/detail?festivalNo=" + festivalNo + "#reviewSection";
 	}
 }
 

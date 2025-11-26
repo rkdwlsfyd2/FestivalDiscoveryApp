@@ -190,8 +190,9 @@
 					/* ---------------- 태그 선택 UI ---------------- */
 					const tagContainer = document.getElementById("tagContainer");
 					const hiddenTagInput = document.getElementById("favoriteTag");
-					const favoriteTagIconEl = document.getElementById("favoriteTagIcon");
-
+					/* 데드코드 - 하요한
+					// const favoriteTagIconEl = document.getElementById("favoriteTagIcon");
+					*/
 					// 태그별 아이콘 매핑
 					const tagIconMap = {
 						"자연": "🌿",
@@ -208,11 +209,13 @@
 					// 기존에 저장된 선호 태그가 있으면 초기 렌더링
 					if (selectedTag) addTagChip(selectedTag);
 
+					/* 데드코드 - 하요한
 					// 라벨 옆 아이콘 렌더링
 					function renderFavoriteTagIcon(tag) {
 						if (!favoriteTagIconEl) return;
 						favoriteTagIconEl.textContent = tagIconMap[tag] || "";
 					}
+					*/
 
 					function addTagChip(tag) {
 						tagContainer.innerHTML = "";
@@ -228,8 +231,10 @@
 						tagContainer.appendChild(chip);
 						hiddenTagInput.value = selectedTag;
 
+						/* 데드코드 - 하요한
 						// 라벨 옆 아이콘도 같이 변경
 						renderFavoriteTagIcon(tag);
+						*/
 					}
 
 					document.querySelectorAll(".tag-btn").forEach(btn => {

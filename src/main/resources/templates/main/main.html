@@ -154,14 +154,17 @@
 						</div>
 
 						<div class="w-1/2 flex justify-center items-center p-8">
-							<div class="w-full aspect-video bg-gray-200 rounded-xl shadow-md flex items-center justify-center text-gray-500 text-2xl font-bold">
-								[실사용 영상 영역 - Video Player 삽입 예정]
-							</div>
+							<video
+									th:src="@{/video/main_video_final_real.mp4}"
+									class="w-full aspect-video rounded-xl shadow-md"
+									autoplay
+									muted
+									loop
+									playsinline>
+							</video>
 						</div>
-
 					</div>
 				</div>
-
 				<!-- B.기능 설명 -->
 				<div id="main-content-wrapper"
 					 class="relative w-full flex flex-col items-center mb-20 overflow-x-hidden overflow-y-hidden">

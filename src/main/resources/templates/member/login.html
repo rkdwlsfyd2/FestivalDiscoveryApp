@@ -71,14 +71,14 @@
 </section>
 
 <!-- 회원가입 완료 alert 출력 -->
-<th:block layout:fragment="script">
-    <script>
-        const signupSuccess = /*[[${signupSuccess}]]*/ false;
+	<th:block layout:fragment="script">
+		<script th:inline="javascript">
+			const signupSuccess = /*[[${signupSuccess}]]*/ false;
 
-        if (signupSuccess) {
-            alert("회원가입이 완료되었습니다!");
-        }
-    </script>
-</th:block>
+			if (signupSuccess) {
+				alert("회원가입이 완료되었습니다!");
+			}
+		</script>
+	</th:block>
 
 </html>

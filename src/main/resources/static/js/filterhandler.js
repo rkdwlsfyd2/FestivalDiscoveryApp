@@ -9,6 +9,7 @@ if (!window.filterHandlerInitialized) {
         
         // ========== 페이지네이션 ==========
         document.addEventListener("click", function (e) {
+            /* festivalDataLoad.js에서 전역처리 - 하요한
             // 페이지네이션 버튼을 눌렀을 때
             if (e.target.classList.contains("page-btn")) {
                 e.preventDefault();
@@ -17,6 +18,7 @@ if (!window.filterHandlerInitialized) {
                     updateFestivalList(page);
                 }
             }
+            */
             // 검색 버튼을 눌렀을 때 
             if (e.target.id === "searchBtn" || e.target.closest("#searchBtn")) {
                 e.preventDefault();
@@ -39,7 +41,7 @@ if (!window.filterHandlerInitialized) {
                 }
             });
         }
-        
+        /* festivalDataLoad.js에서 전역처리 - 하요한
         // ========== 현재 진행중인 축제만 보기 체크박스 ==========
         const ongoingOnlyCheckbox = document.querySelector("#ongoingOnlyCheckbox");
         if (ongoingOnlyCheckbox) {
@@ -51,7 +53,7 @@ if (!window.filterHandlerInitialized) {
                 }
             });
         }
-        
+        */
         // ========== 태그 필터 버튼 ==========
         const tagButtons = document.querySelectorAll(".tag-btn");
         tagButtons.forEach(function(btn) {

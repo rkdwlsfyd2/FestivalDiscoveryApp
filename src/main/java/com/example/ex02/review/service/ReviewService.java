@@ -28,6 +28,10 @@ public class ReviewService {
 							 Double rating,
 							 String content) {
 
+		if (hasUserReview(festivalNo, memberNo)) {
+			throw new IllegalArgumentException("이미 이 축제에 작성한 리뷰가 있습니다.");
+		}
+
 		FestivalEntity festival = festivalRepository.findById(festivalNo)
 				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 축제입니다."));
 
@@ -42,8 +46,8 @@ public class ReviewService {
 				.build();
 
 		reviewRepository.save(review);
-
 	}
+
 
 	// 해당 축제에 로그인 유저 리뷰가 이미 있는지 체크
 	@Transactional(readOnly = true)

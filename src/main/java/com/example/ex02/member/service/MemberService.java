@@ -44,6 +44,9 @@ public class MemberService {
 
         if (dto.getFavoriteTag() == null || dto.getFavoriteTag().trim().isEmpty())
             throw new IllegalArgumentException("선호 태그는 필수 선택입니다.");
+		if (dto.getGender() == null || dto.getGender().isBlank()) {
+			throw new IllegalArgumentException("성별은 필수 선택입니다.");
+		}
 
         // 2) 이메일 인증 코드 검증
         if (dto.getEmailCode() == null || dto.getEmailCode().trim().isEmpty())

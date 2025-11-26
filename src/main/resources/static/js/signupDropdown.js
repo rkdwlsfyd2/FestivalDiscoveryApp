@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const hiddenSelect = document.getElementById(hiddenSelectId);
         const icon = document.getElementById(iconId);
 
-        if (!btn || !menu || !selectedText || !hiddenSelect) return;
+        if (!btn || !menu || !selectedText || !hiddenSelect || !icon) return;
 
         // 드롭다운 열고 닫기
         btn.addEventListener("click", () => {
@@ -41,16 +41,18 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* ---------------------------
+    /* festivalDataLoad.js에서 전역처리 - 하요한
+     * ---------------------------
      * 지역 드롭다운 연결 (기존 동일)
-     * --------------------------- */
+     * ---------------------------
+
     setupCustomDropdown(
         "regionDropdownBtn",
         "regionDropdownMenu",
         "regionSelectedText",
         "regionFilter",
         "regionDropdownIcon"
-    );
+    );*/
 
 
     /* ---------------------------

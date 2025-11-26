@@ -194,13 +194,13 @@
                                 선택하세요
                             </div>
 
-                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="자연">자연</div>
-                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="야간">야간</div>
-                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="먹거리">먹거리</div>
-                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="체험">체험</div>
-                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="계절">계절</div>
-                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="문화">문화</div>
-                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="아동">아동</div>
+                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="자연">🌿 자연</div>
+                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="야간">🌙 야간</div>
+							<div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="체험">🎨 체험</div>
+							<div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="먹거리">🍜 먹거리</div>
+							<div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="문화">🎭 문화</div>
+							<div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="아동">👦 아동</div>
+                            <div class="dropdown-option px-4 py-2 cursor-pointer hover:bg-main hover:text-white" data-value="계절">❄️ 계절</div>
                         </div>
                     </div>
 
@@ -539,6 +539,14 @@
 					if (!namePattern.test(nameVal)) {
 						e.preventDefault();
 						alert("이름을 올바르게 입력해주세요. (2~20자, 한글/영문만)");
+						return;
+					}
+
+					// (5) 성별 선택 여부
+					const genderSelect = document.getElementById("genderSelect");
+					if (!genderSelect.value) {
+						e.preventDefault();
+						alert("성별을 선택해주세요.");
 						return;
 					}
 				});
