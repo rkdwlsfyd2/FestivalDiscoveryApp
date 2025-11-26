@@ -1,6 +1,7 @@
 package com.example.ex02.festival.controller;
 
 import com.example.ex02.festival.dto.CalendarFestivalDto;
+import com.example.ex02.festival.entity.FestivalEntity;
 import com.example.ex02.festival.service.CalendarService;
 import com.example.ex02.member.entity.MemberEntity;
 import jakarta.servlet.http.HttpSession;
@@ -60,7 +61,8 @@ public class CalendarController {
         model.addAttribute("nextMonth", next.getMonthValue());
 
         // 지역 목록 (임시 하드코딩)
-        List<String> regions = List.of("서울","경기","강원","충남","전북","전남","부산","경북","경남","인천","충북","제주","대구","대전","광주","울산","세종");
+        List<String> regions = List.of("서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종",
+                "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주");
         model.addAttribute("regions", regions);
 
         // 주(week) 단위 달력 데이터

@@ -134,9 +134,17 @@
                                   data-istoday=${day.date.equals(today)}">
 
                         <!-- 날짜 숫자 -->
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold ml-2"
+                        <div class="">
+                            <span class="text-sm font-semibold ml-2 justify-left"
                                   th:text="${day.date.dayOfMonth}">1</span>
+
+                            <!-- 축제 개수 -->
+                            <span th:if="${#lists.size(day.festivals) > 0}"
+                                  class="text-[11px] text-gradient mt-1"
+                                  th:data-date="${day.date}"
+                                  th:data-day-id="'day-' + ${day.date}">
+                                <span th:text="${#lists.size(day.festivals)}">0</span>개의 축제
+                            </span>
                         </div>
 
                         <!-- 즐겨찾기 축제 바 (구글 캘린더 스타일) -->
@@ -144,9 +152,10 @@
                              style="height: 80px;"
                              th:if="${#lists.size(day.festivals.?[favorite]) > 0}">
 
-                            <div th:each="f : ${day.festivals.?[favorite]}"
+                            <div th:each="f, stat : ${day.festivals.?[favorite]}"
+                                 th:if="${f.lane < 5}"
                                  class="absolute left-0 right-0"
-                                 th:style="|top: ${f.lane * 18}px;|">
+                                 th:style="|top: ${f.lane * 17}px;|">
 
                                 <a class="festival-bar block h-4 text-[10px] px-1 truncate"
                                    th:attr="data-bar-type=${f.barType}"
@@ -157,20 +166,7 @@
                             </div>
                         </div>
 
-                        <!-- 축제 개수 / 클릭 텍스트 : 날짜 칸 맨 아래 중앙 -->
-                        <div class="mt-auto flex justify-center">
-                            <span th:if="${#lists.size(day.festivals) > 0}"
-                                  class="text-[11px] text-gradient"
-                                  th:data-date="${day.date}"
-                                  th:data-day-id="'day-' + ${day.date}">
-                                <span th:text="${#lists.size(day.festivals)}">0</span>개의 축제
-                            </span>
 
-                            <span th:if="${#lists.size(day.festivals) == 0}"
-                                  class="text-[11px] text-gray-300">
-<!--                                축제 없는 영역; 축제 없는 칸에 "축제 없음" 과 같은 텍스트 추가 가능-->
-                            </span>
-                        </div>
 
                         <!-- 날짜별 축제 상세 (숨겨진 영역: 우측 패널에 복사해서 사용) -->
                         <div th:id="'day-' + ${day.date}" class="hidden">

@@ -1,6 +1,7 @@
 package com.example.ex02.festival.service;
 
 import com.example.ex02.festival.dto.CalendarFestivalDto;
+import com.example.ex02.festival.entity.FavoriteEntity;
 import com.example.ex02.festival.entity.FestivalEntity;
 import com.example.ex02.festival.entity.FestivalTagEntity;
 import com.example.ex02.festival.repository.FavoriteRepository;
@@ -40,6 +41,20 @@ public class CalendarService {
         LocalDate visibleEnd;
     }
 
+    // 사용자 기준으로 최근 즐겨찾기 5개 축제 번호 Set
+    private Set<Long> findRecentFavoriteFestivalIds(Long userNo) {
+        if (userNo == null) {
+            return Collections.emptySet();
+        }
+
+        List<FavoriteEntity> favorites =
+                favoriteRepository.findTop5ByMember_UserNoOrderByFavoriteDateDesc(userNo);
+
+        return favorites.stream()
+                .map(f -> f.getFestival().getFestivalNo())
+                .collect(Collectors.toSet());
+    }
+
     // 켈린더에 들어갈 데이터 가져오기
     public Map<LocalDate, List<CalendarFestivalDto>> getCalendar(int year,
                                                                  int month,
@@ -56,6 +71,7 @@ public class CalendarService {
 
         // 2) 즐겨찾기 축제 번호 조회
         Set<Long> favoriteIdSet = findFavoriteFestivalIds(userNo);
+        Set<Long> recentFavoriteIdSet = findRecentFavoriteFestivalIds(userNo);
 
         // 3) 월에 걸치는 축제 조회
         List<FestivalEntity> festivals = festivalRepository.findFestivalsForMonth(
@@ -342,5 +358,6 @@ public class CalendarService {
 
         return weeks;
     }   // buildCalendar
+
 
 }
