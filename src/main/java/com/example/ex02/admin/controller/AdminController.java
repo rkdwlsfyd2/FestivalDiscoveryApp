@@ -1,6 +1,5 @@
 package com.example.ex02.admin.controller;
 
-import com.example.ex02.admin.dto.AdminDashboardDto;
 import com.example.ex02.admin.dto.MemberDetailDto;
 import com.example.ex02.admin.dto.ReviewSummaryDto;
 import com.example.ex02.admin.service.AdminService;
@@ -13,7 +12,6 @@ import com.example.ex02.member.dto.MemberDto;
 import com.example.ex02.member.entity.MemberEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -57,7 +55,7 @@ public class AdminController {
     public String memberList(@RequestParam(required = false) String keyword,
                              @RequestParam(required = false) String role,
                              @RequestParam(required = false) String isActive,
-                             @PageableDefault(size = 20) Pageable pageable,
+                             @PageableDefault(size = 10) Pageable pageable,
                              Model model) {
 
         Page<MemberDto> members =
@@ -78,7 +76,6 @@ public class AdminController {
 
     @GetMapping("/members/{userNo}")
     public String memberDetail(@PathVariable Long userNo,
-                               HttpSession session,
                                Model model) {
 
         MemberDetailDto detail = adminService.getMemberDetail(userNo);

@@ -264,6 +264,7 @@ public class CalendarService {
             List<String> tagNames =
                     tagNamesByFestival.getOrDefault(festNo, List.of());
 
+            // 시작과 끝은 둥글게, 중앙은 양쪽으로 꽉 채워 자연스러운 하이라이팅
             for (LocalDate d = visibleStart; !d.isAfter(visibleEnd); d = d.plusDays(1)) {
                 CalendarFestivalDto dto = CalendarFestivalDto.from(fest, favorite, tagNames);
                 dto.setStartDate(festStart);
