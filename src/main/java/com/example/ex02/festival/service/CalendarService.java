@@ -24,7 +24,6 @@ public class CalendarService {
     private final FestivalTagRepository festivalTagRepository;
     private final FavoriteRepository favoriteRepository;
 
-    // todo 즐겨찾기 축제별 색상 매핑 (현재는 그냥 GPT 추천으로 맞춰놓음)
     private static final String[] FAVORITE_PALETTE = {
             "#93c5fd", // 파랑
             "#f9a8d4", // 핑크

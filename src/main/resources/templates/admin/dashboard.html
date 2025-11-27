@@ -6,7 +6,6 @@
 
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>관리자 대시보드</title>
 
     <th:block layout:fragment="css">
         <style>
@@ -303,20 +302,15 @@
                         <span class="font-semibold"
                               th:text="${stats.todayReviewCount}">12</span>건
                     </div>
-                    <div class="text-[0.7rem] text-gray-400 mt-1">
-                        신고 처리 대기
-                        <span class="text-red-500 font-semibold"
-                              th:text="${stats.pendingReviewCount}">3</span>건
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 즐겨찾기 / 트래픽 요약 -->
+        <!-- 즐겨찾기 요약 -->
         <div class="card flex flex-col justify-between">
             <div class="card-header">
                 <div>
-                    <div class="card-title">즐겨찾기 & 트래픽</div>
+                    <div class="card-title">즐겨찾기</div>
                     <div class="card-subtitle">플랫폼 이용 현황</div>
                 </div>
                 <span class="badge-primary">트래픽</span>
@@ -329,23 +323,7 @@
                         4,520
                     </span>
                 </div>
-                <div class="flex items-center justify-between">
-                    <span class="stat-label">오늘 페이지 조회수(PV)</span>
-                    <span class="font-semibold"
-                          th:text="${#numbers.formatInteger(stats.todayPageViews, 0, 'COMMA')}">
-                        2,341
-                    </span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="stat-label">현재 접속 중인 사용자</span>
-                    <span class="font-semibold"
-                          th:text="${stats.onlineUsers}">7</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="stat-label">오늘 최고 동접자 수</span>
-                    <span class="font-semibold"
-                          th:text="${stats.maxOnlineToday}">21</span>
-                </div>
+
             </div>
         </div>
     </div>
@@ -388,11 +366,6 @@
                     <div class="flex items-end justify-between">
                         <div class="stat-value"
                              th:text="${stats.todayReviewCount}">32</div>
-                        <div class="text-[0.7rem] text-gray-400">
-                            신고된 리뷰
-                            <span class="text-red-500 font-semibold"
-                                  th:text="${stats.reportedReviewsThisWeek}">1</span>건
-                        </div>
                     </div>
                     <div class="text-[0.7rem] text-gray-400 mt-1">
                         평균 평점
@@ -522,61 +495,6 @@
                     </tr>
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-
-        <!-- 시스템 / 트래픽 요약 -->
-        <div class="card">
-            <div class="flex items-center justify-between mb-3">
-                <div>
-                    <div class="font-semibold">시스템 / 트래픽 요약</div>
-                    <div class="section-subtitle">
-                        간단한 서버 상태와 트래픽 정보를 제공합니다.
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 text-xs">
-                <div class="space-y-2">
-                    <div class="font-semibold text-gray-700">세션 현황</div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">현재 세션 수</span>
-                        <span class="font-semibold"
-                              th:text="${stats.activeSessions}">12</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">오늘 생성된 세션</span>
-                        <span class="font-semibold"
-                              th:text="${stats.todayNewSessions}">34</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">세션 타임아웃(분)</span>
-                        <span class="font-semibold"
-                              th:text="${stats.sessionTimeoutMinutes}">30</span>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="font-semibold text-gray-700">트래픽 요약</div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">오늘 방문자(고유)</span>
-                        <span class="font-semibold"
-                              th:text="${stats.todayUniqueVisitors}">120</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">전체 방문 수</span>
-                        <span class="font-semibold"
-                              th:text="${#numbers.formatInteger(stats.totalVisits, 0, 'COMMA')}">
-                            12,345
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">평균 응답 시간(ms)</span>
-                        <span class="font-semibold"
-                              th:text="${stats.avgResponseTimeMs}">180</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
