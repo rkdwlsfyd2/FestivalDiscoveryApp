@@ -21,7 +21,7 @@ public class ReviewEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "review_seq_gen")
     @SequenceGenerator(
             name = "review_seq_gen",
-            sequenceName = "SEQ_REVIEW",
+            sequenceName = "REVIEW_SEQ",
             allocationSize = 1
     )
     @Column(name = "REVIEW_NO")
