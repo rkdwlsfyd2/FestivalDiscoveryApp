@@ -93,7 +93,7 @@ public class MemberApiController {
         String token = memberService.createResetToken(email);
         if (token == null) return "NOT_FOUND";
 
-        String resetUrl = "http://localhost:9898/reset-password?token=" + token;
+        String resetUrl = "https://3.85.93.179:9898/reset-password?token=" + token;
 
         // ⭐ HTML 이메일 내용
         String html = """

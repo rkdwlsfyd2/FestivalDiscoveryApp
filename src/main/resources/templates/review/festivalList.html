@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <title>축제 목록</title>
 </head>
+<style>
+            .fd-fav-form button {
+            pointer-events: auto;
+        }
+
+        .festival-card .fd-fav-form {
+            pointer-events: auto;
+        }
+
+        .festival-card {
+            pointer-events: auto;
+        }
+
+</style>
 <body>
     <!-- 축제 목록 표시 영역 (Thymeleaf fragment) -->
     <div th:fragment="festivalList" id="festivalListRoot">
@@ -120,7 +134,7 @@
                                                                           tag=${tag})}">
 
                                 <button type="submit"
-                                        onclick="event.stopPropagation();"
+                                        onclick="event.stopPropagation(); event.preventDefault(); this.closest('form').submit();"
                                         class="text-[12px] px-3 py-1 rounded-lg border font-semibold"
                                         th:classappend="${favoriteFestivalNos != null and #sets.contains(favoriteFestivalNos, festival.festivalNo)}
                                             ? ' bg-yellow-300 border-yellow-400 text-gray-900'
