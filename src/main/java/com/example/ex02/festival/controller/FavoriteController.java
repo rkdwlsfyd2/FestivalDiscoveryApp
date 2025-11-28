@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -20,23 +21,21 @@ public class FavoriteController {
     private final FavoriteService favoriteService;
 
     @PostMapping("/toggle")
-    public String toggleFavorite(@RequestParam Long festivalNo,
-                                 @RequestParam String redirectUrl,
-                                 HttpSession session) {
+    @ResponseBody
+    public String toggleFavoriteAjax(
+            @RequestParam Long festivalNo,
+            HttpSession session) {
 
         MemberEntity loginUser = (MemberEntity) session.getAttribute("loginUser");
 
-        // 로그인 안 되어 있으면 로그인 페이지로
+        // 로그인 안 되어 있는 경우
         if (loginUser == null) {
-            // 로그인 후 원래 페이지로 돌아감
-            String encoded = URLEncoder.encode(redirectUrl, StandardCharsets.UTF_8);
-            return "redirect:/login?redirectUrl=" + encoded;
+            return "NOT_LOGIN";
         }
 
-        // 즐겨찾기 토글
-        favoriteService.toggleFavorite(loginUser.getUserNo(), festivalNo);
+        boolean added = favoriteService.toggleFavorite(loginUser.getUserNo(), festivalNo);
 
-        // 원래 페이지으로 리다이렉트
-        return "redirect:" + redirectUrl;
+        return added ? "added" : "removed";
     }
+
 }

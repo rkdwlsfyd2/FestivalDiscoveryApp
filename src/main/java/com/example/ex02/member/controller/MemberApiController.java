@@ -17,17 +17,29 @@ public class MemberApiController {
     private final EmailService emailService;
     private final MemberService memberService;   // ⭐ 필수 추가
 
-    /** 아이디 중복 체크 (공란 포함) */
+    /** 아이디 중복 체크 (탈퇴 회원 구분 포함) */
     @GetMapping("/check-userid")
-    public Map<String, Boolean> checkUserId(@RequestParam String userId) {
+    public Map<String, Object> checkUserId(@RequestParam String userId) {
 
         if (userId == null || userId.trim().isEmpty()) {
             return Map.of("exists", true);
         }
 
-        boolean exists = memberRepository.existsByUserId(userId);
-        return Map.of("exists", exists);
+        var member = memberRepository.findByUserId(userId).orElse(null);
+
+        if (member == null) {
+            return Map.of(
+                    "exists", false,
+                    "active", false
+            );
+        }
+
+        return Map.of(
+                "exists", true,
+                "active", "Y".equals(member.getIsActive()) // true면 정상 회원, false면 탈퇴 회원
+        );
     }
+
 
     /** 이메일 중복 체크 (공란 포함) */
     @GetMapping("/check-email")
@@ -93,7 +105,8 @@ public class MemberApiController {
         String token = memberService.createResetToken(email);
         if (token == null) return "NOT_FOUND";
 
-        String resetUrl = "https://3.85.93.179:9898/reset-password?token=" + token;
+        String resetUrl = "https://chch.kro.kr/reset-password?token=" + token;
+
 
         // ⭐ HTML 이메일 내용
         String html = """

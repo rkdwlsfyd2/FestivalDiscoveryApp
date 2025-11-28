@@ -193,14 +193,15 @@
                                     </div>
 
                                     <!-- 즐겨찾기 토글 버튼 -->
-                                    <form method="post" th:action="@{/favorite/toggle}">
+                                    <form method="post" th:action="@{/favorite/toggle}" class="fd-fav-form">
                                         <input type="hidden" name="festivalNo"
                                                th:value="${festival.festivalNo}">
                                         <input type="hidden" name="redirectUrl"
                                                th:value="@{/calendar(year=${year}, month=${month}, region=${selectedRegion}, openDate=${day.date})}">
 
                                         <button type="submit"
-                                                class="text-[11px] px-2 py-1 rounded-lg border"
+                                                class="text-[11px] px-2 py-1 rounded-lg border fd-fav-btn"
+                                                onclick="event.preventDefault(); toggleFav(this)"
                                                 th:classappend="${festival.favorite} ? ' bg-yellow-300 border-yellow-400' : ' border-gray-300'"
                                                 th:text="${festival.favorite} ? '★' : '☆'">
                                         </button>
@@ -252,59 +253,76 @@
             </div>
         `;
 
-        document.addEventListener('DOMContentLoaded', function () {
-            let selectedCell = null;
+            document.addEventListener('DOMContentLoaded', function () {
 
-            function selectCell(cell) {
-                // 이전 선택 해제
-                if (selectedCell) {
-                    selectedCell.classList.remove('bg-sub-blue', 'bg-opacity-30');
+                let selectedCell = null;
+
+                function selectCell(cell) {
+                    if (selectedCell) {
+                        selectedCell.classList.remove('bg-sub-blue', 'bg-opacity-30');
+                    }
+                    selectedCell = cell;
+                    selectedCell.classList.add('bg-sub-blue', 'bg-opacity-30');
                 }
-                // 새 선택 적용
-                selectedCell = cell;
-                selectedCell.classList.add('bg-sub-blue', 'bg-opacity-30');
-            }
 
-            // ▶ 날짜 칸 클릭 시 우측 상세 패널에 목록 출력
-            document.querySelectorAll('.calendar-day.festival-toggle').forEach(cell => {
-                cell.addEventListener('click', function () {
-                    const targetId = this.dataset.dayId;
-                    const src = document.getElementById(targetId);
-                    if (!src) return;
+                // ==============================
+                // 1) 날짜 셀 클릭 이벤트 등록
+                // ==============================
+                const dayCells = document.querySelectorAll('.calendar-day.festival-toggle');
 
-                    document.getElementById('detailContent').innerHTML =
-                        legendHtml + src.innerHTML;
-                    document.getElementById('detailDateText').textContent =
-                        this.dataset.date + ' 진행 축제 목록';
+                dayCells.forEach(cell => {
+                     cell.addEventListener('click', function () {
 
-                    document.getElementById('festivalDetail').classList.remove('hidden');
+                        const date = this.dataset.date;
 
-                    // 선택된 날짜 하이라이트 처리
-                    selectCell(this);
+                        // URL 파라미터 업데이트
+                        const params = new URLSearchParams(window.location.search);
+                        params.set("openDate", date);
+                        history.replaceState({}, "", `${location.pathname}?${params.toString()}`);
+
+                        // 기존 로직 유지
+                        const targetId = this.dataset.dayId;
+                        const src = document.getElementById(targetId);
+                        if (!src) return;
+
+                        document.getElementById('detailContent').innerHTML =
+                            legendHtml + src.innerHTML;
+                        document.getElementById('detailDateText').textContent =
+                            this.dataset.date + ' 진행 축제 목록';
+
+                        document.getElementById('festivalDetail').classList.remove('hidden');
+                        selectCell(this);
+                    });
+
                 });
+
+                // ==============================
+                // 2) URL의 openDate가 있으면 그 날짜 클릭
+                // ==============================
+                const params = new URLSearchParams(window.location.search);
+                const openDate = params.get('openDate');
+                if (openDate) {
+                    const cell = document.querySelector(
+                        `.calendar-day.festival-toggle[data-date="${openDate}"]`
+                    );
+                    if (cell) {
+                        cell.click();   // <-- 이미 이벤트 등록되었으므로 정상 작동
+                    }
+                    return;             // 오늘 자동 클릭은 실행하지 않음
+                }
+
+                // ==============================
+                // 3) openDate 없을 때만 오늘 날짜 자동 클릭
+                // ==============================
+                const todayCell = document.querySelector(
+                    '.calendar-day.festival-toggle[data-istoday="true"]'
+                );
+                if (todayCell) {
+                    todayCell.click();
+                }
+
             });
 
-            // ▼ URL에 openDate가 있으면 해당 날짜 칸을 먼저 클릭
-            const params = new URLSearchParams(window.location.search);
-            const openDate = params.get('openDate');
-            if (openDate) {
-                const cell = document.querySelector(
-                    `.calendar-day.festival-toggle[data-date="${openDate}"]`
-                );
-                if (cell) {
-                    cell.click();
-                    return; // 오늘 날짜 자동클릭은 건너뜀
-                }
-            }
-
-            // ▼ 처음 진입 시, 오늘 날짜가 있으면 자동으로 클릭
-            const todayCell = document.querySelector(
-                '.calendar-day.festival-toggle[data-istoday="true"]'
-            );
-            if (todayCell) {
-                todayCell.click();
-            }
-        });
     </script>
 </th:block>
 

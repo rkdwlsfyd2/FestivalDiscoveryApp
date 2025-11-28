@@ -134,7 +134,8 @@
                                                                           tag=${tag})}">
 
                                 <button type="submit"
-                                        onclick="event.stopPropagation(); event.preventDefault(); this.closest('form').submit();"
+                                        onclick="event.stopPropagation(); event.preventDefault(); toggleFav(this);"
+
                                         class="text-[12px] px-3 py-1 rounded-lg border font-semibold"
                                         th:classappend="${favoriteFestivalNos != null and #sets.contains(favoriteFestivalNos, festival.festivalNo)}
                                             ? ' bg-yellow-300 border-yellow-400 text-gray-900'
@@ -273,6 +274,8 @@
             </div>
 
         </div> <!-- /.w-full h-full -->
+
     </div> <!-- /fragment:festivalList -->
+
 </body>
 </html>

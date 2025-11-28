@@ -22,20 +22,26 @@ public class FavoriteService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void toggleFavorite(Long memberNo, Long festivalNo) {
+    public boolean toggleFavorite(Long memberNo, Long festivalNo) {
         Optional<FavoriteEntity> opt =
                 favoriteRepository.findByMemberUserNoAndFestivalFestivalNo(memberNo, festivalNo);
 
         if (opt.isPresent()) {
-            favoriteRepository.delete(opt.get()); // 즐겨찾기 해제
+            // 이미 즐겨찾기 되어 있으면 → 해제
+            favoriteRepository.delete(opt.get());
+            return false;   // removed
         } else {
+            // 즐겨찾기 추가
             FavoriteEntity fav = new FavoriteEntity();
             fav.setMember(memberRepository.getReferenceById(memberNo));
             fav.setFestival(festivalRepository.getReferenceById(festivalNo));
             fav.setFavoriteDate(LocalDateTime.now());
-            favoriteRepository.save(fav);         // 즐겨찾기 추가
+            favoriteRepository.save(fav);
+            return true;    // added
         }
     }
+
+
 
     // 해당 유저가 특정 축제를 즐겨찾기 했는지 여부
     public boolean isFavorite(Long userNo, Long festivalNo) {

@@ -102,6 +102,197 @@ if (!window.festivalFilterInitialized) {
     });
 }
 
+
+// ==============================
+//  공통 별 UI 적용 함수
+// ==============================
+function applyStarUI(button, result) {
+    if (!button) return;
+
+    if (result === "added") {
+        button.textContent = "★";
+        button.classList.remove("bg-white", "border-gray-300", "text-gray-700");
+        button.classList.add("bg-yellow-300", "border-yellow-400", "text-gray-900");
+    } else {
+        button.textContent = "☆";
+        button.classList.add("bg-white", "border-gray-300", "text-gray-700");
+        button.classList.remove("bg-yellow-300", "border-yellow-400", "text-gray-900");
+    }
+}
+
+
+// ==============================
+//  리스트 내 동일 축제 버튼 동기화
+// ==============================
+function syncListButtons(festivalNo, result) {
+    document
+        .querySelectorAll(`.fd-fav-form input[name="festivalNo"][value="${festivalNo}"]`)
+        .forEach(input => {
+            const btn = input.closest("form")?.querySelector("button");
+            applyStarUI(btn, result);
+        });
+}
+
+
+// ==============================
+//  지도 오버레이 버튼 동기화
+// ==============================
+function syncOverlayButton(festivalNo, result) {
+    const overlayBtn = document.querySelector(`.fd-overlay-fav[data-festival-no="${festivalNo}"]`);
+    if (overlayBtn) {
+        applyStarUI(overlayBtn, result);
+    }
+}
+
+
+// ==============================
+//  캘린더 openDate 유지 새로고침
+// ==============================
+function refreshCalendarWithOpenDate() {
+    const params = new URLSearchParams(location.search);
+    let openDate = params.get("openDate");
+
+    // URL 에 openDate 있는 경우 → 그대로 유지
+    if (openDate) {
+        location.href = `${location.pathname}?${params.toString()}`;
+        return;
+    }
+
+    // 선택된 날짜 셀에서 가져오기
+    const selectedCell = document.querySelector(".calendar-day.bg-sub-blue.bg-opacity-30");
+    if (selectedCell) {
+        openDate = selectedCell.dataset.date;
+        params.set("openDate", openDate);
+        location.href = `${location.pathname}?${params.toString()}`;
+        return;
+    }
+
+    // 없으면 오늘 날짜 선택
+    const todayCell = document.querySelector('.calendar-day[data-istoday="true"]');
+    if (todayCell) {
+        openDate = todayCell.dataset.date;
+        params.set("openDate", openDate);
+        location.href = `${location.pathname}?${params.toString()}`;
+        return;
+    }
+
+    // fallback
+    location.href = `${location.pathname}?${params.toString()}`;
+}
+
+
+// ==============================
+//  최종 완성형 즐겨찾기 토글 함수
+// ==============================
+async function toggleFav(btn) {
+
+    if (!window.loginUser) {
+        location.href = "/login";
+        return;
+    }
+
+    const form = btn.closest("form");
+    const festivalNo = form.festivalNo.value;
+
+    const res = await fetch("/favorite/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `festivalNo=${festivalNo}`
+    });
+
+    const result = await res.text();
+
+    // ------------------------
+    // 1) 리스트의 버튼 UI 토글
+    // ------------------------
+    if (result === "added") {
+        btn.textContent = "★";
+        btn.classList.remove("bg-white", "border-gray-300", "text-gray-700");
+        btn.classList.add("bg-yellow-300", "border-yellow-400", "text-gray-900");
+    } else {
+        btn.textContent = "☆";
+        btn.classList.add("bg-white", "border-gray-300", "text-gray-700");
+        btn.classList.remove("bg-yellow-300", "border-yellow-400", "text-gray-900");
+    }
+
+    // ------------------------
+    // 2) 동일 festivalNo 모든 리스트 버튼 동기화
+    // ------------------------
+    document.querySelectorAll(`.fd-fav-form input[value="${festivalNo}"]`)
+        .forEach(input => {
+            const btn2 = input.closest("form").querySelector("button");
+            if (!btn2) return;
+            if (result === "added") {
+                btn2.textContent = "★";
+                btn2.classList.remove("bg-white", "border-gray-300", "text-gray-700");
+                btn2.classList.add("bg-yellow-300", "border-yellow-400", "text-gray-900");
+            } else {
+                btn2.textContent = "☆";
+                btn2.classList.add("bg-white", "border-gray-300", "text-gray-700");
+                btn2.classList.remove("bg-yellow-300", "border-yellow-400", "text-gray-900");
+            }
+        });
+
+    // ------------------------
+    // 3) 지도 오버레이 즐찾 아이콘도 즉시 반영
+    // ------------------------
+    const overlayBtn = document.querySelector(`.fd-overlay-fav[data-festival-no="${festivalNo}"]`);
+
+    if (overlayBtn) {
+        if (result === "added") {
+            overlayBtn.textContent = "★";
+            overlayBtn.classList.add("bg-yellow-300", "border-yellow-400", "text-gray-900");
+            overlayBtn.classList.remove("bg-white", "border-gray-300", "text-gray-700");
+        } else {
+            overlayBtn.textContent = "☆";
+            overlayBtn.classList.add("bg-white", "border-gray-300", "text-gray-700");
+            overlayBtn.classList.remove("bg-yellow-300", "border-yellow-400", "text-gray-900");
+        }
+    }
+
+    // ------------------------
+    // 4) 지도 마커 + 오버레이 전체 재동기화 (중요!!)
+    // ------------------------
+    if (window.updateKakaoMarkersFromDom) {
+        window.updateKakaoMarkersFromDom({ keepBounds: true });
+    }
+
+    // ------------------------
+    // 5) 캘린더에서 즐겨찾기 눌렀을 때 openDate 유지
+    // ------------------------
+    if (location.pathname.startsWith("/calendar")) {
+
+        const params = new URLSearchParams(location.search);
+        let openDate = params.get("openDate");
+
+        if (openDate) {
+            params.set("openDate", openDate);
+            location.href = `${location.pathname}?${params.toString()}`;
+            return;
+        }
+
+        const autoCell = document.querySelector(".calendar-day.bg-sub-blue.bg-opacity-30");
+        if (autoCell) {
+            params.set("openDate", autoCell.dataset.date);
+            location.href = `${location.pathname}?${params.toString()}`;
+            return;
+        }
+
+        const todayCell = document.querySelector(".calendar-day[data-istoday='true']");
+        if (todayCell) {
+            params.set("openDate", todayCell.dataset.date);
+            location.href = `${location.pathname}?${params.toString()}`;
+            return;
+        }
+
+        location.href = `${location.pathname}?${params.toString()}`;
+        return;
+    }
+}
+
+
+
+
 /*
 // 안쓰는 함수 -하요한- 네이버맵 마커 업데이트 함수(여기서 마커 찍어줌)
 function updateMapMarkers(festivalsJson) {
