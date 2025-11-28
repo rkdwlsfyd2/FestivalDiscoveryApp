@@ -34,7 +34,7 @@ public class MemberController {
     }
 
     // ================================
-    // ⭐ 로그인 처리
+    // ⭐ 로그인 처리 (비활성 회원 체크 포함)
     // ================================
     @PostMapping("/login")
     public String login(@RequestParam String userId,
@@ -45,15 +45,26 @@ public class MemberController {
 
         var member = memberService.login(userId, password);
 
+        // 로그인 실패
         if (member == null) {
             model.addAttribute("error", "아이디 또는 비밀번호가 잘못되었습니다.");
             return "member/login";
         }
 
+        // ⭐ 비활성 회원 로그인 차단 (첫 번째 버전 유지)
+        if ("INACTIVE".equals(member.getPassword())) {
+            model.addAttribute("error", "비활성화된 계정입니다.");
+            return "member/login";
+        }
+
+        // 정상 로그인
         session.setAttribute("loginUser", member);
+
+        // redirectUrl 있으면 해당 페이지로
         if (redirectUrl != null && !redirectUrl.isBlank()) {
             return "redirect:" + redirectUrl;
         }
+
         return "redirect:/";
     }
 
@@ -81,7 +92,6 @@ public class MemberController {
 
         try {
             memberService.signup(memberDto);
-
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("memberDto", memberDto);
@@ -123,11 +133,14 @@ public class MemberController {
         model.addAttribute("token", token);
         return "member/reset-password";
     }
-    // 로그아웃 기능
+
+    // ================================
+    // ⭐ 로그아웃
+    // ================================
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate();  // 세션 전체 삭제 → 로그인 해제됨
-        return "redirect:/";   // 로그아웃 후 메인으로 이동
+        session.invalidate();
+        return "redirect:/";
     }
 
 }
