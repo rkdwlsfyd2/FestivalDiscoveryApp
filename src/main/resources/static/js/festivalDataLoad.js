@@ -249,7 +249,10 @@ async function toggleFav(btn) {
             overlayBtn.classList.remove("bg-yellow-300", "border-yellow-400", "text-gray-900");
         }
     }
-
+        const card = document.querySelector(`.marker-card[data-festival-no="${festivalNo}"]`);
+        if (card) {
+            card.dataset.favorite = (result === "added" ? "true" : "false");
+        }
     // ------------------------
     // 4) 지도 마커 + 오버레이 전체 재동기화 (중요!!)
     // ------------------------
@@ -288,6 +291,7 @@ async function toggleFav(btn) {
         location.href = `${location.pathname}?${params.toString()}`;
         return;
     }
+
 }
 
 
