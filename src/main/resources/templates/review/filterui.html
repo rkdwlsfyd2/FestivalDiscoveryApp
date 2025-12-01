@@ -1,0 +1,88 @@
+<!-- 검색창 및 태그 필터 UI Fragment -->
+<div th:fragment="filterUI">
+    <div class="w-full max-w-[688px]">
+        <!-- 검색창 -->
+        <div class="mb-4 w-full">
+            <div class="flex gap-3 flex-nowrap">
+                <input type="text" id="keywordInput" placeholder="축제명을 검색하세요..."
+                    class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg">
+                <button type="button" id="searchBtn"
+                    class="flex-shrink-0 whitespace-nowrap px-4 py-2 bg-main text-white rounded-lg hover:bg-gradient2 transition">
+                    검색
+                </button>
+            </div>
+        </div>
+        <!-- 태그 필터 -->
+        <div class="mb-4 w-full">
+            <div class="flex flex-nowrap gap-2 w-full">
+                <button type="button"
+                    class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg text-white whitespace-nowrap text-center hover:bg-gradient2"
+                    data-tag="자연">
+                    🌿 자연
+                </button>
+                <button type="button"
+                    class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg text-white whitespace-nowrap text-center hover:bg-gradient2"
+                    data-tag="야간">
+                    🌙 야간
+                </button>
+                <button type="button"
+                    class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg text-white whitespace-nowrap text-center hover:bg-gradient2"
+                    data-tag="먹거리">
+                    🍜 먹거리
+                </button>
+                <button type="button"
+                    class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg text-white whitespace-nowrap text-center hover:bg-gradient2"
+                    data-tag="체험">
+                    🎨 체험
+                </button>
+                <button type="button"
+                    class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg text-white whitespace-nowrap text-center hover:bg-gradient2"
+                    data-tag="계절">
+                    ❄️ 계절
+                </button>
+                <button type="button"
+                    class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg text-white whitespace-nowrap text-center hover:bg-gradient2"
+                    data-tag="문화">
+                    🎭 문화
+                </button>
+                <button type="button"
+                    class="tag-btn bg-sub-red px-1 py-1 text-xs rounded-lg text-white whitespace-nowrap text-center hover:bg-gradient2"
+                    data-tag="아동">
+                    👦 아동
+                </button>
+            </div>
+        </div>
+
+        <!-- 지역별 필터 드롭다운 -->
+        <div class="mb-4 w-full">
+            <div class="relative">
+                <button type="button" id="regionDropdownBtn"
+                    class="w-full flex items-center justify-between px-4 py-2 bg-main text-white rounded-lg cursor-pointer">
+                    <span id="regionSelectedText">전체 지역</span>
+                    <svg id="regionDropdownIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="regionDropdownMenu" class="hidden absolute w-full mt-1 bg-white border border-gray-300 rounded shadow max-h-60 overflow-y-auto z-50">
+                    <div class="region-option px-4 py-2 cursor-pointer hover:bg-gray-100" data-value="">
+                        전체 지역
+                    </div>
+                    <div th:each="region : ${regionList}"
+                         class="region-option px-4 py-2 cursor-pointer hover:bg-gray-100"
+                         th:data-value="${region}"
+                         th:text="${region}">
+                    </div>
+                </div>
+            </div>
+            <!-- 숨겨진 select (실제 값 저장용) -->
+            <select id="regionFilter" class="hidden">
+                <option value="">전체 지역</option>
+                <option th:each="region : ${regionList}"
+                        th:value="${region}"
+                        th:text="${region}"></option>
+            </select>
+        </div>
+    </div>
+</div>
+
+

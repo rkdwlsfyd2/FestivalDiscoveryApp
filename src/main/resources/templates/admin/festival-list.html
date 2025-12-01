@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<head>
+    <th:block layout:fragment="css">
+        <style>
+            .member-row {
+                display: grid;
+                grid-template-columns: 80px 120px 120px 220px 160px 80px 120px 100px 140px;
+                padding: 12px 0;
+                border-bottom: 1px solid #e5e7eb; /* 회색 라인 */
+                align-items: center;
+            }
+
+            .member-row:hover {
+                background-color: #f8fafc; /* hover 시 은은한 강조 */
+            }
+            .member-header {
+                display: grid;
+                grid-template-columns: 80px 120px 120px 220px 160px 80px 120px 100px 140px;
+                padding: 14px 0;
+                font-weight: 700;
+                border-bottom: 2px solid #d1d5db;
+            }
+
+
+        </style>
+    </th:block>
+</head>
+
+<div layout:fragment="content" class="bg-gray-50 min-h-screen mt-20">
+
+    <div class="flex max-w-4xl mx-auto py-10">
+
+        <!-- 사이드바 (대시보드와 동일하게) -->
+        <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8 whitespace-nowrap">
+            <h2 class="text-xl font-bold mb-6">관리자 페이지</h2>
+
+            <nav class="flex flex-col space-y-3">
+                <a href="/admin"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'dashboard' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    대시보드
+                </a>
+
+                <a href="/admin/members"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'members' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    회원 관리
+                </a>
+
+                <a href="/admin/festivals"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'festivals' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    축제 관리
+                </a>
+
+                <a href="/admin/reviews"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'reviews' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                    리뷰 관리
+                </a>
+            </nav>
+        </aside>
+
+        <!-- 본문 -->
+        <main class="flex-1">
+            <!-- 왼쪽: 축제 목록 -->
+            <div class="w-full max-w-[1400px] mx-auto" id="festivalListWrapper">
+                <h1 class="text-h3 font-heavy text-black mb-4">축제 목록</h1>
+
+                <!-- 검색창 및 태그 필터 -->
+                <div th:replace="~{review/filterui :: filterUI}"></div>
+
+                <!-- 축제 목록 카드들 -->
+                <div th:replace="~{admin/festivalList-manage :: festivalList}"></div>
+            </div>
+        </main>
+    </div>
+</div>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        // admin계정이면 true, 아니면 false
+        window.isAdmin = /*[[${session.loginUser != null and session.loginUser.role == 'admin'}]]*/ false;
+    </script>
+
+    <!-- 기존 JS (리스트 AJAX, 필터 핸들러) -->
+    <script type="text/javascript" th:src="@{/js/festivalDataLoad.js}"></script>
+    <script type="text/javascript" th:src="@{/js/filterhandler.js}"></script>
+
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // 기존 updateFestivalList 감싸서, AJAX 이후에 높이 + 마커 다시 세팅
+            const originalUpdateFestivalList = window.updateFestivalList;
+            if (typeof originalUpdateFestivalList === "function") {
+                window.updateFestivalList = function (...args) {
+                    const result = originalUpdateFestivalList.apply(this, args);
+
+                    return result;
+                };
+            } else {
+                // 혹시 모를 초기 동기화를 위해 한번 호출
+                if (typeof window.updateKakaoMarkersFromDom === "function") {
+                    window.updateKakaoMarkersFromDom({ keepBounds: true });
+                }
+            }
+        });
+    </script>
+</th:block>
+</html>

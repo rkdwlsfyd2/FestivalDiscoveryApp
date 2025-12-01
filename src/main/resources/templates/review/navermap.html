@@ -1,0 +1,170 @@
+<!-- 더이상 안쓰는 html -하요한- -->
+
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>네이버 지도 테스트</title>
+</head>
+<body>
+
+<!-- 지도 표시 영역 (Thymeleaf fragment) -->
+<div th:fragment="mapContent">
+    <div id="naverMap"></div>
+</div>
+
+<!-- 지도 스크립트 (Thymeleaf fragment) -->
+<th:block th:fragment="mapScript">
+    <!-- SDK : Software Development Kit(특정 플랫폼의 라이브러리) -->
+    <!-- Maps API SDK 로드 -->
+    <!-- ncpClientId 말고 ncpKeyId 사용해야 함!-->
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=vooq0c0r5z"></script>
+
+    <script type="text/javascript">
+        function initNaverMap() {
+            const mapContainer = document.getElementById('naverMap');
+            if (typeof naver === 'undefined' || !naver.maps) {
+                console.error('네이버맵 SDK가 로드되지 않았습니다.');
+                return;
+            }
+
+            try {
+                // 지도 중심 좌표 (남한 중심 - 대전 근처)
+                const center = new naver.maps.LatLng(36.0, 127.5);
+                const map = new naver.maps.Map('naverMap', {
+                    center: center,
+                    zoom: 7, // 남한 전체가 보이도록
+                    mapTypeControl: false, // 위성맵 제어 비활성화
+                    zoomControl: true,
+                    zoomControlOptions: {
+                        position: naver.maps.Position.TOP_RIGHT
+                    }
+                });
+                
+                // 지도 인스턴스를 전역 변수로 저장 (다른 스크립트에서 접근 가능하도록)
+                window.naverMapInstance = map;
+                
+                // 서버에서 전달된 축제 데이터를 JavaScript 배열로 변환
+                // review_integration에서 전달한 window.festivalsJsonData 사용
+                let festivalsJson = '[]';
+                festivalsJson = window.festivalsJsonData;
+                console.log('[0단계] window.festivalsJsonData에서 데이터 가져옴');
+                console.log('[1단계] 서버에서 받은 JSON 문자열:', festivalsJson);
+                
+                let festivals = [];
+                try {
+                    festivals = JSON.parse(festivalsJson);
+                    console.log('[2단계] 파싱된 축제 개수:', festivals.length);
+                } catch (e) {
+                    console.error('[2단계] JSON 파싱 실패:', e);
+                    console.error('[2단계] 파싱 실패한 JSON:', festivalsJson);
+                    festivals = [];
+                }
+                
+                // FestivalEntity의 mapx(경도), mapy(위도)를 네이버맵 형식으로 변환
+                const convertedMarkers = festivals.map(function(festival, index) {
+                    const markerData = {
+                        festivalNo: festival.festivalNo,
+                        name: festival.title || '축제명 없음',
+                        address: festival.addr || '주소 없음',
+                        lat: festival.mapy || null,  // mapy는 위도
+                        lng: festival.mapx || null,   // mapx는 경도
+                        startDate: festival.eventStartDate || null,
+                        endDate: festival.eventEndDate || null
+                    };
+                    // JSON 파싱 후 네이버맵용 변환된 축제 데이터
+                    if (index < 3) {
+                        console.log(`[3단계] 축제 ${index + 1} 변환 결과:`, markerData);
+                    }
+                    return markerData;
+                });
+                
+                // 좌표가 있는 축제만 필터링
+                const festivalMarkers = convertedMarkers.filter(function(festival, index) {
+                    const isValid = festival.lat !== null && festival.lng !== null && 
+                                   !isNaN(festival.lat) && !isNaN(festival.lng);
+                    
+                    if (!isValid && index < 5) {
+                        console.warn(`[4단계] 좌표가 없는 축제 (인덱스 ${index}):`, festival);
+                    }
+                    
+                    return isValid;
+                });
+                
+                console.log('[4단계] 유효한 좌표를 가진 축제 개수:', festivalMarkers.length);
+                if (festivalMarkers.length < 0) {
+                    console.warn('[4단계] ⚠️ 유효한 좌표를 가진 축제가 없습니다!');
+                }
+
+                // 모든 정보창을 닫는 함수
+                const infoWindows = [];
+                function closeAllInfoWindows() {
+                    infoWindows.forEach(function(infowindow) {
+                        infowindow.close();
+                    });
+                }
+
+                // 축제 데이터로 마커 생성
+                console.log('[5단계] 마커 생성 시작...');
+                const markers = []; // 마커 배열
+                
+                // 여러개의 마커 일괄 생성 및 마커 정보 배열에 담기기
+                festivalMarkers.forEach(function(festival, index) {
+                    try {
+                        const position = new naver.maps.LatLng(festival.lat, festival.lng);
+                        
+                        // 마커 생성
+                        const marker = new naver.maps.Marker({
+                            position: position,
+                            map: map,
+                            shadow: false
+                        });
+
+                        // 정보창 생성 및 이벤트 리스너 연결 (infoContent.html의 함수 사용)
+                        const infowindow = createInfoWindow(festival, marker, map, infoWindows);
+                        
+                        markers.push(marker);
+                        infoWindows.push(infowindow);
+                    } catch (e) {
+                        console.error(`[5단계] 마커 생성 실패 (인덱스 ${index}):`, e);
+                        console.error(`[5단계] 실패한 축제 데이터:`, festival);
+                    }
+                });
+
+                // 전역 변수에 마커와 정보창 저장 (AJAX 업데이트용)
+                window.currentMarkers = markers;
+                window.currentInfoWindows = infoWindows;
+
+                console.log('=== 네이버맵 초기화 완료 ===');
+                console.log('총 마커 개수:', festivalMarkers.length);
+            } catch(e) {
+                console.error('네이버맵 초기화 중 오류:', e);
+            }
+        }
+        
+        // SDK가 로드될 때까지 대기
+        function waitForNaverSDK(maxAttempts = 50, interval = 100) {
+            let attempts = 0;
+            const timer = setInterval(() => {
+                attempts++;
+                if (typeof naver !== 'undefined' && naver.maps) {
+                    clearInterval(timer);
+                    initNaverMap();
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(timer);
+                    console.error('네이버맵 SDK 로드 시간 초과');
+                }
+            }, interval);
+        }
+
+        // DOM Ready 후 SDK 대기
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', waitForNaverSDK);
+        } else {
+            waitForNaverSDK();
+        }
+    </script>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <th:block layout:fragment="css">
+        <style>
+            .dashboard-title {
+                font-size: 1.5rem;
+                font-weight: 700;
+            }
+
+            .card {
+                border-radius: 0.75rem;
+                border: 1px solid #e5e7eb;
+                background-color: #ffffff;
+                padding: 1.5rem;
+            }
+
+            .card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 0.75rem;
+            }
+
+            .card-title {
+                font-size: 0.95rem;
+                font-weight: 600;
+            }
+
+            .card-subtitle {
+                font-size: 0.8rem;
+                color: #6b7280;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+                font-weight: 700;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+                color: #6b7280;
+            }
+
+            .badge-primary {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.15rem 0.5rem;
+                font-size: 0.7rem;
+                border-radius: 9999px;
+                background-color: #eff6ff;
+                color: #1d4ed8;
+            }
+
+            .section-title {
+                font-size: 1.05rem;
+                font-weight: 600;
+            }
+
+            .section-subtitle {
+                font-size: 0.8rem;
+                color: #6b7280;
+            }
+
+            .table-header {
+                font-size: 0.78rem;
+                color: #6b7280;
+            }
+
+            .pill {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.15rem 0.5rem;
+                border-radius: 9999px;
+                background-color: #f3f4f6;
+                font-size: 0.75rem;
+            }
+
+            .pill-dot {
+                width: 0.4rem;
+                height: 0.4rem;
+                border-radius: 9999px;
+                margin-right: 0.25rem;
+            }
+
+            .pill-dot-green {
+                background-color: #22c55e;
+            }
+
+            .pill-dot-amber {
+                background-color: #f59e0b;
+            }
+
+            .pill-dot-red {
+                background-color: #ef4444;
+            }
+
+            .trend-up {
+                color: #16a34a;
+                font-size: 0.75rem;
+            }
+
+            .trend-down {
+                color: #ef4444;
+                font-size: 0.75rem;
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="p-6 space-y-6 mt-20">
+
+    <section class="max-w-15xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- 사이드바 + 오른쪽 내용 한 줄 배치 -->
+        <div class="flex gap-6 items-start">
+
+            <!-- 왼쪽: 관리자 페이지 사이드바 -->
+            <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8">
+                <h2 class="text-xl font-bold mb-6">관리자 페이지</h2>
+
+                <nav class="flex flex-col space-y-3">
+                    <a href="/admin"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'dashboard' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                        대시보드
+                    </a>
+
+                    <a href="/admin/members"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'members' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                        회원 관리
+                    </a>
+
+                    <a href="/admin/festivals"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'festivals' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                        축제 관리
+                    </a>
+
+                    <a href="/admin/reviews"
+                       class="px-3 py-2 rounded-md"
+                       th:classappend="${activeMenu} == 'reviews' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">
+                        리뷰 관리
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- 오른쪽: 대시보드 전체 영역 -->
+            <div class="flex-1 space-y-6">
+
+                <!-- (1) 사용자 분석 카드: 사이드바 바로 우측에 나오는 박스 -->
+                <section aria-labelledby="user-analysis-title"
+                         class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 id="user-analysis-title" class="text-lg font-semibold text-gray-900">
+                            사용자 분석
+                        </h2>
+                        <p class="text-xs text-gray-400">활성 사용자의 나이 / 성별 / 선호 태그 추이</p>
+                    </div>
+
+                    <!-- 나이/성별/선호태그 그래프 자리 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="border rounded-xl h-60 flex items-center justify-center text-xs text-gray-400">
+                            <canvas id="ageChart" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="border rounded-xl h-60 flex items-center justify-center text-xs text-gray-400">
+                            <canvas id="genderChart" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="border rounded-xl h-60 flex items-center justify-center text-xs text-gray-400">
+                            <canvas id="tagChart" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+            </div> <!-- 오른쪽 flex-1 끝 -->
+
+        </div> <!-- flex 레이아웃 끝 -->
+
+    </section>
+
+    <!-- (2) 그 아래에 기존 "관리자 대시보드" 헤더와 카드들 배치 -->
+    <header class="flex items-baseline justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">
+                관리자 대시보드
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                전체 회원 현황, 축제/리뷰 통계, 트래픽 요약을 한 눈에 확인할 수 있습니다.
+            </p>
+        </div>
+        <p class="text-xs text-gray-400">
+            마지막 업데이트 :
+            <span th:text="${#temporals.format(T(java.time.LocalDateTime).now(), 'yyyy-MM-dd HH:mm')}"></span>
+        </p>
+    </header>
+
+    <!-- 1. 핵심 통계 카드 4개 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- 전체 회원 수 -->
+        <div class="card flex flex-col justify-between">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">전체 회원 수</div>
+                    <div class="card-subtitle">탈퇴 회원 제외, 활성 계정 기준</div>
+                </div>
+                <span class="badge-primary">회원</span>
+            </div>
+            <div class="flex items-end justify-between mt-3">
+                <div>
+                    <div class="stat-value" th:text="${#numbers.formatInteger(stats.totalMembers, 0, 'COMMA')}">
+                        1,234
+                    </div>
+                    <div class="stat-label mt-1">
+                        오늘 가입
+                        <span class="text-main font-semibold"
+                              th:text="${stats.todayJoined}">5</span>명
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="trend-up"
+                         th:if="${stats.memberGrowthRate >= 0}"
+                         th:text="'지난달 대비 +' + ${#numbers.formatDecimal(stats.memberGrowthRate, 1, 1)} + '%'">
+                        +12.3%
+                    </div>
+                    <div class="trend-down"
+                         th:if="${stats.memberGrowthRate < 0}"
+                         th:text="'지난달 대비 ' + ${#numbers.formatDecimal(stats.memberGrowthRate, 1, 1)} + '%'">
+                        -3.2%
+                    </div>
+                    <div class="text-[0.7rem] text-gray-400 mt-1">
+                        이번 주 가입
+                        <span th:text="${stats.weekJoined}">32</span>명
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 전체 축제 수 -->
+        <div class="card flex flex-col justify-between">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">전체 축제 수</div>
+                    <div class="card-subtitle">DB에 등록된 모든 축제</div>
+                </div>
+                <span class="badge-primary">축제</span>
+            </div>
+            <div class="flex items-end justify-between mt-3">
+                <div>
+                    <div class="stat-value"
+                         th:text="${#numbers.formatInteger(stats.totalFestivals, 0, 'COMMA')}">
+                        856
+                    </div>
+                    <div class="stat-label mt-1">
+                        현재 진행중
+                        <span class="font-semibold"
+                              th:text="${stats.ongoingFestivals}">42</span>개
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-500">
+                        이번 달 예정
+                        <span class="font-semibold"
+                              th:text="${stats.thisMonthFestivals}">78</span>개
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 전체 리뷰 수 -->
+        <div class="card flex flex-col justify-between">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">전체 리뷰 수</div>
+                    <div class="card-subtitle">사용자가 남긴 리뷰 현황</div>
+                </div>
+                <span class="badge-primary">리뷰</span>
+            </div>
+            <div class="flex items-end justify-between mt-3">
+                <div>
+                    <div class="stat-value"
+                         th:text="${#numbers.formatInteger(stats.totalReviews, 0, 'COMMA')}">
+                        3,214
+                    </div>
+                    <div class="stat-label mt-1">
+                        평균 평점
+                        <span class="font-semibold"
+                              th:text="${#numbers.formatDecimal(stats.averageRating, 1, 1)}">4.5</span>점
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-500">
+                        오늘 작성된 리뷰
+                        <span class="font-semibold"
+                              th:text="${stats.todayReviewCount}">12</span>건
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 즐겨찾기 요약 -->
+        <div class="card flex flex-col justify-between">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">즐겨찾기</div>
+                    <div class="card-subtitle">플랫폼 이용 현황</div>
+                </div>
+                <span class="badge-primary">트래픽</span>
+            </div>
+            <div class="flex flex-col gap-2 mt-3 text-sm">
+                <div class="flex items-center justify-between">
+                    <span class="stat-label">전체 즐겨찾기 수</span>
+                    <span class="font-semibold"
+                          th:text="${#numbers.formatInteger(stats.totalFavorites, 0, 'COMMA')}">
+                        4,520
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 회원 / 축제 요약 (2열) -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <!-- 회원 요약 -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="section-title">회원 요약</div>
+                    <div class="section-subtitle">
+                        최근 가입 회원 및 회원 활동 현황입니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 상단 집계 카드 -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="card">
+                    <div class="text-xs text-gray-500 mb-1">오늘 가입</div>
+                    <div class="flex items-end justify-between">
+                        <div class="stat-value"
+                             th:text="${stats.todayJoined}">5</div>
+                        <div class="trend-up"
+                             th:if="${stats.todaySignupsDelta >= 0}"
+                             th:text="'어제보다 +' + ${stats.todaySignupsDelta} + '명'">
+                            +2명
+                        </div>
+                        <div class="trend-down"
+                             th:if="${stats.todaySignupsDelta < 0}"
+                             th:text="'어제보다 ' + ${stats.todaySignupsDelta} + '명'">
+                            -1명
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="text-xs text-gray-500 mb-1">이번 주 리뷰 수</div>
+                    <div class="flex items-end justify-between">
+                        <div class="stat-value"
+                             th:text="${stats.todayReviewCount}">32</div>
+                    </div>
+                    <div class="text-[0.7rem] text-gray-400 mt-1">
+                        평균 평점
+                        <span th:text="${#numbers.formatDecimal(stats.avgWeekScore,1,1)}">4.3</span>점
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최근 가입 회원 테이블 -->
+            <div class="card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="font-semibold">최근 가입 회원</div>
+                    <div class="text-xs text-gray-400">
+                        최근
+                        <span th:text="${#lists.size(stats.recentMembers)}">5</span>명
+                        가입
+                    </div>
+                </div>
+                <table class="w-full text-xs">
+                    <thead class="border-b table-header">
+                    <tr class="text-left">
+                        <th class="py-2">이름</th>
+                        <th class="py-2">이메일</th>
+                        <th class="py-2">가입일</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="m : ${stats.recentMembers}" class="border-b text-[0.78rem]">
+                        <td class="py-2 font-medium" th:text="${m.name}">닉네임</td>
+                        <td class="py-2 text-gray-600" th:text="${m.email}">user@example.com</td>
+                        <td class="py-2"
+                            th:text="${#temporals.format(m.joinDate, 'yyyy-MM-dd ')}">
+                            2025-11-23 21:10
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(stats.recentMembers)}">
+                        <td colspan="4" class="py-4 text-center text-gray-400">
+                            최근 가입한 회원이 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 축제 요약 -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="section-title">축제 요약</div>
+                    <div class="section-subtitle">
+                        등록된 축제 및 최근 등록 축제 현황입니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 상단 집계 카드 -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="card">
+                    <div class="text-xs text-gray-500 mb-1">오늘 시작하는 축제</div>
+                    <div class="flex items-end justify-between">
+                        <div class="stat-value"
+                             th:text="${stats.todayStartFestivals}">3</div>
+                        <div class="text-[0.7rem] text-gray-400">
+                            오늘 종료
+                            <span th:text="${stats.todayEndFestivals}">2</span>개
+                        </div>
+                    </div>
+                    <div class="text-[0.7rem] text-gray-400 mt-1">
+                        이번 주 총
+                        <span th:text="${stats.weekFestivals}">15</span>개 진행
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="font-size: 20px text-bold text-black mb-1">즐겨찾기 인기 축제 TOP 5</div>
+                    <tr th:each="topFavoriteFestival : ${stats.topList}" class="border-b text-[0.78rem]">
+                        <div class="text-[0.75rem] text-gray-500 mt-1">
+                            <td class="py-2 font-medium truncate" th:text="${topFavoriteFestival != null ? topFavoriteFestival.title : ' '}">
+                                축제 제목
+                            </td>
+                            (
+                            <td class="py-2 text-gray-600" th:text="${topFavoriteFestival != null ? topFavoriteFestival.favoriteCount : 0}">
+                                0
+                            </td>
+                            회 )
+                        </div>
+                    </tr>
+                    </div>
+            </div>
+
+            <!-- 최근 등록 축제 테이블 -->
+            <div class="card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="font-semibold">최근 등록 축제</div>
+                    <div class="text-xs text-gray-400">
+                        최근
+                        <span th:text="${#lists.size(stats.recentFestivals)}">5</span>개
+                        등록
+                    </div>
+                </div>
+                <table class="w-full text-xs">
+                    <thead class="border-b table-header">
+                    <tr class="text-left">
+                        <th class="py-2">축제명</th>
+                        <th class="py-2">지역</th>
+                        <th class="py-2">기간</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="f : ${stats.recentFestivals}" class="border-b text-[0.78rem]">
+                        <td class="py-2 font-medium truncate" th:text="${f.title}">
+                            축제 제목
+                        </td>
+                        <td class="py-2 text-gray-600" th:text="${f.state}">
+                            서울
+                        </td>
+                        <td class="py-2"
+                            th:text="${#temporals.format(f.eventStartDate,'yyyy-MM-dd') + ' ~ ' + #temporals.format(f.eventEndDate,'yyyy-MM-dd')}">
+                            2025-11-01 ~ 2025-11-05
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(stats.recentFestivals)}">
+                        <td colspan="3" class="py-4 text-center text-gray-400">
+                            최근 등록된 축제가 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        console.log("JS loaded");
+
+        const ageLabels = /*[[${userStats.ageLabels}]]*/ [] ;
+        const ageData   = /*[[${userStats.ageCounts}]]*/ [] ;
+        const genderLabels = /*[[${userStats.genderLabels}]]*/ [] ;
+        const genderData   = /*[[${userStats.genderCounts}]]*/ [] ;
+        const tagLabels = /*[[${userStats.tagLabels}]]*/ [] ;
+        const tagData   = /*[[${userStats.tagCounts}]]*/ [] ;
+
+
+        console.log("ageLabels:", ageLabels, "ageData:", ageData);
+        console.log("genderLabels:", genderLabels, "genderData:", genderData);
+        console.log("tagLabels:", tagLabels, "tagData:", tagData);
+
+        console.log("ageLabels:", ageLabels, "ageData:", ageData);
+        console.log("genderLabels:", genderLabels, "genderData:", genderData);
+        console.log("tagLabels:", tagLabels, "tagData:", tagData);
+
+        function createDoughnutChart(canvasId, labels, data) {
+            const el = document.getElementById(canvasId);
+            if (!el) return;
+
+            const ctx = el.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 16,
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return `${label}: ${value}명`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // 차트 생성
+        document.addEventListener('DOMContentLoaded', function () {
+            createDoughnutChart('ageChart', ageLabels, ageData);
+            createDoughnutChart('genderChart', genderLabels, genderData);
+            createDoughnutChart('tagChart', tagLabels, tagData);
+        });
+
+        /*]]>*/
+    </script>
+</th:block>
+
+</body>
+</html>
+

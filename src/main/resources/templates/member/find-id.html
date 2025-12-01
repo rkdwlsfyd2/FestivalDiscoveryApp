@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}"
+      lang="ko">
+
+<section layout:fragment="content" class="relative z-50">
+    <div class="flex justify-center items-center mt-40 mb-20">
+
+        <div class="w-full max-w-md bg-white border border-gray-200 shadow-md rounded-xl p-8">
+
+            <h2 class="text-center text-h1 font-black text-gradient mb-6">아이디 찾기</h2>
+
+            <!-- 이메일 입력 -->
+            <div>
+                <label class="block text-gray-700 mb-1">이메일</label>
+                <input type="email" id="email"
+                       class="w-full border rounded px-3 py-2 mb-2">
+                <p id="emailMsg" class="text-sm"></p>
+
+                <button type="button" id="sendCodeBtn"
+                        class="bg-main w-full transition-all hover:bg-gradient2 font-bold
+                        text-white hover:scale-95 duration-300 py-2 rounded mb-3 ease-in-out">
+                    인증코드 발송
+                </button>
+            </div>
+
+            <!-- 인증코드 입력 -->
+            <div>
+                <label class="block text-gray-700 mb-1">인증코드</label>
+                <input type="text" id="verifyCode"
+                       class="w-full border rounded px-3 py-2 mb-3">
+            </div>
+
+            <button type="button" id="findIdBtn"
+                    class="bg-main w-full transition-all hover:bg-gradient2 font-bold
+                        text-white hover:scale-95 duration-300 py-2 rounded mb-3 ease-in-out">
+                아이디 찾기
+            </button>
+
+            <p id="resultMsg" class="mt-4 text-center text-lg font-bold"></p>
+
+        </div>
+    </div>
+</section>
+
+<th:block layout:fragment="script">
+    <script>
+        let verified = false;
+
+        const email = document.getElementById("email");
+        const emailMsg = document.getElementById("emailMsg");
+        const verifyCode = document.getElementById("verifyCode");
+        const sendCodeBtn = document.getElementById("sendCodeBtn");
+        const findIdBtn = document.getElementById("findIdBtn");
+        const resultMsg = document.getElementById("resultMsg");
+
+        /* ----------------------------------------------------
+       📌 이메일 입력 중에는 메시지 초기화
+        ---------------------------------------------------- */
+        email.addEventListener("input", () => {
+            emailMsg.innerText = "";
+            verified = false;
+        });
+        /* ----------------------------------------------------
+           📌 1) 인증코드 발송 (가입된 이메일만 가능하게)
+        ---------------------------------------------------- */
+        sendCodeBtn.addEventListener("click", () => {
+            const emailValue = email.value.trim();
+
+            if (emailValue === "") {
+                emailMsg.innerText = "이메일을 입력하세요.";
+                emailMsg.style.color = "red";
+                return;
+            }
+
+            fetch(`/api/member/send-email-code?email=${emailValue}&type=findId`)
+                .then(res => res.text())
+                .then(result => {
+
+                    if (result === "EMPTY") {
+                        emailMsg.innerText = "이메일을 입력하세요.";
+                        emailMsg.style.color = "red";
+                        return;
+                    }
+
+                    if (result === "NOT_FOUND") {
+                        emailMsg.innerText = "가입된 이메일이 아닙니다.";
+                        emailMsg.style.color = "red";
+                        return;
+                    }
+
+                    if (result === "OK") {
+                        emailMsg.innerText = "인증코드가 이메일로 발송되었습니다.";
+                        emailMsg.style.color = "green";
+                        alert("인증코드가 발송되었습니다.");
+                    }
+                });
+        });
+
+        /* ----------------------------------------------------
+           📌 2) 인증코드 검증
+        ---------------------------------------------------- */
+        verifyCode.addEventListener("input", () => {
+            const emailValue = email.value.trim();
+            const code = verifyCode.value.trim();
+
+            if (code === "") return;
+
+            fetch(`/api/member/verify-email-code`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `email=${emailValue}&code=${code}`
+            })
+                .then(res => res.text())
+                .then(result => {
+                    if (result === "true") {
+                        emailMsg.innerText = "이메일 인증 성공!";
+                        emailMsg.style.color = "green";
+                        verified = true;
+                    } else {
+                        emailMsg.innerText = "인증코드가 올바르지 않습니다.";
+                        emailMsg.style.color = "red";
+                        verified = false;
+                    }
+                });
+        });
+
+        /* ----------------------------------------------------
+           📌 3) 아이디 찾기
+        ---------------------------------------------------- */
+        findIdBtn.addEventListener("click", () => {
+
+            if (!verified) {
+                alert("이메일 인증을 완료하세요.");
+                return;
+            }
+
+            const emailValue = email.value.trim();
+
+            fetch(`/api/member/find-id?email=${emailValue}`)
+                .then(res => res.text())
+                .then(userId => {
+                    if (userId === "NOT_FOUND") {
+                        resultMsg.innerText = "가입된 아이디가 없습니다.";
+                        resultMsg.style.color = "red";
+                    } else {
+                        resultMsg.innerText = `당신의 아이디: ${userId}`;
+                        resultMsg.style.color = "green";
+                    }
+                });
+        });
+
+    </script>
+</th:block>
+
+</html>

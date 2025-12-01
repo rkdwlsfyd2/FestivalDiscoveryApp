@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="top">
+    <nav class="w-full bg-gradient text-white shadow-md">
+        <!-- 전체 헤더 컨테이너 -->
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between text-black">
+
+            <!-- 왼쪽 : 로고(헤더) -->
+            <a th:href="@{/}" class="text-xl font-semibold hover:opacity-90 transition">
+                헤더
+            </a>
+
+            <!-- 가운데 메뉴 -->
+            <div class="flex items-center space-x-4">
+
+                <a href="/calendar" class="px-4 py-2 border rounded bg-white hover:bg-gray-100">
+                    캘린더
+                </a>
+
+                <a href="/festivals/festivalMap" class="px-4 py-2 border rounded bg-white hover:bg-gray-100">
+                    지도
+                </a>
+
+                <!-- 로고(중앙) -->
+                <a href="/" class="px-4 py-2 border rounded bg-white hover:bg-gray-100">
+                    로고
+                </a>
+            </div>
+
+            <!-- 오른쪽 메뉴 -->
+            <div class="flex items-center space-x-3">
+
+                <!--  비로그인 상태: 로그인 / 회원가입 -->
+                <a th:if="${session.loginUser == null}"
+                   href="/login"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                    로그인
+                </a>
+
+                <a th:if="${session.loginUser == null}"
+                   href="/signup"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                    회원가입
+                </a>
+
+                <!--  로그인 상태: 로그아웃 / 마이페이지 or 관리자페이지 -->
+                <a th:if="${session.loginUser != null}"
+                   href="/logout"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                    로그아웃
+                </a>
+
+                <!-- 일반 사용자: 마이페이지 -->
+                <a th:if="${session.loginUser != null and session.loginUser.role == 'user'}"
+                   href="/mypage/profile"
+                class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                마이페이지
+                </a>
+
+                <!-- 관리자: 관리자 페이지 -->
+                <a th:if="${session.loginUser != null and session.loginUser.role == 'admin'}"
+                   href="/admin"
+                   class="px-3 py-2 border rounded bg-white hover:bg-gray-100">
+                    관리자페이지
+                </a>
+
+            </div>
+
+        </div>
+    </nav>
+</div>
+
+</html>

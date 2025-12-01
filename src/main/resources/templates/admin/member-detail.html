@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<head>
+    <th:block layout:fragment="css">
+        <style>
+            .section-card {
+                @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+            }
+            .section-title {
+                @apply text-lg font-semibold text-gray-800 mb-4;
+            }
+            .pill-badge {
+                @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="max-w-6xl mx-auto px-4 py-8 space-y-6 mt-20">
+
+    <!-- 페이지 헤더 -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">
+            회원 상세 정보
+        </h1>
+        <a href="/admin/members"
+           class="text-sm text-gray-500 hover:text-main">
+            ← 회원 목록으로
+        </a>
+    </div>
+
+    <!-- 전체 레이아웃: 좌측 기본 정보 / 우측 리뷰·즐겨찾기 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 1. 회원 기본 정보 (왼쪽 고정 카드) -->
+        <section class="section-card lg:col-span-1 flex flex-col justify-between gap-6">
+            <div>
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <div class="text-sm text-gray-500 mb-1">
+                            회원 번호 <span th:text="${detail.member.userNo}">1</span>
+                        </div>
+                        <div class="text-xl font-semibold" th:text="${detail.member.name}">홍길동</div>
+                        <div class="text-sm text-gray-500" th:text="${detail.member.userId}">user01</div>
+                    </div>
+
+                    <div class="text-right space-y-2">
+                        <div>
+                            <span class="pill-badge bg-blue-50 text-blue-600"
+                                  th:text="${detail.member.role == 'admin' ? '관리자' : '일반회원'}">
+                                일반회원
+                            </span>
+                            <span class="pill-badge"
+                                  th:classappend="${detail.member.isActive == 'Y'} ? ' bg-emerald-50 text-emerald-600' : ' bg-red-50 text-red-600'"
+                                  th:text="${detail.member.isActive == 'Y' ? '활성' : '비활성'}">
+                                활성
+                            </span>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            가입일:
+                            <span th:text="${#temporals.format(detail.member.joinDate, 'yyyy.MM.dd')}">
+                                2025.01.01
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 기본 정보 + 생년월일 -->
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <dt class="text-gray-500 mb-1">이메일</dt>
+                        <dd class="font-medium" th:text="${detail.member.email}">
+                            user@example.com
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500 mb-1">전화번호</dt>
+                        <dd class="font-medium" th:text="${detail.member.phone}">
+                            010-0000-0000
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500 mb-1">성별</dt>
+                        <dd class="font-medium"
+                            th:text="${detail.member.gender == 'M' ? '남성'
+                                          : (detail.member.gender == 'F' ? '여성' : '기타')}">
+                            남성
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500 mb-1">생년월일</dt>
+                        <dd class="font-medium"
+                            th:text="${#temporals.format(detail.member.birthDate, 'yyyy.MM.dd')}">
+                            1998.01.01
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500 mb-1">선호 태그</dt>
+                        <dd class="font-medium" th:text="${detail.member.favoriteTag}">
+                            #야간 #먹거리
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <!-- 오른쪽 영역: 리뷰 + 즐겨찾기 -->
+        <div class="lg:col-span-2 lg:border-l lg:border-gray-200 lg:pl-6 space-y-6">
+
+            <!-- 2. 작성한 리뷰 목록 -->
+            <section class="section-card">
+                <h2 class="section-title">작성한 리뷰</h2>
+
+                <div th:if="${#lists.isEmpty(detail.reviews)}"
+                     class="text-sm text-gray-400">
+                    작성한 리뷰가 없습니다.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(detail.reviews)}"
+                     class="space-y-4 max-h-96 overflow-y-auto">
+                    <div th:each="review : ${detail.reviews}"
+                         class="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 text-sm">
+                        <div class="flex items-center justify-between mb-1">
+                            <a th:if="${review != null}"
+                               th:href="@{|/festivals/detail?festivalNo=${review.festivalNo}|}"
+                               class="font-medium text-gray-800 hover:text-main"
+                               th:text="${review.festivalTitle}">
+                                축제 제목
+                            </a>
+                            <div class="text-xs text-gray-400"
+                                 th:text="${#temporals.format(review.createdAt, 'yyyy.MM.dd')}">
+                                2025.01.01
+                            </div>
+                        </div>
+                        <div class="text-xs text-yellow-500 mb-1">
+                            ★ <span th:text="${review.rating}">5</span>
+                        </div>
+                        <p class="text-gray-700 line-clamp-2 mb-2"
+                           th:text="${review.content}">
+                            리뷰 내용...
+                        </p>
+                        <div class="flex justify-end gap-2">
+                            <form th:action="@{|/admin/reviews/${review.reviewId}/delete|}"
+                                  method="post"
+                                  onsubmit="return confirm('이 리뷰를 삭제하시겠습니까?');">
+                                <input type="hidden" name="userNo"
+                                       th:value="${detail.member.userNo}">
+                                <button type="submit"
+                                        class="px-2 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50">
+                                    삭제
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 즐겨찾기한 축제 목록 -->
+            <section class="section-card">
+                <h2 class="section-title">즐겨찾기한 축제</h2>
+
+                <div th:if="${#lists.isEmpty(detail.favorites)}"
+                     class="text-sm text-gray-400">
+                    즐겨찾기한 축제가 없습니다.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(detail.favorites)}"
+                     class="space-y-3 max-h-96 overflow-y-auto text-sm">
+                    <div th:each="fav : ${detail.favorites}"
+                         class="flex items-center justify-between border border-gray-100 rounded-lg px-3 py-2 hover:bg-gray-50">
+                        <div>
+                            <a th:if="${fav != null}"
+                               th:href="@{|/festivals/detail?festivalNo=${fav.festivalNo}|}"
+                               class="font-medium text-gray-800 hover:text-main"
+                               th:text="${fav.title}">
+                                축제 제목
+                            </a>
+                            <div class="text-xs text-gray-400 mt-0.5"
+                                 th:text="${fav.addr}">
+                                서울시 어딘가...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko"
+	  xmlns:th="http://www.thymeleaf.org/"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>mylayout</title>
+
+		<!-- Tailwind CSS CDN -->
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script>
+			tailwind.config = {
+				theme: {
+					extend: {
+						colors: {
+							foreground: '#FFFFFF',
+							foregroundSub: '#6B96FC',
+							main: '#4A80FA',
+							sub: {
+								blue: '#6B96FC',
+								red: '#FF6A6B',
+							},
+						},
+						fontSize: {
+							'h1': '40px',
+							'h3': '22px',
+							'body': '16px',
+							'subtext': '13px',
+						},
+						fontFamily: {
+							suit: ['Suit', 'sans-serif'],
+						},
+					},
+				},
+			}
+		</script>
+
+		<!-- Custom CSS (필요하면 사용) -->
+		<link th:href="@{/css/tailwind.css}" rel="stylesheet">
+
+		<!-- CSS fragment -->
+		<th:block layout:fragment="css"></th:block>
+	</head>
+
+	<body class="min-h-screen flex flex-col font-suit">
+
+		<!-- Header -->
+		<div th:replace="~{common/header::top}"></div>
+
+		<!-- Content -->
+		<main class="flex-grow">
+			<div layout:fragment="content"></div>
+		</main>
+
+		<!-- Footer -->
+		<div th:replace="~{common/footer::bottom}"></div>
+
+		<!-- Script fragment ( 반드시 body 아래에 위치해야 함) -->
+		<th:block layout:fragment="script"></th:block>
+	</body>
+</html>

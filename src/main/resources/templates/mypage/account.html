@@ -1,0 +1,298 @@
+<!-- account.html -->
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<head>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<div layout:fragment="content" class="bg-gray-50">
+    <div class="flex max-w-6xl mx-auto py-10 mt-20">
+
+        <!-- 사이드바 -->
+        <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8">
+            <h2 class="text-xl font-bold mb-6">마이페이지</h2>
+
+            <nav class="flex flex-col space-y-3">
+                <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">프로필 확인</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md bg-gray-200 hover:bg-gradient2 hover:text-white">회원수정 및 회원탈퇴</a>
+                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">축제 즐겨찾기</a>
+                <a href="/mypage/reviews" class="px-3 py-2 rounded-md hover:bg-gradient2 hover:text-white">내 리뷰 관리</a>
+            </nav>
+        </aside>
+
+        <!-- 본문 -->
+        <main class="flex-1">
+            <div class="bg-white shadow-md rounded-2xl p-10">
+
+                <h2 class="text-h1 font-black text-gradient mb-3">회원 정보 수정</h2>
+
+                <div class="h-px bg-gray-300 my-2 mb-10"></div>
+
+                <form id="accountForm" th:action="@{/mypage/account/update}" method="post" class="space-y-8">
+
+                    <!-- 아이디 / 이름 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">아이디</label>
+                            <input type="text" th:value="${member.userId}"
+                                   class="w-full border rounded-md p-2 bg-gray-100 text-gray-500" disabled>
+                        </div>
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">이름</label>
+                            <input type="text" th:value="${member.name}" class="w-full border rounded-md p-2 bg-gray-100 text-gray-500" disabled>
+                            <input type="hidden" name="name" th:value="${member.name}">
+
+                        </div>
+                    </div>
+					<!-- 성별 / 생년월일 -->
+                    <div class="grid grid-cols-2 gap-12">
+
+                        <!-- 성별 -->
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">성별</label>
+                            <input type="text"
+                                   class="w-full border rounded-md p-2 bg-gray-100 text-gray-500"
+                                   th:value="${member.gender == 'M' ? '남성' : '여성'}"
+                                   disabled>
+                            <input type="hidden" name="gender" th:value="${member.gender}">
+                        </div>
+
+
+                        <!-- 생년월일 -->
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">생년월일</label>
+                            <input type="date"
+                                   th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}"
+                                   class="w-full border rounded-md p-2 bg-gray-100 text-gray-500"
+                                   disabled>
+                            <input type="hidden" name="birthDate"
+                                   th:value="${#temporals.format(member.birthDate,'yyyy-MM-dd')}">
+                        </div>
+
+                    </div>
+
+
+                    <!-- 이메일 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">이메일</label>
+                            <input type="text" th:value="${member.email}"
+                                   class="w-full border rounded-md p-2 bg-gray-100 text-gray-500" disabled>
+
+                            <input type="hidden" name="email" th:value="${member.email}">
+                        </div>
+                    </div>
+
+                    <!-- 전화번호 / 비밀번호 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">전화번호</label>
+
+                            <div class="flex">
+                                <!-- 010 고정 (수정 불가) -->
+                                <input type="text" value="010" class="w-20 border rounded-md p-2 bg-gray-100 text-gray-500" disabled>
+
+                                <!-- 나머지 8자리 -->
+                                <input id="phone" type="text" name="phone"
+                                       th:value="${
+                                           member.phone != null && #strings.length(member.phone) >= 8
+                                           ? member.phone.substring(#strings.length(member.phone) - 8)
+                                           : ''
+                                       }"
+                                       class="w-full border rounded-md p-2 ml-2" maxlength="8">
+                            </div>
+
+                            <p id="phoneError" class="text-red-500 text-sm mt-1 hidden">
+                                전화번호 형식이 올바르지 않습니다. (예: 01012345678)
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">새 비밀번호 <span class="text-gray-400">(8~20자, 영문 + 숫자/특수문자)</span></label>
+                            <input id="password" type="password" name="password" placeholder="변경 시 입력"
+                                   class="w-full border rounded-md p-2">
+                        </div>
+                    </div>
+
+                    <!-- 비밀번호 확인 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div></div>
+
+                        <div>
+                            <label class="block text-black font-bold mb-2">비밀번호 확인</label>
+                            <input id="passwordConfirm" type="password" placeholder="한번 더 입력"
+                                   class="w-full border rounded-md p-2">
+                            <p id="pwError" class="text-red-500 text-sm mt-1 hidden">
+                                비밀번호가 조건에 맞지 않거나 일치하지 않습니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 선호 태그 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <label class="block text-sub-red font-bold mb-2">선호 태그 (1개 선택)</label>
+
+                            <div id="tagContainer" class="flex flex-wrap gap-2 mb-3"></div>
+
+                            <input type="hidden" id="favoriteTag" name="favoriteTag"
+                                   th:value="${member.favoriteTag}">
+
+                            <div class="mt-4">
+                                <p class="text-gray-600 text-sm mb-2">추천 태그</p>
+
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" class="tag-btn text-white bg-main px-3 py-1 rounded-full text-sm hover:bg-gradient2 transition" data-tag="자연">🌿 자연</button>
+                                    <button type="button" class="tag-btn text-white bg-main px-3 py-1 rounded-full text-sm hover:bg-gradient2 transition" data-tag="야간">🌙 야간</button>
+									<button type="button" class="tag-btn text-white bg-main px-3 py-1 rounded-full text-sm hover:bg-gradient2 transition" data-tag="체험">🎨 체험</button>
+									<button type="button" class="tag-btn text-white bg-main px-3 py-1 rounded-full text-sm hover:bg-gradient2 transition" data-tag="먹거리">🍜 먹거리</button>
+									<button type="button" class="tag-btn text-white bg-main px-3 py-1 rounded-full text-sm hover:bg-gradient2 transition" data-tag="문화">🎭 문화</button>
+									<button type="button" class="tag-btn text-white bg-main px-3 py-1 rounded-full text-sm hover:bg-gradient2 transition" data-tag="아동">👦 아동</button>
+									<button type="button" class="tag-btn text-white bg-main px-3 py-1 rounded-full text-sm hover:bg-gradient2 transition" data-tag="계절">❄️ 계절</button>
+                            	</div>
+							</div>
+						</div>
+					</div>
+                </form>
+
+				<!-- 수정 + 회원탈퇴 버튼 -->
+				<div class="mt-10 flex items-center justify-between">
+					<!-- accountForm을 submit하는 버튼 (폼 밖이지만 form 속성으로 연결) -->
+					<button type="submit"
+							form="accountForm"
+							class="bg-gradient-to-br from-[#6B96FC] to-[#4A80FA] text-white px-6 py-3 rounded-md">
+						정보 수정하기
+					</button>
+
+					<!-- 회원탈퇴 -->
+					<form id="withdrawForm"
+						  action="/mypage/withdraw"
+						  method="post"
+						  onsubmit="return confirm('정말 탈퇴하시겠습니까?');">
+						<button type="submit" class="bg-sub-red text-white px-6 py-3 rounded-md shadow">
+							회원 탈퇴
+						</button>
+					</form>
+				</div>
+
+            </div>
+        </main>
+
+		<th:block layout:fragment="script">
+			<script>
+				document.addEventListener("DOMContentLoaded", function () {
+
+					/* ---------------- 태그 선택 UI ---------------- */
+					const tagContainer = document.getElementById("tagContainer");
+					const hiddenTagInput = document.getElementById("favoriteTag");
+					/* 데드코드 - 하요한
+					// const favoriteTagIconEl = document.getElementById("favoriteTagIcon");
+					*/
+					// 태그별 아이콘 매핑
+					const tagIconMap = {
+						"자연": "🌿",
+						"야간": "🌙",
+						"체험": "🎨",
+						"먹거리": "🍜",
+						"문화": "🎭",
+						"아동": "👦",
+						"계절": "❄️"
+					};
+
+					let selectedTag = hiddenTagInput.value || "";
+
+					// 기존에 저장된 선호 태그가 있으면 초기 렌더링
+					if (selectedTag) addTagChip(selectedTag);
+
+					/* 데드코드 - 하요한
+					// 라벨 옆 아이콘 렌더링
+					function renderFavoriteTagIcon(tag) {
+						if (!favoriteTagIconEl) return;
+						favoriteTagIconEl.textContent = tagIconMap[tag] || "";
+					}
+					*/
+
+					function addTagChip(tag) {
+						tagContainer.innerHTML = "";
+						selectedTag = tag;
+
+						const chip = document.createElement("div");
+						chip.className = "bg-gradient2 text-white px-3 py-1 rounded-full text-sm border";
+
+						// 칩에도 아이콘 + 텍스트 같이 표시
+						const icon = tagIconMap[tag] || "";
+						chip.innerText = icon ? `${icon} ${tag}` : tag;
+
+						tagContainer.appendChild(chip);
+						hiddenTagInput.value = selectedTag;
+
+						/* 데드코드 - 하요한
+						// 라벨 옆 아이콘도 같이 변경
+						renderFavoriteTagIcon(tag);
+						*/
+					}
+
+					document.querySelectorAll(".tag-btn").forEach(btn => {
+						btn.addEventListener("click", () => addTagChip(btn.dataset.tag));
+					});
+
+
+					/* ---------------- 폼 검증 ---------------- */
+					document.getElementById("accountForm").addEventListener("submit", function (e) {
+
+						let valid = true;
+
+						/* 이름 검증 */
+						const nameField = document.querySelector("input[name='name']");
+						if (nameField.value.trim().length === 0) {
+							alert("이름을 입력해주세요.");
+							valid = false;
+						}
+						if (nameField.value.trim().length > 20) {
+							alert("이름은 20글자 이하로 입력해주세요.");
+							valid = false;
+						}
+
+
+						/* 전화번호 검증 */
+						const phone = "010" + document.getElementById("phone").value.trim();
+						const phoneError = document.getElementById("phoneError");
+						const phoneRegex = /^010\d{8}$/;
+
+						if (!phoneRegex.test(phone)) {
+							phoneError.classList.remove("hidden");
+							valid = false;
+						} else {
+							phoneError.classList.add("hidden");
+						}
+
+						/* 비밀번호 검증 */
+						const pw = document.getElementById("password").value.trim();
+						const pwConfirm = document.getElementById("passwordConfirm").value.trim();
+						const pwError = document.getElementById("pwError");
+
+						const pwRegex = /^(?=.*[A-Za-z])(?=.*[\d!@#$%^&*]).{8,20}$/;
+
+						if (pw.length > 0) {
+							if (!pwRegex.test(pw) || pw !== pwConfirm) {
+								pwError.classList.remove("hidden");
+								valid = false;
+							} else {
+								pwError.classList.add("hidden");
+							}
+						}
+
+						if (!valid) e.preventDefault();
+					});
+				});
+			</script>
+		</th:block>
+
+	</div>
+</div>
+</html>

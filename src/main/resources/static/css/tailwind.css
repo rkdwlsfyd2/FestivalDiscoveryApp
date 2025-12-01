@@ -1,0 +1,94 @@
+/* Tailwind CSS 기본 지시문 (CDN 사용 시 불필요하지만, 빌드 시 필요) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 커스텀 유틸리티 클래스 */
+@layer utilities {
+    .text-h1 {
+        font-size: 40px;
+    }
+    .text-h3 {
+        font-size: 22px;
+    }
+    .text-body {
+        font-size: 16px;
+    }
+    .text-subtext {
+        font-size: 13px;
+    }
+    .bg-main {
+        background-color: #4A80FA;
+    }
+    .text-main {
+        color: #4A80FA;
+    }
+    .text-sub-red {
+        color: #FF6A6B;
+    }
+    .bg-sub-blue {
+        background-color: #E6E8F2;
+    }
+    .bg-gradient {
+        background: linear-gradient(45deg, #6B96FC 0%, #4A80FA 100%);
+    }
+    .bg-gradient2 {
+        background: linear-gradient(45deg, #5170ff 0%, #ff66c4 100%);
+    }
+    .bg-sub-red {
+        background-color: #FF6A6B;
+    }
+    .text-foreground {
+        color: #FFFFFF;
+    }
+    .text-foregroundSub {
+        color: #6B96FC;
+    }
+    .font-heavy {
+        font-weight: 1200;
+    }
+    .text-gradient {
+        background: linear-gradient(45deg, #5170ff, #ff66c4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+    }
+}
+
+.hover\:bg-gradient:hover {
+    background: linear-gradient(45deg, #6B96FC, #4A80FA) !important;
+}
+.hover\:bg-gradient2:hover {
+    background: linear-gradient(45deg, #5170ff, #ff66c4) !important;
+}
+
+/* 축제 목록 스크롤바 커스터마이징 */
+#festivalListContainer::-webkit-scrollbar,#detailContent::-webkit-scrollbar {
+    width: 6px;
+}
+#festivalListContainer::-webkit-scrollbar-track,#detailContent::-webkit-scrollbar-track {
+    background: transparent;
+}
+#festivalListContainer::-webkit-scrollbar-thumb,#detailContent::-webkit-scrollbar-thumb {
+    background: #4A80FA;
+    border-radius: 4px;
+}
+
+/* 기존 커스텀 스타일 */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto;
+}
+#top{
+    width : 100%;
+    background-color:cyan;
+}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<head>
+
+    <th:block layout:fragment="css">
+        <style>
+            /* 테이블 구조 */
+            .review-header,
+            .review-row {
+                display: grid;
+                grid-template-columns: 80px 130px 200px 1fr 80px 150px 100px;
+                padding: 12px 10px;
+                align-items: center;
+                column-gap: 16px;
+            }
+
+            .review-header {
+                font-weight: bold;
+                border-bottom: 2px solid #d1d5db;
+                background: #f8fafc;
+            }
+
+            .review-row {
+                border-bottom: 1px solid #e5e7eb;
+                transition: background 0.2s ease;
+            }
+
+            .review-row:hover {
+                background: #f9fafb;
+            }
+
+            /* 한 줄 ellipsis */
+            .review-text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 400px;
+                color: #555;
+                cursor: pointer;
+            }
+
+            .tooltip-box {
+                display: none;
+                background: #ffffff;
+                padding: 12px;
+                margin-top: 8px;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+                max-width: 800px;
+                white-space: normal;
+                word-break: break-all;
+            }
+
+            /* 길어서 잘린 텍스트만 hover 가능 */
+            .long-text:hover .tooltip-box {
+                display: block;
+                position: relative;
+            }
+
+        </style>
+    </th:block>
+</head>
+
+<div layout:fragment="content" class="bg-gray-50 min-h-screen mt-20 w-full">
+
+    <div class="flex max-w-[1600px] mx-auto py-10">
+
+        <!-- 관리자 사이드바 -->
+        <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8 whitespace-nowrap">
+            <h2 class="text-xl font-bold mb-6">관리자 페이지</h2>
+
+            <nav class="flex flex-col space-y-3">
+                <a href="/admin"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'dashboard' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">대시보드</a>
+
+                <a href="/admin/members"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'members' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">회원 관리</a>
+
+                <a href="/admin/festivals"
+                   class="px-3 py-2 rounded-md"
+                   th:classappend="${activeMenu} == 'festivals' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">축제 관리</a>
+
+                <a href="/admin/reviews"
+                   class="px-3 py-2 rounded-md bg-gray-200 font-semibold"
+                   th:classappend="${activeMenu} == 'reviews' ? ' bg-gray-200 font-semibold' : ' hover:bg-gray-100'">리뷰 관리</a>
+            </nav>
+        </aside>
+
+        <!-- 본문 -->
+        <main class="flex-1">
+
+            <div class="bg-white shadow-md rounded-xl p-6 w-full max-w-[1600px] mx-auto">
+                <h2 class="text-2xl font-bold mb-6">리뷰 관리</h2>
+
+                <!-- 헤더 -->
+                <div class="review-header text-gray-700 text-sm">
+                    <div>번호</div>
+                    <div>유저 ID</div>
+                    <div>축제명</div>
+                    <div>리뷰 내용</div>
+                    <div>평점</div>
+                    <div>작성일</div>
+                    <div class="text-center">관리</div>
+                </div>
+
+                <!-- 리뷰 리스트 -->
+                <div th:each="r : ${reviews}" class="review-row text-sm">
+
+                    <div th:text="${r.reviewId}"></div>
+                    <div th:text="${r.userId}"></div>
+                    <div th:text="${r.festivalTitle}"></div>
+
+                    <!-- 리뷰 내용 (한 줄 표시 + hover 시 펼치기) -->
+                    <div class="review-container">
+
+                        <!-- 한 줄 요약 -->
+                        <div class="review-text" th:text="${r.content}"></div>
+
+                        <!-- 전체 내용 -->
+                        <div class="tooltip-box" th:text="${r.content}"></div>
+
+                    </div>
+
+                    <div th:text="${r.rating}"></div>
+                    <div th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd')}"></div>
+
+                    <div class="text-center">
+                        <form th:action="@{'/admin/reviews/' + ${r.reviewId} + '/delete'}"
+                              method="post" onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+                            <button class="px-2 py-1 border rounded text-xs text-red-600">삭제</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 조회 없음 -->
+                <div th:if="${#lists.isEmpty(reviews)}"
+                     class="py-6 text-center text-gray-500">
+                    조회된 리뷰가 없습니다.
+                </div>
+
+                <!-- 페이징 -->
+                <div class="mt-6 flex justify-center space-x-2">
+                    <a th:if="${page > 0}"
+                       th:href="@{/admin/reviews(page=${page-1}, sort=${sort}, keyword=${keyword})}"
+                       class="px-3 py-1 border rounded-md">이전</a>
+
+                    <span class="px-4 py-2 font-semibold bg-gray-100 rounded-md">
+                        [[${page+1}]] / [[${totalPages}]]
+                    </span>
+
+                    <a th:if="${page+1 < totalPages}"
+                       th:href="@{/admin/reviews(page=${page+1}, sort=${sort}, keyword=${keyword})}"
+                       class="px-3 py-1 border rounded-md">다음</a>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const items = document.querySelectorAll(".review-container");
+
+            items.forEach(item => {
+                const text = item.querySelector(".review-text");
+
+                if (text.scrollWidth > text.clientWidth) {
+                    // 텍스트가 잘렸으면 hover 활성화
+                    item.classList.add("long-text");
+                }
+            });
+        });
+    </script>
+</div>
+
+</html>

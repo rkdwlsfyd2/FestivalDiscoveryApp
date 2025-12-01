@@ -1,0 +1,45 @@
+<!--index.html-->
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/mylayout}">
+
+<div layout:fragment="content" class="bg-gray-50">
+
+    <div class="flex max-w-6xl mx-auto py-10">
+
+        <!-- 사이드바 -->
+        <aside class="w-60 bg-white shadow-md rounded-lg p-6 mr-8">
+            <h2 class="text-xl font-bold mb-6">마이페이지</h2>
+
+            <nav class="flex flex-col space-y-3">
+                <a href="/mypage/profile" class="px-3 py-2 rounded-md hover:bg-gradient2 text-white">프로필 확인</a>
+                <a href="/mypage/account" class="px-3 py-2 rounded-md hover:bg-gradient2 text-white">회원수정 및 탈퇴</a>
+                <a href="/mypage/favorites" class="px-3 py-2 rounded-md hover:bg-gradient2 text-white">축제 즐겨찾기</a>
+                <a href="/mypage/reviews" class="px-3 py-2 rounded-md hover:bg-gradient2 text-white">내 리뷰 관리</a>
+            </nav>
+        </aside>
+
+        <!-- 본문 -->
+        <main class="flex-1">
+
+            <div class="bg-white shadow-md rounded-2xl p-10">
+
+                <h2 class="text-2xl font-bold mb-10">마이페이지</h2>
+
+                <ul class="space-y-4">
+                    <li><a href="/mypage/profile" class="text-blue-600 hover:underline">프로필 확인</a></li>
+                    <li><a href="/mypage/account" class="text-blue-600 hover:underline">회원수정 및 탈퇴</a></li>
+                    <li><a href="/mypage/favorites" class="text-blue-600 hover:underline">축제 즐겨찾기</a></li>
+                    <li><a href="/mypage/reviews" class="text-blue-600 hover:underline">내 리뷰 관리</a></li>
+                </ul>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+</html>
