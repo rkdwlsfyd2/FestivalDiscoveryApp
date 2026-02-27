@@ -17,6 +17,7 @@
 - 이 프로젝트는 축제 소개 텍스트를 멀티라벨 태그로 구조화하고, 성별/연령 방문 통계와 결합해 개인화 추천 점수를 계산합니다.
 - 결과적으로 사용자는 지도, 목록, 캘린더, 상세 페이지에서 같은 데이터를 보더라도 AI 추천 배지를 통해 우선순위가 붙은 탐색 경험을 얻습니다.
 
+English Version : https://github.com/rkdwlsfyd2/FestivalDiscoveryApp/blob/main/README.en.md
 ---
 
 ## Overview
